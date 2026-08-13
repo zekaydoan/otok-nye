@@ -7,6 +7,11 @@ import { CarIcon } from "@/components/icons";
 import type { Vehicle } from "@/lib/types";
 
 const PENDING_VEHICLE_KEY = "otoKunyeYeniArac";
+// Toplu araç içe aktarma (bkz. app/dashboard/araclar/toplu-ekle) sonrasında eklenen
+// araçların tümünü bu ayrı anahtar altında bir dizi olarak yazar — tekil ekleme akışı
+// (PENDING_VEHICLE_KEY) tek bir nesne bekliyor, iki deseni karıştırmamak için ayrı
+// tutuldu.
+const PENDING_BULK_VEHICLES_KEY = "otoKunyeTopluArac";
 
 export default function VehicleListSection({
   shopId,
@@ -28,10 +33,24 @@ export default function VehicleListSection({
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(PENDING_VEHICLE_KEY);
-      if (!raw) return;
-      sessionStorage.removeItem(PENDING_VEHICLE_KEY);
-      const pending = JSON.parse(raw) as Vehicle;
-      setVehicles((prev) => (prev.some((v) => v.id === pending.id) ? prev : [pending, ...prev]));
+      if (raw) {
+        sessionStorage.removeItem(PENDING_VEHICLE_KEY);
+        const pending = JSON.parse(raw) as Vehicle;
+        setVehicles((prev) => (prev.some((v) => v.id === pending.id) ? prev : [pending, ...prev]));
+      }
+    } catch {
+    }
+    try {
+      const rawBulk = sessionStorage.getItem(PENDING_BULK_VEHICLES_KEY);
+      if (rawBulk) {
+        sessionStorage.removeItem(PENDING_BULK_VEHICLES_KEY);
+        const pendingBulk = JSON.parse(rawBulk) as Vehicle[];
+        setVehicles((prev) => {
+          const existingIds = new Set(prev.map((v) => v.id));
+          const newOnes = pendingBulk.filter((v) => !existingIds.has(v.id));
+          return [...newOnes, ...prev];
+        });
+      }
     } catch {
     }
   }, []);

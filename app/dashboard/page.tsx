@@ -85,6 +85,13 @@ export default async function DashboardPage() {
       </div>
 
       <Link
+        href="/dashboard/araclar/toplu-ekle"
+        className="mt-2 block text-right text-xs font-medium text-brand-600 hover:underline"
+      >
+        Toplu Ekle (CSV) →
+      </Link>
+
+      <Link
         href="/dashboard/etiket-siparis"
         className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-dashed border-brand-300 bg-brand-50/60 p-4 hover:bg-brand-50"
       >
@@ -138,7 +145,12 @@ export default async function DashboardPage() {
 
         {upcoming.length > 0 && (
           <div className="mt-6">
-            <h2 className="text-lg font-bold text-slate-900">Yaklaşan Bakımlar</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">Yaklaşan Bakımlar</h2>
+              <Link href="/dashboard/hatirlatmalar" className="text-xs font-medium text-brand-600 hover:underline">
+                Tümünü gör →
+              </Link>
+            </div>
             <div className="mt-3 space-y-2">
               {upcoming.map(({ vehicle, record, daysUntil, kmRemaining }) => {
                 const whatsAppLink = vehicle.ownerPhone
