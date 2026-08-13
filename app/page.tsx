@@ -303,19 +303,25 @@ export default function HomePage() {
               </div>
 
               {/* Ana kartın üzerine hafifçe taşan iki küçük rozet — QR okutma anını
-                  ve otomatik hatırlatmayı görsel olarak somutlaştırıyor. */}
+                  ve otomatik hatırlatmayı görsel olarak somutlaştırıyor. Mobilde
+                  taşma/yatay kaydırmaya yol açmaması için kart sınırlarına daha
+                  yakın, geniş ekranlarda ise daha belirgin şekilde taşırılıyor. */}
               <div
-                className="animate-float-badge absolute -left-6 -top-5 hidden -rotate-6 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-lg sm:flex"
+                className="animate-float-badge absolute -left-2 -top-3 flex -rotate-6 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 shadow-lg sm:-left-6 sm:-top-5 sm:gap-2 sm:px-3 sm:py-2"
               >
-                <QrIcon className="h-5 w-5 text-brand-600" />
-                <span className="text-xs font-semibold text-slate-700">QR okutuldu</span>
+                <QrIcon className="h-4 w-4 shrink-0 text-brand-600 sm:h-5 sm:w-5" />
+                <span className="whitespace-nowrap text-[11px] font-semibold text-slate-700 sm:text-xs">
+                  QR okutuldu
+                </span>
               </div>
               <div
-                className="animate-float-badge absolute -bottom-5 -right-4 hidden rotate-3 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 shadow-lg sm:flex"
+                className="animate-float-badge absolute -bottom-3 -right-2 flex rotate-3 items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-2.5 py-1.5 shadow-lg sm:-bottom-5 sm:-right-4 sm:gap-2 sm:px-3 sm:py-2"
                 style={{ animationDelay: "-1.6s" }}
               >
-                <BellIcon className="h-5 w-5 text-amber-600" />
-                <span className="text-xs font-semibold text-amber-800">Hatırlatma gönderildi</span>
+                <BellIcon className="h-4 w-4 shrink-0 text-amber-600 sm:h-5 sm:w-5" />
+                <span className="whitespace-nowrap text-[11px] font-semibold text-amber-800 sm:text-xs">
+                  Hatırlatma gönderildi
+                </span>
               </div>
             </div>
           </div>
