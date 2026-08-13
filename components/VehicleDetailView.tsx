@@ -30,12 +30,6 @@ export default function VehicleDetailView({
   favoriteOils: FavoriteOil[];
   plakaGuncellendi?: boolean;
 }) {
-  // Sunucudan gelen kayıtları başlangıç durumu olarak alıp burada yerelde tutuyoruz.
-  // Netlify Blobs'un .list() metodu strong consistency desteklemediğinden, bir kayıt
-  // eklendikten hemen sonra router.refresh() sunucudan güncel listeyi her zaman
-  // getiremeyebiliyor. Bu yüzden POST isteğinin döndürdüğü yeni kaydı burada anında
-  // listeye ekleyip (optimistic update), arka planda sunucuyla senkron kalmaya devam
-  // ediyoruz — kullanıcı hiçbir gecikme görmüyor.
   const [records, setRecords] = useState<OilRecord[]>(initialRecords);
 
   const latest = records[0];
@@ -50,11 +44,14 @@ export default function VehicleDetailView({
 
   function handleRecordCreated(record: OilRecord) {
     setRecords((prev) => {
-      // Aynı kayıt (aynı id) zaten listedeyse (ör. sunucu senkronu araya girdiyse)
-      // tekrar eklemiyoruz.
       if (prev.some((r) => r.id === record.id)) return prev;
       return [record, ...prev];
     });
+
+    try {
+      sessionStorage.setItem("otoKunyeYeniArac", JSON.stringify(vehicle));
+    } catch {
+    }
   }
 
   return (
@@ -102,8 +99,6 @@ export default function VehicleDetailView({
         </div>
       )}
 
-      {/* Araç kimlik kartı — gerçek TR plaka görünümü, etiket ve satış raporundaki
-          plaka stiliyle tutarlı olsun diye aynı görsel dili kullanır. */}
       <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 sm:p-6">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex shrink-0 overflow-hidden rounded-lg border-2 border-slate-900">
@@ -131,8 +126,6 @@ export default function VehicleDetailView({
           </div>
         </div>
 
-        {/* Hızlı özet — tüm geçmişi taramadan önce "kaç kayıt var, son ne zaman
-            yapıldı, sıradaki ne zaman" sorusuna anında cevap verir. */}
         <div className="mt-5 grid grid-cols-3 gap-3 border-t border-slate-100 pt-4 text-center sm:text-left">
           <div>
             <p className="text-xs text-slate-400">Toplam Kayıt</p>
@@ -212,9 +205,6 @@ export default function VehicleDetailView({
           </div>
         ) : (
           <>
-            {/* Mobilde zaman çizelgesi (timeline) kart listesi, masaüstünde tablo —
-                geniş tabloyu telefonda yatay kaydırmaya zorlamak yerine kayıtları
-                dikey bir "geçmiş" akışı olarak gösteriyoruz. */}
             <div className="mt-4 md:hidden">
               {records.map((r, idx) => (
                 <div key={r.id} className="flex gap-3">
@@ -266,7 +256,6 @@ export default function VehicleDetailView({
                       {(r.hasBeforePhoto || r.hasAfterPhoto) && (
                         <div className="mt-2 flex gap-2">
                           {r.hasBeforePhoto && (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={`/api/photos/${r.id}/before`}
                               alt="Öncesi"
@@ -274,7 +263,6 @@ export default function VehicleDetailView({
                             />
                           )}
                           {r.hasAfterPhoto && (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={`/api/photos/${r.id}/after`}
                               alt="Sonrası"
@@ -338,7 +326,6 @@ export default function VehicleDetailView({
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
                           {r.hasBeforePhoto && (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={`/api/photos/${r.id}/before`}
                               alt="Öncesi"
@@ -346,7 +333,6 @@ export default function VehicleDetailView({
                             />
                           )}
                           {r.hasAfterPhoto && (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={`/api/photos/${r.id}/after`}
                               alt="Sonrası"
