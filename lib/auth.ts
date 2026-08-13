@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
+import type { StaffRole } from "./types";
 
 const DEV_FALLBACK_SECRET = "oto-kunye-gelistirme-anahtari-2026";
 
@@ -37,19 +38,37 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
-export async function createSessionToken(shopId: string): Promise<string> {
-  return new SignJWT({ shopId })
+// Oturum bilgisi — shopId her zaman "verinin ait olduğu dükkan"ı belirtir (araçlar,
+// kayıtlar vb. hep bu kimlik altında filtrelenir), role ise "kim giriş yaptı"yı
+// ayırır. "sahibi" hesabın kendisi (Shop.email/passwordHash ile giriş yapan),
+// "calisan" ise hesap sahibinin eklediği bağımsız bir StaffAccount girişi (bkz.
+// lib/types.ts StaffAccount, app/api/staff). staffId yalnızca role "calisan" iken
+// dolu olur.
+export interface SessionInfo {
+  shopId: string;
+  role: StaffRole;
+  staffId?: string;
+}
+
+export async function createSessionToken(session: SessionInfo): Promise<string> {
+  return new SignJWT({ shopId: session.shopId, role: session.role, staffId: session.staffId })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("30d")
     .sign(getSecretBytes());
 }
 
-export async function verifySessionToken(token: string): Promise<{ shopId: string } | null> {
+export async function verifySessionToken(token: string): Promise<SessionInfo | null> {
   try {
     const { payload } = await jwtVerify(token, getSecretBytes());
-    if (typeof payload.shopId === "string") return { shopId: payload.shopId };
-    return null;
+    if (typeof payload.shopId !== "string") return null;
+    // Çoklu çalışan özelliğinden önce oluşturulmuş eski oturum jetonlarında role
+    // alanı yoktu — böyle jetonları "sahibi" olarak kabul ediyoruz, aksi hâlde bu
+    // özellik yayına alındığı anda hâlâ oturumu açık olan tüm kullanıcılar aniden
+    // yetkisiz kalırdı (30 günlük jeton ömrü boyunca).
+    const role: StaffRole = payload.role === "calisan" ? "calisan" : "sahibi";
+    const staffId = typeof payload.staffId === "string" ? payload.staffId : undefined;
+    return { shopId: payload.shopId, role, staffId };
   } catch {
     return null;
   }
@@ -69,9 +88,13 @@ export function clearSessionCookie() {
   cookies().delete(COOKIE_NAME);
 }
 
-export async function getCurrentShopId(): Promise<string | null> {
+export async function getCurrentSession(): Promise<SessionInfo | null> {
   const token = cookies().get(COOKIE_NAME)?.value;
   if (!token) return null;
-  const session = await verifySessionToken(token);
+  return verifySessionToken(token);
+}
+
+export async function getCurrentShopId(): Promise<string | null> {
+  const session = await getCurrentSession();
   return session?.shopId ?? null;
 }

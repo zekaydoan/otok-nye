@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentShopId } from "@/lib/auth";
+import { getCurrentSession } from "@/lib/auth";
 import { getShopById, updateShopFields } from "@/lib/blobStore";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rateLimit";
@@ -8,10 +8,18 @@ const MAX_ATTEMPTS = 8;
 const WINDOW_MS = 15 * 60 * 1000;
 
 export async function POST(req: NextRequest) {
-  const shopId = await getCurrentShopId();
-  if (!shopId) {
+  const session = await getCurrentSession();
+  if (!session) {
     return NextResponse.json({ error: "Giriş yapmanız gerekiyor." }, { status: 401 });
   }
+  // Hesap sahibinin şifresini yalnızca kendisi değiştirebilir — çalışan hesapları
+  // için ayrı bir "kendi şifresini değiştir" akışı bu kapsamda değil (StaffAccount
+  // şifresi şimdilik yalnızca hesap sahibi tarafından, çalışanı silip yeniden
+  // ekleyerek değiştirilebilir).
+  if (session.role !== "sahibi") {
+    return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
+  }
+  const shopId = session.shopId;
 
   const { currentPassword, newPassword } = (await req.json()) as {
     currentPassword?: string;

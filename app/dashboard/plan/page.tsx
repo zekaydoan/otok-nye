@@ -1,10 +1,11 @@
-import { getCurrentShopId } from "@/lib/auth";
+import { getCurrentSession } from "@/lib/auth";
 import { getShopById } from "@/lib/blobStore";
 import PlanSelector from "@/components/PlanSelector";
 
 export default async function PlanPage() {
-  const shopId = await getCurrentShopId();
-  const shop = shopId ? await getShopById(shopId) : null;
+  const session = await getCurrentSession();
+  const shop = session ? await getShopById(session.shopId) : null;
+  const isOwner = session?.role === "sahibi";
 
   return (
     <div>
@@ -14,7 +15,12 @@ export default async function PlanPage() {
         sağlayıcı hesabınız (ör. iyzico/Stripe) tanımlandığında devreye alınabilir —
         şimdilik plan seçiminiz hesabınıza kaydedilir.
       </p>
-      {shop && <PlanSelector currentPlan={shop.plan} />}
+      {shop && isOwner && <PlanSelector currentPlan={shop.plan} />}
+      {shop && !isOwner && (
+        <div className="mt-6 rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-700">
+          Plan değişikliği yalnızca hesap sahibi tarafından yapılabilir.
+        </div>
+      )}
     </div>
   );
 }

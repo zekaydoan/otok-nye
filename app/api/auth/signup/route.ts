@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { createShop, getShopByEmail } from "@/lib/blobStore";
+import { createShop, getShopByEmail, getStaffByEmail } from "@/lib/blobStore";
 import { createSessionToken, hashPassword, setSessionCookie } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import type { Shop } from "@/lib/types";
@@ -41,8 +41,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Şifre en az 8 karakter olmalı." }, { status: 400 });
   }
 
-  const existing = await getShopByEmail(email);
-  if (existing) {
+  // E-posta hem Shop (hesap sahibi) hem StaffAccount (çalışan) tablosunda
+  // benzersiz olmalı — aksi hâlde giriş sırasında hangi hesaba ait olduğu
+  // belirsizleşir (bkz. app/api/auth/login).
+  const [existingShop, existingStaff] = await Promise.all([
+    getShopByEmail(email),
+    getStaffByEmail(email),
+  ]);
+  if (existingShop || existingStaff) {
     return NextResponse.json({ error: "Bu e-posta ile zaten bir hesap var." }, { status: 409 });
   }
 
@@ -57,7 +63,7 @@ export async function POST(req: NextRequest) {
   };
 
   await createShop(shop);
-  const token = await createSessionToken(shop.id);
+  const token = await createSessionToken({ shopId: shop.id, role: "sahibi" });
   setSessionCookie(token);
 
   return NextResponse.json({ ok: true });

@@ -23,6 +23,25 @@ export interface PublicShop {
   plan: Plan;
 }
 
+// ---------- Çoklu çalışan hesabı ----------
+// Bir dükkanda birden fazla usta panele erişebilsin diye Shop'un (hesap sahibi)
+// yanına bağımsız giriş bilgileriyle çalışan hesapları eklenebilir. Çalışan
+// hesapları kendi e-posta/şifresiyle giriş yapar ama tüm verileri (araçlar,
+// kayıtlar, randevular) hesap sahibiyle aynı shopId altında görür/düzenler —
+// aradaki tek fark yetki: yalnızca "sahibi" rolü ekip yönetimi, plan/fatura ve
+// firma bilgisi/şifre değişikliği yapabilir (bkz. lib/auth.ts SessionInfo,
+// app/api/staff, app/dashboard/ayarlar).
+export type StaffRole = "sahibi" | "calisan";
+
+export interface StaffAccount {
+  id: string;
+  shopId: string;
+  name: string;
+  email: string;
+  passwordHash: string;
+  createdAt: string;
+}
+
 export interface Vehicle {
   id: string;
   plate: string; // normalize edilmiş plaka (34ABC123)
@@ -66,10 +85,13 @@ export interface OilRecord {
   createdAt: string;
 }
 
-export const PLAN_LIMITS: Record<Plan, { maxVehicles: number; label: string; price: string }> = {
-  free: { maxVehicles: 15, label: "Ücretsiz", price: "0₺/ay" },
-  pro: { maxVehicles: 250, label: "Pro", price: "349₺/ay" },
-  business: { maxVehicles: Infinity, label: "İşletme", price: "899₺/ay" },
+export const PLAN_LIMITS: Record<
+  Plan,
+  { maxVehicles: number; maxStaff: number; label: string; price: string }
+> = {
+  free: { maxVehicles: 15, maxStaff: 1, label: "Ücretsiz", price: "0₺/ay" },
+  pro: { maxVehicles: 250, maxStaff: 5, label: "Pro", price: "349₺/ay" },
+  business: { maxVehicles: Infinity, maxStaff: Infinity, label: "İşletme", price: "899₺/ay" },
 };
 
 // ---------- Randevu ----------

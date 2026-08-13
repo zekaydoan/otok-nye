@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentShopId } from "@/lib/auth";
+import { getCurrentSession } from "@/lib/auth";
 import { updateShopFields } from "@/lib/blobStore";
 
 // Not: E-posta değişikliği bu uç noktanın kapsamında değil — e-posta, giriş
@@ -8,10 +8,17 @@ import { updateShopFields } from "@/lib/blobStore";
 // yalnızca isim ve telefon güncellenebiliyor; e-posta değişikliği talepleri
 // destek üzerinden elle yapılabilir.
 export async function PATCH(req: NextRequest) {
-  const shopId = await getCurrentShopId();
-  if (!shopId) {
+  const session = await getCurrentSession();
+  if (!session) {
     return NextResponse.json({ error: "Giriş yapmanız gerekiyor." }, { status: 401 });
   }
+  // Firma bilgisi değişikliği yalnızca hesap sahibine açık (bkz. lib/auth.ts
+  // SessionInfo.role) — Ayarlar sayfası çalışan girişinde bu formu zaten
+  // göstermiyor, burası API seviyesinde ikinci bir güvenlik katmanı.
+  if (session.role !== "sahibi") {
+    return NextResponse.json({ error: "Bu işlem için yetkiniz yok." }, { status: 403 });
+  }
+  const shopId = session.shopId;
 
   const { name, phone } = (await req.json()) as { name?: string; phone?: string };
   if (!name || !phone) {

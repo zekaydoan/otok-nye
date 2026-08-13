@@ -1,6 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
-import type { Appointment, OilRecord, Shop, StickerOrder, StickerToken, Vehicle } from "./types";
+import type { Appointment, OilRecord, Shop, StaffAccount, StickerOrder, StickerToken, Vehicle } from "./types";
 
 // Netlify Blobs tabanlı basit veri katmanı.
 // Store'lar: shops, shops_by_email, vehicles, vehicles_by_plate, oilrecords
@@ -35,6 +35,13 @@ const settingsStore = () => getStore("settings");
 // Şifre sıfırlama: token -> { shopId, expiresAt }. Token tek kullanımlıktır,
 // kullanıldıktan hemen sonra veya süresi dolduğunda silinir.
 const passwordResetTokensStore = () => getStore("password_reset_tokens");
+// Çoklu çalışan hesapları: anahtar `${shopId}/${staffId}` — randevu/araç
+// indeksleriyle aynı prefix deseni, bir dükkanın tüm çalışanlarını tek taramayla
+// listeleyebilmek için. Ayrı bir e-posta indeksi (staffByEmailStore) giriş
+// akışında e-postadan doğrudan hangi shopId/staffId'ye ait olduğunu bulmak için
+// kullanılır — Shop'un shopsByEmailStore'una paralel bir yapı.
+const staffStore = () => getStore("staff");
+const staffByEmailStore = () => getStore("staff_by_email");
 
 export function normalizePlate(plate: string): string {
   return plate.toUpperCase().replace(/[^A-Z0-9ÇĞİÖŞÜ]/g, "");
@@ -115,6 +122,39 @@ export async function consumePasswordResetToken(token: string): Promise<string |
   await passwordResetTokensStore().delete(token); // tek kullanımlık — hemen sil
   if (new Date(record.expiresAt).getTime() < Date.now()) return null;
   return record.shopId;
+}
+
+// ---------- Çoklu çalışan hesabı ----------
+export async function createStaffAccount(staff: StaffAccount): Promise<void> {
+  await staffStore().setJSON(`${staff.shopId}/${staff.id}`, staff);
+  await staffByEmailStore().set(staff.email.toLowerCase(), `${staff.shopId}/${staff.id}`);
+}
+
+export async function getStaffById(shopId: string, staffId: string): Promise<StaffAccount | null> {
+  return (await staffStore().get(`${shopId}/${staffId}`, { type: "json" })) as StaffAccount | null;
+}
+
+export async function getStaffByEmail(email: string): Promise<StaffAccount | null> {
+  const key = await staffByEmailStore().get(email.toLowerCase(), { type: "text" });
+  if (!key) return null;
+  return (await staffStore().get(key, { type: "json" })) as StaffAccount | null;
+}
+
+export async function listStaffForShop(shopId: string): Promise<StaffAccount[]> {
+  const { blobs } = await staffStore().list({ prefix: `${shopId}/` });
+  const all = await Promise.all(
+    blobs.map((b) => staffStore().get(b.key, { type: "json" }) as Promise<StaffAccount | null>)
+  );
+  return all
+    .filter((s): s is StaffAccount => !!s)
+    .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
+}
+
+export async function deleteStaffAccount(shopId: string, staffId: string): Promise<void> {
+  const staff = await getStaffById(shopId, staffId);
+  if (!staff) return;
+  await staffStore().delete(`${shopId}/${staffId}`);
+  await staffByEmailStore().delete(staff.email.toLowerCase());
 }
 
 // ---------- Vehicles ----------

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentShopId } from "@/lib/auth";
-import { getShopById } from "@/lib/blobStore";
+import { getCurrentSession } from "@/lib/auth";
+import { getShopById, getStaffById } from "@/lib/blobStore";
 import { PLAN_LIMITS } from "@/lib/types";
 import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
@@ -9,10 +9,17 @@ import { ToastProvider } from "@/components/Toast";
 import { CalendarIcon, SettingsIcon } from "@/components/icons";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const shopId = await getCurrentShopId();
-  if (!shopId) redirect("/giris");
-  const shop = await getShopById(shopId);
+  const session = await getCurrentSession();
+  if (!session) redirect("/giris");
+  const shop = await getShopById(session.shopId);
   if (!shop) redirect("/giris");
+  // Çalışan girişinde header'da "hangi çalışan giriş yaptı" bilgisi gösterilir —
+  // aksi hâlde ekipteki herkes panelde aynı görünür, kimin işlem yaptığını
+  // ayırt etmek zorlaşır.
+  const staff =
+    session.role === "calisan" && session.staffId
+      ? await getStaffById(session.shopId, session.staffId)
+      : null;
 
   return (
     <ToastProvider>
@@ -25,6 +32,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
             >
               <Logo size="sm" />
               <span className="truncate">{shop.name}</span>
+              {staff && (
+                <span className="hidden shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 sm:inline">
+                  {staff.name}
+                </span>
+              )}
             </Link>
             <div className="flex items-center gap-2 sm:gap-3">
               <Link

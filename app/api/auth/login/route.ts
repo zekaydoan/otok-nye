@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getShopByEmail } from "@/lib/blobStore";
+import { getShopByEmail, getStaffByEmail } from "@/lib/blobStore";
 import { createSessionToken, setSessionCookie, verifyPassword } from "@/lib/auth";
 import { checkRateLimit, getClientIp, resetRateLimit } from "@/lib/rateLimit";
 
@@ -26,13 +26,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Önce hesap sahibi (Shop) tablosuna bakılır; bulunamazsa e-posta bir çalışan
+  // hesabına ait olabilir (bkz. lib/types.ts StaffAccount) — iki tablo da aynı
+  // e-posta alanı için global olarak benzersiz tutulur (bkz. signup ve
+  // app/api/staff POST), bu yüzden en fazla biri eşleşir.
   const shop = await getShopByEmail(email);
-  if (!shop || !(await verifyPassword(password, shop.passwordHash))) {
-    return NextResponse.json({ error: "E-posta veya şifre hatalı." }, { status: 401 });
+  if (shop && (await verifyPassword(password, shop.passwordHash))) {
+    await resetRateLimit("login", rateLimitKey);
+    const token = await createSessionToken({ shopId: shop.id, role: "sahibi" });
+    setSessionCookie(token);
+    return NextResponse.json({ ok: true });
   }
 
-  await resetRateLimit("login", rateLimitKey);
-  const token = await createSessionToken(shop.id);
-  setSessionCookie(token);
-  return NextResponse.json({ ok: true });
+  const staff = await getStaffByEmail(email);
+  if (staff && (await verifyPassword(password, staff.passwordHash))) {
+    await resetRateLimit("login", rateLimitKey);
+    const token = await createSessionToken({
+      shopId: staff.shopId,
+      role: "calisan",
+      staffId: staff.id,
+    });
+    setSessionCookie(token);
+    return NextResponse.json({ ok: true });
+  }
+
+  return NextResponse.json({ error: "E-posta veya şifre hatalı." }, { status: 401 });
 }
