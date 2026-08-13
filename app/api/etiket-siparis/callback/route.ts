@@ -3,7 +3,7 @@ import { getStickerOrderIdByToken, updateStickerOrder } from "@/lib/blobStore";
 import { retrieveCheckoutForm } from "@/lib/iyzico";
 
 function getSiteUrl(req: NextRequest): string {
-  return process.env.URL || process.env.DEPLOY_URL || req.nextUrl.origin;
+  return process.env.URL || req.nextUrl.origin;
 }
 
 function resultRedirect(req: NextRequest, params: Record<string, string>): NextResponse {

@@ -4,7 +4,7 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
-const SITE_URL = process.env.URL || process.env.DEPLOY_URL || "https://oto-kunye.netlify.app";
+const SITE_URL = process.env.URL || "https://yagbakim-defteri.netlify.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

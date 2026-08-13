@@ -1,8 +1,20 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { getStickerOrderById, listStickerTokensByOrder } from "@/lib/blobStore";
 import StickerTokenGrid from "@/components/StickerTokenGrid";
+
+// Fiziksel etikete kalıcı olarak basılacak QR kodları her zaman sitenin gerçek,
+// kalıcı adresine gitmelidir. process.env.URL/DEPLOY_URL Netlify build ortamında
+// deploy'a özel (ve erişim korumalı) bir adrese düşebildiği için güvenilir değil —
+// bunun yerine gelen isteğin gerçek host header'ından üretiyoruz.
+function getPermanentSiteUrl(): string {
+  const host = headers().get("host");
+  if (!host) return process.env.URL || "https://yagbakim-defteri.netlify.app";
+  const protocol = host.startsWith("localhost") ? "http" : "https";
+  return `${protocol}://${host}`;
+}
 
 // Bir siparişe ait tüm etiket QR kodlarını gösterir — admin bunları doğrudan
 // yazdırabilir/PDF olarak kaydedebilir, ya da düz link listesini profesyonel bir
@@ -15,7 +27,7 @@ export default async function AdminOrderTokensPage({ params }: { params: { id: s
   if (!order) notFound();
 
   const tokens = await listStickerTokensByOrder(order.id);
-  const siteUrl = process.env.URL || process.env.DEPLOY_URL || "";
+  const siteUrl = getPermanentSiteUrl();
   const boundCount = tokens.filter((t) => t.vehicleId).length;
 
   return (

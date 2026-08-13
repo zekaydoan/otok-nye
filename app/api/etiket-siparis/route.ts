@@ -19,7 +19,7 @@ const IDENTITY_NUMBER_REGEX = /^\d{11}$/;
 const MAX_ORDERS_PER_HOUR = 5;
 
 function getSiteUrl(req: NextRequest): string {
-  return process.env.URL || process.env.DEPLOY_URL || req.nextUrl.origin;
+  return process.env.URL || req.nextUrl.origin;
 }
 
 // Etiket siparişi oluşturur ve iyzico Checkout Form oturumu başlatır. Kart bilgileri
