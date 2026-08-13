@@ -128,7 +128,7 @@ export default function AppointmentsSection({
               href={whatsAppLink}
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
+              className="rounded-lg border border-green-300 bg-green-50 px-3 py-2 text-xs font-medium text-green-700 hover:bg-green-100"
             >
               WhatsApp
             </a>
@@ -138,14 +138,14 @@ export default function AppointmentsSection({
               <button
                 onClick={() => updateStatus(a.id, "geldi")}
                 disabled={isBusy}
-                className="rounded-lg border border-brand-300 bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-60"
+                className="rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-xs font-medium text-brand-700 hover:bg-brand-100 disabled:opacity-60"
               >
                 Geldi
               </button>
               <button
                 onClick={() => updateStatus(a.id, "iptal")}
                 disabled={isBusy}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
               >
                 İptal
               </button>

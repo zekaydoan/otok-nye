@@ -219,8 +219,8 @@ export default function BulkImportPage() {
                   </>
                 )}
               </p>
-              <div className="mt-2 max-h-72 overflow-y-auto rounded-lg border border-slate-200">
-                <table className="w-full text-xs">
+              <div className="mt-2 max-h-72 overflow-x-auto overflow-y-auto rounded-lg border border-slate-200">
+                <table className="w-full min-w-[480px] text-xs">
                   <thead className="bg-slate-50 text-left text-slate-500">
                     <tr>
                       <th className="px-3 py-2 font-medium">Plaka</th>

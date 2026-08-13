@@ -33,7 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <Logo size="sm" />
               <span className="truncate">{shop.name}</span>
               {staff && (
-                <span className="hidden shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 sm:inline">
+                <span className="inline-flex shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500">
                   {staff.name}
                 </span>
               )}

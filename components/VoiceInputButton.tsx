@@ -93,13 +93,13 @@ export default function VoiceInputButton({
       onClick={handleClick}
       aria-label={label ? `${label} için sesle doldur` : "Sesle doldur"}
       title={listening ? "Dinleniyor... durdurmak için tıklayın" : "Sesle doldur"}
-      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors ${
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors ${
         listening
           ? "animate-pulse border-red-400 bg-red-50 text-red-600"
           : "border-slate-300 text-slate-500 hover:bg-slate-50"
       }`}
     >
-      <MicIcon className="h-3.5 w-3.5" />
+      <MicIcon className="h-4 w-4" />
     </button>
   );
 }
