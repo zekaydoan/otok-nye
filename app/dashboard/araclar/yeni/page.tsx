@@ -162,7 +162,7 @@ export default function NewVehiclePage() {
               placeholder="05XX XXX XX XX"
             />
             <p className="mt-1 text-xs text-slate-400">
-              Bakım hatırlatma SMS/WhatsApp göndermek için kullanılır.
+              Bakım hatırlatma WhatsApp mesajı göndermek için kullanılır.
             </p>
           </div>
         </div>

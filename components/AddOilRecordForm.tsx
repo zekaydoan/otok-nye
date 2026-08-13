@@ -321,19 +321,6 @@ export default function AddOilRecordForm({
         />
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-slate-700">
-        <input
-          type="checkbox"
-          checked={form.notifyOwner}
-          onChange={(e) => setForm({ ...form, notifyOwner: e.target.checked })}
-          disabled={!hasOwnerPhone}
-        />
-        Araç sahibine SMS ile bilgilendirme gönder
-        {!hasOwnerPhone && (
-          <span className="text-xs text-slate-400">(telefon numarası kayıtlı değil)</span>
-        )}
-      </label>
-
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div className="flex flex-col gap-3 sm:flex-row">

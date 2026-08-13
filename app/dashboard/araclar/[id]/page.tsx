@@ -9,7 +9,6 @@ import {
 } from "@/lib/maintenance";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import AddOilRecordForm from "@/components/AddOilRecordForm";
-import RemindButton from "@/components/RemindButton";
 import ShareReportButton from "@/components/ShareReportButton";
 import ScoreBadge from "@/components/ScoreBadge";
 import EmptyState from "@/components/EmptyState";
@@ -165,7 +164,6 @@ export default async function VehicleDetailPage({
       {vehicle.ownerPhone && (
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
           <span className="text-sm font-medium text-slate-700">Bakım Hatırlatması:</span>
-          <RemindButton vehicleId={vehicle.id} />
           {whatsAppLink && (
             <a
               href={whatsAppLink}

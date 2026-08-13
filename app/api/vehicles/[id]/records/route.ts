@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getCurrentShopId } from "@/lib/auth";
 import { createOilRecord, getShopById, getVehicleById, savePhoto } from "@/lib/blobStore";
-import { defaultNextServiceDate, defaultNextServiceKm, buildConfirmationMessage } from "@/lib/maintenance";
-import { sendSms } from "@/lib/sms";
+import { defaultNextServiceDate, defaultNextServiceKm } from "@/lib/maintenance";
 import type { OilRecord } from "@/lib/types";
 
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024; // base64 karakter sayısı için kaba üst sınır
@@ -112,13 +111,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   await createOilRecord(record);
-
-  if (notifyOwner && vehicle.ownerPhone) {
-    // Bildirim gönderimi kayıt oluşturmayı bloklamasın; hata olursa sessizce loglanır.
-    sendSms(vehicle.ownerPhone, buildConfirmationMessage(vehicle, record)).catch((err) =>
-      console.error("[records] onay SMS gönderilemedi:", err)
-    );
-  }
 
   return NextResponse.json({ record });
 }

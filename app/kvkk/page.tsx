@@ -86,8 +86,8 @@ export default function KvkkPage() {
             sayfasında gösterilmez),
           </li>
           <li>
-            Paylaşılan telefon numarasının, periyodik bakım hatırlatma amacıyla SMS/WhatsApp
-            göndermek için kullanılabileceği,
+            Paylaşılan telefon numarasının, periyodik bakım hatırlatma amacıyla WhatsApp
+            mesajı göndermek için kullanılabileceği,
           </li>
           <li>
             Aracın başka bir yetkili serviste bakım görmesi hâlinde, o servisin de aynı

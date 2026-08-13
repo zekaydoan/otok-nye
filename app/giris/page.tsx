@@ -127,7 +127,7 @@ export default function LoginPage() {
           tagline="Tekrar hoş geldiniz."
           points={[
             "Araçlarınızı ve bakım geçmişini tek panelden yönetin",
-            "Otomatik SMS/WhatsApp bakım hatırlatmaları gönderin",
+            "Otomatik WhatsApp bakım hatırlatmaları gönderin",
             "Her bakımda saniyeler içinde yeni kayıt ekleyin",
           ]}
         />
