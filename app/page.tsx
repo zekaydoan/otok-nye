@@ -3,7 +3,20 @@ import { PLAN_LIMITS } from "@/lib/types";
 import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
 import FaqAccordion from "@/components/FaqAccordion";
-import { CheckIcon } from "@/components/icons";
+import {
+  BellIcon,
+  CalendarIcon,
+  ChartBarIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  DocumentIcon,
+  LightbulbIcon,
+  MicIcon,
+  QrIcon,
+  UploadIcon,
+  UsersIcon,
+  XCircleIcon,
+} from "@/components/icons";
 
 const steps = [
   {
@@ -26,20 +39,78 @@ const steps = [
 
 const features = [
   {
-    title: "Otomatik kayıt geçmişi",
-    desc: "Yağ değişim tarihi, saati, yağ markası/modeli ve kaç kg konulduğu otomatik olarak kaydedilir ve listelenir.",
+    icon: CheckCircleIcon,
+    title: "Otomatik bakım geçmişi",
+    desc: "Yağ değişim tarihi, saati, markası/modeli ve kaç kg konulduğu her kayıtta otomatik saklanır — elle defter tutmaya son.",
   },
   {
-    title: "Araç bilgileri tek yerde",
-    desc: "Plaka, marka, model ve tüm yağ geçmişi QR okutulduğunda otomatik olarak ekrana gelir.",
+    icon: QrIcon,
+    title: "Reklam alanlı, dayanıklı QR etiket",
+    desc: "Motor bölmesi sıcaklığına, yağa ve neme dayanıklı, su geçirmez QR etiketinde firmanızın adı ve telefonu da yer alır.",
   },
   {
-    title: "Reklam alanlı QR etiket",
-    desc: "Her etikette firmanızın adı ve telefon numarası için özel bir reklam alanı bulunur.",
+    icon: BellIcon,
+    title: "Otomatik bakım hatırlatma",
+    desc: "Sonraki bakım tarihi veya kilometresi yaklaşan araçlar panelde otomatik listelenir, tek tıkla WhatsApp hatırlatması gönderilir.",
   },
   {
-    title: "Çoklu tamirci desteği",
-    desc: "Aracı başka bir yetkili servis de okutup yeni bakım kaydı ekleyebilir; defter araçla birlikte yaşar.",
+    icon: CalendarIcon,
+    title: "Randevu ve günlük iş listesi",
+    desc: "Günlük randevularınızı planlayın, müşteriye WhatsApp'tan hatırlatma gönderin, işi geldi/iptal olarak tek tıkla işaretleyin.",
+  },
+  {
+    icon: UploadIcon,
+    title: "Toplu araç içe aktarma",
+    desc: "Elinizdeki müşteri listesini CSV olarak yükleyin, yüzlerce aracı tek seferde sisteme aktarın.",
+  },
+  {
+    icon: UsersIcon,
+    title: "Çoklu çalışan hesabı",
+    desc: "Ekibinizdeki her ustaya kendi giriş bilgisiyle panel erişimi tanımlayın, kim ne zaman kayıt girmiş görün.",
+  },
+  {
+    icon: MicIcon,
+    title: "Sesli kayıt girişi",
+    desc: "Elleriniz yağlıyken bile mikrofon düğmesine basıp konuşarak yağ markasını, miktarını ve kilometreyi forma aktarın.",
+  },
+  {
+    icon: DocumentIcon,
+    title: "PDF servis fişi ve satış raporu",
+    desc: "Her bakım için profesyonel bir PDF fiş otomatik oluşur; araç satılırken düzenli bakım geçmişini gösteren bir rapor paylaşabilirsiniz.",
+  },
+  {
+    icon: LightbulbIcon,
+    title: "Sizinle birlikte gelişiyoruz",
+    desc: "Panelden doğrudan bize öneri gönderin — Oto Künye'yi kullanan ustaların fikirleriyle sürekli geliştiriyoruz.",
+  },
+];
+
+const painPoints = [
+  "Defter kaybolur, yıpranır, her zaman yanınızda taşımanız gerekir.",
+  "Bir müşterinin geçmişini bulmak dakikalar alır, bazen imkansızdır.",
+  "Bakım zamanı geldiğinde müşteriyi aramayı unutur, işi kaçırırsınız.",
+  "Araç başka bir servise giderse geçmiş bilgisi tamamen kaybolur.",
+];
+
+const solutions = [
+  "Bilgiler bulutta güvenle saklanır; telefon ya da bilgisayardan her an erişilir.",
+  "QR okutulur okutulmaz tüm bakım geçmişi saniyeler içinde ekrana gelir.",
+  "Bakım zamanı yaklaşan araçlar otomatik listelenir, hatırlatma tek tıkla gönderilir.",
+  "Araç başka bir yetkili servise gitse bile geçmiş korunur, yeni servis de kayıt ekleyebilir.",
+];
+
+const audiences = [
+  {
+    title: "Tek ustalı yağcı / oto tamirci",
+    desc: "Kağıt defter yerine telefonunuzdan tek dokunuşla kayıt girin, hiçbir müşteriyi hatırlatmayı unutmayın.",
+  },
+  {
+    title: "Çok şubeli yetkili servis",
+    desc: "Her şube kendi ekibiyle giriş yapar, tüm araç geçmişi merkezi olarak tek panelde birleşir.",
+  },
+  {
+    title: "Oto galeri / ikinci el satış",
+    desc: "Satışa çıkardığınız aracın düzenli bakım geçmişini tek bağlantıyla müşteriye gösterin, güven kazanın.",
   },
 ];
 
@@ -51,6 +122,14 @@ const faqs = [
   {
     q: "Ücretsiz plan kaç araca yetiyor?",
     a: "Ücretsiz plan 15 araca kadar kayıt tutmanıza izin verir, kredi kartı gerektirmez. Daha fazla araca ihtiyacınız olduğunda dilediğiniz an ücretli bir plana geçebilirsiniz.",
+  },
+  {
+    q: "Bakım hatırlatmaları nasıl çalışır?",
+    a: "Bir aracın sonraki bakım tarihi veya kilometresi yaklaştığında panelinizdeki 'Yaklaşan Bakımlar' listesine otomatik düşer; oradan tek tıkla müşteriye WhatsApp hatırlatması gönderebilirsiniz.",
+  },
+  {
+    q: "Ekibimdeki diğer ustalar da panele girebilir mi?",
+    a: "Evet. Hesap sahibi olarak ekibinizdeki her ustaya kendi e-posta/şifresiyle giriş yapabileceği bir çalışan hesabı tanımlayabilirsiniz; plan/faturalama gibi hassas ayarlar yalnızca sizde kalır.",
   },
   {
     q: "Ödemeler güvenli mi?",
@@ -75,6 +154,9 @@ export default function HomePage() {
             <Logo withText />
           </Link>
           <nav className="flex items-center gap-2 text-sm font-medium text-slate-600 sm:gap-4">
+            <Link href="#ozellikler" className="hidden hover:text-brand-700 sm:inline">
+              Özellikler
+            </Link>
             <Link href="#fiyatlandirma" className="hidden hover:text-brand-700 sm:inline">
               Fiyatlandırma
             </Link>
@@ -114,7 +196,8 @@ export default function HomePage() {
               Her araca özel bir QR kod üretin. Müşteri veya siz QR&apos;ı okuttuğunuzda
               plaka, marka, model ve yağ bakım geçmişi (tarih, saat, yağ türü, kaç kg
               konulduğu) otomatik olarak ekranda belirir. Kayıtlar elle defter tutmaya
-              gerek kalmadan otomatik saklanır.
+              gerek kalmadan otomatik saklanır, bakım zamanı gelince müşteriye kendiliğinden
+              hatırlatma gider.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
               <Link
@@ -124,10 +207,10 @@ export default function HomePage() {
                 Ücretsiz Hesap Aç
               </Link>
               <Link
-                href="/giris"
+                href="#ozellikler"
                 className="rounded-lg border border-slate-300 bg-white px-6 py-3 text-lg font-semibold text-slate-700 hover:bg-slate-50 active:scale-[0.98]"
               >
-                Giriş Yap
+                Özellikleri İncele
               </Link>
             </div>
             <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-500 lg:justify-start">
@@ -174,14 +257,52 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Elle defter tutmanın sıkıntılarını somutlaştırıp Oto Künye'nin çözümüyle
+          yan yana gösteren karşılaştırma — ürünün "neden" gerekli olduğunu satın
+          alma kararından önce netleştirir. */}
       <section className="bg-white py-16">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-center text-2xl font-bold text-slate-900">
+            Kağıt defter mi, Oto Künye mi?
+          </h2>
+          <p className="mx-auto mt-2 max-w-2xl text-center text-slate-600">
+            Kağıt defterle bugüne kadar idare ettiyseniz, aşağıdakiler tanıdık gelecek.
+          </p>
+          <div className="mt-10 grid gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl border border-red-100 bg-red-50/50 p-6">
+              <h3 className="font-semibold text-slate-900">Elle Defter Tutmak</h3>
+              <ul className="mt-4 space-y-3">
+                {painPoints.map((p) => (
+                  <li key={p} className="flex items-start gap-2.5 text-sm text-slate-700">
+                    <XCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-brand-200 bg-brand-50/60 p-6">
+              <h3 className="font-semibold text-brand-800">Oto Künye</h3>
+              <ul className="mt-4 space-y-3">
+                {solutions.map((s) => (
+                  <li key={s} className="flex items-start gap-2.5 text-sm text-slate-700">
+                    <CheckCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" />
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-slate-50 py-16">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-center text-2xl font-bold text-slate-900">Nasıl çalışır?</h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((s) => (
               <div
                 key={s.title}
-                className="hover-lift rounded-xl border border-slate-200 p-5 hover:border-brand-200 hover:shadow-sm"
+                className="hover-lift rounded-xl border border-slate-200 bg-white p-5 hover:border-brand-200 hover:shadow-sm"
               >
                 <h3 className="font-semibold text-brand-700">{s.title}</h3>
                 <p className="mt-2 text-sm text-slate-600">{s.desc}</p>
@@ -191,22 +312,133 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-16">
+      <section id="ozellikler" className="mx-auto max-w-6xl px-6 py-16">
         <h2 className="text-center text-2xl font-bold text-slate-900">Neler sunuyoruz?</h2>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2">
+        <p className="mx-auto mt-2 max-w-2xl text-center text-slate-600">
+          Tek bir panelden aracın tüm geçmişini, günlük iş listenizi ve ekibinizi yönetin.
+        </p>
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f) => (
             <div
               key={f.title}
               className="hover-lift rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-100 hover:shadow-md"
             >
-              <h3 className="font-semibold text-slate-900">{f.title}</h3>
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                <f.icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-semibold text-slate-900">{f.title}</h3>
               <p className="mt-2 text-sm text-slate-600">{f.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-16">
+      {/* İki öne çıkan özelliği gerçek panel arayüzüne sadık, sadeleştirilmiş
+          mockup kartlarla görselleştiriyoruz — soyut bir liste yerine ürünü
+          somut olarak gösterip satın alma kararını kolaylaştırır. */}
+      <section className="bg-white py-16">
+        <div className="mx-auto max-w-6xl space-y-16 px-6">
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <div className="text-center lg:text-left">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+                <BellIcon className="h-4 w-4" />
+                Otomatik Hatırlatma
+              </span>
+              <h3 className="mt-4 text-2xl font-bold text-slate-900">
+                Bakım zamanı gelen araçları siz aramadan panel size hatırlatsın.
+              </h3>
+              <p className="mt-3 text-slate-600">
+                Bir araca son bakım girildiğinde sonraki bakım tarihi ve kilometresi otomatik
+                hesaplanır. O tarih veya km yaklaştığında araç panelinizdeki "Yaklaşan Bakımlar"
+                listesine düşer — tek tıkla müşteriye WhatsApp'tan hatırlatma gönderirsiniz.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-lg">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Yaklaşan Bakımlar
+                </p>
+                <div className="mt-3 rounded-xl border-l-4 border-amber-400 bg-amber-50/60 p-3">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                      184 gün kaldı
+                    </span>
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                      200 km kaldı
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">34 KB 9999</p>
+                  <p className="text-xs text-slate-500">Toyota Corolla · önerilen: 95.000 km</p>
+                </div>
+                <button className="mt-4 w-full rounded-lg border border-green-300 bg-green-50 py-2 text-sm font-medium text-green-700">
+                  WhatsApp&apos;tan Hatırlat
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <div className="order-2 flex justify-center lg:order-1">
+              <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-lg">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Bugünkü Randevular
+                </p>
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between rounded-lg border-l-4 border-brand-400 bg-slate-50 px-3 py-2">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">10:30 · 06 XY 42</p>
+                      <p className="text-xs text-slate-500">Ahmet Yılmaz</p>
+                    </div>
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                      Bekleniyor
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border-l-4 border-slate-200 bg-slate-50 px-3 py-2 opacity-70">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">14:00 · 34 ABC 123</p>
+                      <p className="text-xs text-slate-500">Volkswagen Passat</p>
+                    </div>
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700">
+                      Geldi
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="order-1 text-center lg:order-2 lg:text-left">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+                <CalendarIcon className="h-4 w-4" />
+                Randevu Yönetimi
+              </span>
+              <h3 className="mt-4 text-2xl font-bold text-slate-900">
+                Günlük iş listenizi kağıda değil panele yazın.
+              </h3>
+              <p className="mt-3 text-slate-600">
+                Gelecek müşterileri saatiyle, plakasıyla ve notuyla kaydedin. Randevu geldiğinde
+                tek tıkla "Geldi" olarak işaretleyin, gelmediyse iptal edin — gün sonunda kimin
+                geldiğini, kimin gelmediğini net görün.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-slate-50 py-16">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-center text-2xl font-bold text-slate-900">Kimler kullanıyor?</h2>
+          <div className="mt-10 grid gap-6 sm:grid-cols-3">
+            {audiences.map((a) => (
+              <div key={a.title} className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+                <ChartBarIcon className="h-5 w-5 text-brand-600" />
+                <h3 className="mt-3 font-semibold text-slate-900">{a.title}</h3>
+                <p className="mt-2 text-sm text-slate-600">{a.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 py-16">
         <h2 className="text-center text-2xl font-bold text-slate-900">Sık Sorulan Sorular</h2>
         <FaqAccordion items={faqs} />
       </section>
@@ -215,33 +447,66 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-center text-2xl font-bold">Fiyatlandırma</h2>
           <p className="mx-auto mt-2 max-w-xl text-center text-slate-300">
-            İşletme büyüklüğünüze göre plan seçin, istediğiniz zaman yükseltin.
+            İşletme büyüklüğünüze göre plan seçin, istediğiniz zaman yükseltin. Aşağıdaki
+            özelliklerin tamamı her planda dahildir — planlar yalnızca araç ve çalışan
+            sayısı limitinde farklılaşır.
           </p>
+          <div className="mx-auto mt-8 flex max-w-3xl flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-300">
+            {[
+              "QR etiket + reklam alanı",
+              "Otomatik WhatsApp hatırlatma",
+              "Randevu yönetimi",
+              "Toplu içe aktarma",
+              "Sesli kayıt girişi",
+              "PDF servis fişi",
+            ].map((t) => (
+              <span key={t} className="flex items-center gap-1.5">
+                <CheckIcon className="h-4 w-4 text-accent-400" />
+                {t}
+              </span>
+            ))}
+          </div>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {(Object.keys(PLAN_LIMITS) as Array<keyof typeof PLAN_LIMITS>).map((key) => {
               const plan = PLAN_LIMITS[key];
+              const isPopular = key === "pro";
               return (
                 <div
                   key={key}
-                  className={`rounded-2xl p-6 ${
-                    key === "pro" ? "bg-brand-600 ring-4 ring-accent-500" : "bg-slate-800"
+                  className={`relative rounded-2xl p-6 ${
+                    isPopular ? "bg-brand-600 ring-4 ring-accent-500" : "bg-slate-800"
                   }`}
                 >
+                  {isPopular && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent-500 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                      En Popüler
+                    </span>
+                  )}
                   <h3 className="text-lg font-bold">{plan.label}</h3>
                   <p className="mt-2 text-3xl font-extrabold">{plan.price}</p>
-                  <p className="mt-3 text-sm text-slate-300">
-                    {plan.maxVehicles === Infinity
-                      ? "Sınırsız araç kaydı"
-                      : `${plan.maxVehicles} araca kadar kayıt`}
-                  </p>
-                  <ul className="mt-4 space-y-1 text-sm text-slate-200">
-                    <li>QR kod + reklam alanlı etiket</li>
-                    <li>Otomatik yağ bakım geçmişi</li>
-                    <li>Sınırsız bakım kaydı</li>
+                  <ul className="mt-4 space-y-2 text-sm text-slate-200">
+                    <li className="flex items-center gap-2">
+                      <CheckIcon className="h-4 w-4 shrink-0 text-accent-400" />
+                      {plan.maxVehicles === Infinity
+                        ? "Sınırsız araç kaydı"
+                        : `${plan.maxVehicles} araca kadar kayıt`}
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <UsersIcon className="h-4 w-4 shrink-0 text-accent-400" />
+                      {plan.maxStaff === Infinity
+                        ? "Sınırsız çalışan hesabı"
+                        : plan.maxStaff === 1
+                          ? "Tek kullanıcı (siz)"
+                          : `${plan.maxStaff} çalışan hesabına kadar`}
+                    </li>
                   </ul>
                   <Link
                     href="/kayit"
-                    className="mt-6 block rounded-lg bg-white/10 py-2 text-center font-semibold hover:bg-white/20"
+                    className={`mt-6 block rounded-lg py-2 text-center font-semibold ${
+                      isPopular
+                        ? "bg-white text-brand-700 hover:bg-slate-100"
+                        : "bg-white/10 hover:bg-white/20"
+                    }`}
                   >
                     Bu planla başla
                   </Link>
@@ -254,6 +519,21 @@ export default function HomePage() {
             ödeme sağlayıcı hesabınızın anahtarları tanımlanmalıdır; planlar şu an
             hesabınıza etiketlenir ve panelden değiştirilebilir.
           </p>
+        </div>
+      </section>
+
+      <section className="bg-brand-700 py-14 text-center text-white">
+        <div className="mx-auto max-w-2xl px-6">
+          <h2 className="text-2xl font-bold sm:text-3xl">Hâlâ elle mi defter tutuyorsunuz?</h2>
+          <p className="mt-3 text-brand-100">
+            İlk 15 aracınız sonsuza kadar ücretsiz, kredi kartı gerekmez. Kurulum 2 dakika sürer.
+          </p>
+          <Link
+            href="/kayit"
+            className="mt-6 inline-block rounded-lg bg-white px-8 py-3 text-lg font-semibold text-brand-700 hover:bg-slate-100 active:scale-[0.98]"
+          >
+            Ücretsiz Hesap Aç
+          </Link>
         </div>
       </section>
 

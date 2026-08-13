@@ -32,6 +32,18 @@ export function CheckCircleIcon(props: IconProps) {
   );
 }
 
+// Pazarlama sayfasındaki "elle defter tutmanın dezavantajları" karşılaştırma
+// listesinde (bkz. app/page.tsx) CheckCircleIcon'un olumsuz karşılığı olarak
+// kullanılır.
+export function XCircleIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path strokeLinecap="round" d="m9 9 6 6M15 9l-6 6" />
+    </svg>
+  );
+}
+
 export function WarningIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
@@ -146,6 +158,60 @@ export function CalendarIcon(props: IconProps) {
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
       <rect x="3" y="4.5" width="14" height="12" rx="1.5" />
       <path strokeLinecap="round" d="M3 8h14M6.5 2.8v3M13.5 2.8v3" />
+    </svg>
+  );
+}
+
+// Pazarlama sayfasındaki özellik kartları (bkz. app/page.tsx) ve çoklu çalışan
+// ekranı için — birden fazla kişiyi/ekibi temsil eder.
+export function UsersIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <circle cx="9" cy="8" r="3" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.5 19.5a5.5 5.5 0 0 1 11 0" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.5 8.3a3 3 0 0 1 0 5.9M17.8 19.5a5.3 5.3 0 0 0-3.3-4.9" />
+    </svg>
+  );
+}
+
+// Toplu araç içe aktarma özelliği (bkz. app/dashboard/araclar/toplu-ekle) için.
+export function UploadIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15V4M8 8l4-4 4 4" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15" />
+    </svg>
+  );
+}
+
+// Otomatik hatırlatma (km/tarih bazlı, WhatsApp) özellikleri için.
+export function BellIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 10.5a6 6 0 0 1 12 0c0 4 1.3 5.3 1.5 5.8H4.5C4.7 15.8 6 14.5 6 10.5Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 19a2.5 2.5 0 0 0 5 0" />
+    </svg>
+  );
+}
+
+// Bakım düzenliliği skoru / satış raporu gibi özet-istatistik özellikleri için.
+export function ChartBarIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 20V11M12 20V4M20 20v-7" />
+    </svg>
+  );
+}
+
+// QR etiket özelliği (bkz. app/page.tsx özellik kartları, StickerEditor) için —
+// sadeleştirilmiş bir QR kare deseni.
+export function QrIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <rect x="3.5" y="3.5" width="6" height="6" rx="1" />
+      <rect x="14.5" y="3.5" width="6" height="6" rx="1" />
+      <rect x="3.5" y="14.5" width="6" height="6" rx="1" />
+      <path strokeLinecap="round" d="M14.5 15h2.5v2.5M20.5 15v2M14.5 20.5h3M19 20.5h1.5v-2" />
     </svg>
   );
 }
