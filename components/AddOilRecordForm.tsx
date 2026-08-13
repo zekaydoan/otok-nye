@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { resizeImageFile } from "@/lib/imageClient";
 import { useToast } from "@/components/Toast";
 import { StarIcon } from "@/components/icons";
+import VoiceInputButton from "@/components/VoiceInputButton";
 import type { FavoriteOil, OilRecord } from "@/lib/types";
 
 export default function AddOilRecordForm({
@@ -216,7 +217,13 @@ export default function AddOilRecordForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-slate-700">Yağ Markası *</label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="block text-sm font-medium text-slate-700">Yağ Markası *</label>
+            <VoiceInputButton
+              label="Yağ Markası"
+              onResult={(v) => setForm((f) => ({ ...f, oilBrand: v }))}
+            />
+          </div>
           <input
             required
             value={form.oilBrand}
@@ -226,7 +233,13 @@ export default function AddOilRecordForm({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">Yağ Modeli *</label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="block text-sm font-medium text-slate-700">Yağ Modeli *</label>
+            <VoiceInputButton
+              label="Yağ Modeli"
+              onResult={(v) => setForm((f) => ({ ...f, oilModel: v }))}
+            />
+          </div>
           <input
             required
             value={form.oilModel}
@@ -255,7 +268,14 @@ export default function AddOilRecordForm({
       )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-slate-700">Miktar (kg) *</label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="block text-sm font-medium text-slate-700">Miktar (kg) *</label>
+            <VoiceInputButton
+              label="Miktar"
+              numeric
+              onResult={(v) => setForm((f) => ({ ...f, quantityKg: v }))}
+            />
+          </div>
           <input
             required
             type="number"
@@ -268,7 +288,14 @@ export default function AddOilRecordForm({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">Kilometre</label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="block text-sm font-medium text-slate-700">Kilometre</label>
+            <VoiceInputButton
+              label="Kilometre"
+              numeric
+              onResult={(v) => setForm((f) => ({ ...f, km: v }))}
+            />
+          </div>
           <input
             type="number"
             min="0"
@@ -347,7 +374,13 @@ export default function AddOilRecordForm({
       {photoError && <p className="text-xs text-red-600">{photoError}</p>}
 
       <div>
-        <label className="block text-sm font-medium text-slate-700">Not</label>
+        <div className="flex items-center justify-between gap-2">
+          <label className="block text-sm font-medium text-slate-700">Not</label>
+          <VoiceInputButton
+            label="Not"
+            onResult={(v) => setForm((f) => ({ ...f, note: f.note ? `${f.note} ${v}` : v }))}
+          />
+        </div>
         <textarea
           value={form.note}
           onChange={(e) => setForm({ ...form, note: e.target.value })}

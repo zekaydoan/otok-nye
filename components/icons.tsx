@@ -128,6 +128,17 @@ export function SettingsIcon(props: IconProps) {
   );
 }
 
+// Sesli kayıt girişi (bkz. components/VoiceInputButton) — bir form alanının
+// yanında dikte etmeyi başlatan mikrofon düğmesi için.
+export function MicIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <rect x="7.3" y="2.8" width="5.4" height="9" rx="2.7" />
+      <path strokeLinecap="round" d="M4.5 9.5a5.5 5.5 0 0 0 11 0M10 15v2.3M7.3 17.3h5.4" />
+    </svg>
+  );
+}
+
 // Randevu/takvim ekranları için — dashboard başlığındaki nav bağlantısı ve
 // "Yaklaşan Randevu Yok" boş durum kartında kullanılır (bkz. AppointmentsSection).
 export function CalendarIcon(props: IconProps) {
