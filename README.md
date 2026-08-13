@@ -8,7 +8,7 @@ Araç bakım işletmeleri (tamirciler, oto servisler, galeriler) için QR kodlu,
 - Araç kaydı: plaka (format doğrulamalı), marka/model (hızlı seçim listesi), model yılı, araç sahibi bilgisi
 - Yağ bakım kaydı: tarih, saat, yağ markası/modeli, kaç kg konulduğu, km, filtre bilgisi — hepsi otomatik olarak geçmişe eklenir
 - Bakım kaydına öncesi/sonrası fotoğraf ekleme (tarayıcıda otomatik sıkıştırılır)
-- Sonraki bakım tarihi/km takibi ve otomatik SMS hatırlatma (Netgsm) + tek tıkla WhatsApp gönderimi
+- Sonraki bakım tarihi/km takibi; panelden tek tıkla WhatsApp gönderimi + günlük otomatik WhatsApp hatırlatma altyapısı (bkz. "Otomatik WhatsApp Hatırlatma" bölümü — sağlayıcı bağlanana kadar dormant çalışır)
 - Her bakım kaydı için markalı, doğrulama QR'lı PDF servis fişi
 - Her araç için benzersiz QR kod + firma adı/telefonu için reklam alanı içeren yazdırılabilir etiket
 - QR okutulduğunda açılan, giriş gerektirmeyen genel görünüm sayfası (`/arac/[id]`) — plaka, marka, model ve tüm yağ bakım geçmişini gösterir
@@ -40,7 +40,7 @@ Araç bakım işletmeleri (tamirciler, oto servisler, galeriler) için QR kodlu,
 
 Detaylı kapasite analizi için `kapasite-analizi.md` dosyasına bakın. Bu analiz sonrası uygulanan "hızlı düzeltmeler":
 
-- **Hatırlatma görevi ikiye ayrıldı:** `netlify/functions/bakim-hatirlatma.mts` artık sadece ince bir tetikleyici (Scheduled Function, 30 saniyelik sert Netlify sınırına tabi). Asıl işi `bakim-hatirlatma-worker-background.mts` yapıyor — bir Background Function olduğu için 15 dakikaya kadar çalışabiliyor, sayfalama (`paginate: true`) ile tüm filoyu tek seferde belleğe çekmiyor ve araçları küçük eşzamanlı gruplar hâlinde işliyor. Böylece araç sayısı büyüdükçe görevin sessizce yarıda kesilme riski ortadan kalkıyor. Not: filo 13 dakikalık zaman bütçesini de aşacak kadar büyürse (on binlerce araç), sıraya alma (queue) tabanlı bir tasarıma geçilmesi gerekir — bu, şu anki "hızlı düzeltme" kapsamının ötesindedir.
+- **Hatırlatma görevi henüz tek parça:** `netlify/functions/send-maintenance-reminders.ts` şu an tüm filoyu tek bir Scheduled Function çalışmasında tarıyor (Netlify'ın standart Scheduled Function süre sınırına tabi). Bugünkü ölçekte (test/erken aşama) sorun değil; araç sayısı büyüyüp tarama süresi sınıra yaklaşırsa, görevi ince bir tetikleyici + bir Background Function işçisine (15 dakikaya kadar çalışabilen, sayfalamalı) bölmek gerekecek — bu henüz yapılmadı, büyüme belirtisi görülünce ele alınmalı.
 - **Kritik noktalarda güçlü tutarlılık (`consistency: "strong"`):** Netlify Blobs varsayılan olarak nihai tutarlılıdır (güncellemelerin yayılması 60 saniyeye kadar sürebilir). Plaka benzersizlik kontrolünde ve bir bakım kaydı eklendikten hemen sonra panelin o kaydı göstermesi gereken okumalarda strong consistency kullanılarak "az önce eklediğim şeyi göremiyorum" sınıfı hatalar önlendi.
 - **Bayi kayıtlarında iyimser kilitleme:** `lib/blobStore.ts` içindeki `updateShopFields`, ETag tabanlı koşullu yazım (`onlyIfMatch`) ile aynı bayi kaydına eşzamanlı yapılan "oku-değiştir-yaz" işlemlerinin (favori yağ ekleme, plan değiştirme) birbirini sessizce ezmesini önlüyor; çakışma olursa otomatik yeniden dener.
 
@@ -51,24 +51,40 @@ Detaylı kapasite analizi için `kapasite-analizi.md` dosyasına bakın. Bu anal
 - Kimlik doğrulama: bcryptjs (şifre hash) + jose (JWT, httpOnly cookie)
 - QR kod: `qrcode.react` (arayüz) + `qrcode` (PDF içine gömülen QR)
 - PDF servis fişi: `pdf-lib`
-- SMS: Netgsm HTTP API (`lib/sms.ts`) — farklı sağlayıcıya geçmek için tek dosyayı güncellemeniz yeterli
-- Günlük otomatik bakım hatırlatma: Netlify Scheduled Function tetikleyici + Background Function işçisi (`netlify/functions/bakim-hatirlatma.mts` + `bakim-hatirlatma-worker-background.mts`, her gün 08:00 UTC)
+- Günlük otomatik WhatsApp hatırlatma: Netlify Scheduled Function (`netlify/functions/send-maintenance-reminders.ts`, her gün 06:00 UTC / 09:00 TR)
 
-## Yeni Ortam Değişkenleri (Faz 1)
+## Otomatik WhatsApp Hatırlatma
 
-SMS gönderimi için Netlify ortam değişkenlerine (Site ayarları → Environment variables)
-şunları ekleyin — eklemezseniz uygulama sorunsuz çalışmaya devam eder, sadece SMS
-gönderilmez:
+Bakım zamanı yaklaşan/geçen araçlar için her gün otomatik çalışan bir tarama var
+(`netlify/functions/send-maintenance-reminders.ts` → `lib/blobStore.listDueReminders` →
+`lib/whatsappReminder.ts`). **Şu an "dormant" durumda:** `WHATSAPP_API_KEY` ve
+`WHATSAPP_API_URL` ortam değişkenleri tanımlı olmadığı için tarama her gün çalışıyor
+ama gerçek mesaj göndermiyor, sadece konsola logluyor — hiçbir müşteriye mesaj
+gitmiyor, uygulamanın geri kalanını etkilemiyor.
 
-```
-NETGSM_USERNAME=...
-NETGSM_PASSWORD=...
-NETGSM_HEADER=...   # Netgsm'de onaylı gönderici/mesaj başlığınız
-```
+Neden hâlâ dormant: WhatsApp Business Platform'da sınırsız/canlı gönderim yapabilmek
+için Meta'nın resmi şirket evrakı (vergi levhası, imza sirküleri vb.) istediği bir
+"Business Verification" süreci gerekiyor — bu da şirket kuruluşunun tamamlanmasını
+bekliyor. Kuruluş tamamlanıp bir WhatsApp API sağlayıcısıyla (ör. Netgsm'in WhatsApp
+Business modülü) anlaşma yapıldığında:
 
-Farklı bir SMS sağlayıcı (İletiMerkezi, Vatan SMS vb.) kullanmak isterseniz `lib/sms.ts`
-içindeki `sendSms` fonksiyonunu ilgili sağlayıcının API'sine göre güncelleyin; başka
-hiçbir dosyayı değiştirmeniz gerekmez.
+1. Netlify → Site ayarları → Environment variables içine `WHATSAPP_API_KEY` ve
+   `WHATSAPP_API_URL` eklenir.
+2. `lib/whatsappReminder.ts` içindeki `sendWhatsAppReminder` fonksiyonu, seçilen
+   sağlayıcının gerçek istek/yanıt formatına göre güncellenir (şu an generic bir
+   POST isteği taslağı var).
+3. Mesaj metni Meta'ya "utility" kategorisinde şablon olarak onaylatılır
+   (`buildReminderMessage` fonksiyonundaki metin, şablonun taslağıdır).
+
+Başka hiçbir dosyanın değişmesi gerekmez — tarama mantığı, tekrar gönderimi
+engelleyen döngü takibi (`hasReminderBeenSent`/`markReminderSent`) ve zamanlama
+zaten hazır ve test edilebilir durumda.
+
+**Merkezi mi, bayi kendi numarasından mı?** Mesajlar Oto Künye'nin tek merkezi
+WhatsApp hattından gönderiliyor (her bayiye ayrı Meta iş hesabı açtırmak büyük bir
+kayıt engeli olurdu); mesaj içeriğinde bayinin adı ve telefonu geçtiği için müşteri
+kimin hatırlattığını görür. "Kendi numaranızdan gönderin" (Meta Embedded Signup ile)
+ileride üst pakete taşınabilecek ayrı bir özellik olarak değerlendirilebilir.
 
 ## Faz 1 Kapsamında Kapatılan Boşluklar
 
@@ -77,9 +93,10 @@ Piyasa analizinde tespit edilen ve bu sürümde kapatılan eksikler:
 1. **Plaka doğrulama + hızlı marka/model seçimi** — `lib/plates.ts`. Gerçek zamanlı
    "ruhsattan otomatik çekme" resmi/ücretli bir API gerektirdiği için bu aşamada dahil
    edilmedi; ileride bu dosyaya bir plaka sorgu servisi eklenebilir.
-2. **Otomatik SMS + WhatsApp bakım hatırlatma** — bakım kaydına eklenen "sonraki bakım"
-   tarihi/km baz alınarak hem günlük otomatik SMS hem de panelden tek tıkla WhatsApp
-   mesajı gönderilebiliyor.
+2. **Otomatik WhatsApp bakım hatırlatma** — bakım kaydına eklenen "sonraki bakım"
+   tarihi/km baz alınarak günlük otomatik tarama çalışıyor (bkz. "Otomatik WhatsApp
+   Hatırlatma" bölümü; sağlayıcı bağlanana kadar dormant) + panelden tek tıkla
+   WhatsApp mesajı gönderilebiliyor.
 3. **PDF servis fişi** — her kayıt için `/api/vehicles/[id]/records/[recordId]/pdf`
    üzerinden markalı, doğrulama QR'lı fiş indirilebiliyor.
 4. **KVKK aydınlatma metni** — `/kvkk` sayfası ve kayıt/araç ekleme formlarında açık

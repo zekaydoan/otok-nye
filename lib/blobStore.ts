@@ -368,6 +368,30 @@ export interface UpcomingService {
   kmRemaining: number | null; // negatif ise km hedefi geçilmiş demektir; hesaplanamıyorsa null
 }
 
+// Bir aracın en son bakım kaydına göre "bakım zamanı ne kadar yaklaştı" hesabı —
+// hem dashboard'daki "Yaklaşan Bakımlar" widget'ı (listUpcomingServicesForShop,
+// geniş 14 günlük pencere) hem de otomatik WhatsApp hatırlatma taraması
+// (listDueReminders, dar 3 günlük pencere) aynı mantığı paylaşır ki iki yerde
+// farklı hesap/farklı sonuç ortaya çıkmasın.
+function computeServiceStatus(
+  vehicle: Vehicle,
+  latest: OilRecord,
+  today: Date
+): { daysUntil: number | null; kmRemaining: number | null } {
+  let daysUntil: number | null = null;
+  if (latest.nextServiceDate) {
+    const target = new Date(latest.nextServiceDate);
+    daysUntil = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  let kmRemaining: number | null = null;
+  if (typeof latest.nextServiceKm === "number" && typeof vehicle.lastKnownKm === "number") {
+    kmRemaining = latest.nextServiceKm - vehicle.lastKnownKm;
+  }
+
+  return { daysUntil, kmRemaining };
+}
+
 // Bu bayinin ilgilendiği araçlardan, sonraki bakım tarihi belirtilen gün penceresi
 // içinde OLAN YA DA sonraki bakım km hedefine belirtilen km penceresi kadar
 // YAKLAŞMIŞ (veya geçmiş) olanları listeler. Dashboard'daki "Yaklaşan Bakımlar"
@@ -390,17 +414,7 @@ export async function listUpcomingServicesForShop(
       const latest = records[0];
       if (!latest) return null;
 
-      let daysUntil: number | null = null;
-      if (latest.nextServiceDate) {
-        const target = new Date(latest.nextServiceDate);
-        daysUntil = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-      }
-
-      let kmRemaining: number | null = null;
-      if (typeof latest.nextServiceKm === "number" && typeof vehicle.lastKnownKm === "number") {
-        kmRemaining = latest.nextServiceKm - vehicle.lastKnownKm;
-      }
-
+      const { daysUntil, kmRemaining } = computeServiceStatus(vehicle, latest, today);
       const dateDue = daysUntil !== null && daysUntil <= windowDays;
       const kmDue = kmRemaining !== null && kmRemaining <= kmWindow;
       if (!dateDue && !kmDue) return null;
@@ -417,6 +431,38 @@ export async function listUpcomingServicesForShop(
       if (aKey !== bKey) return aKey - bKey;
       return (a.kmRemaining ?? Infinity) - (b.kmRemaining ?? Infinity);
     });
+}
+
+// Otomatik WhatsApp hatırlatma cron'u için: sistemdeki TÜM araçları (bayi
+// ayrımı gözetmeden) tarar, bakım zamanı dar bir pencere içinde olanları
+// döndürür. windowDays/kmWindow varsayılanları, dashboard'daki geniş "erken
+// haber ver" penceresinden (14 gün) bilinçli olarak daha dar tutulur — amaç
+// müşteriye "tam zamanında" hatırlatma göndermek, günler öncesinden spam
+// yapmamaktır (bkz. lib/whatsappReminder.ts).
+export async function listDueReminders(
+  windowDays = 3,
+  kmWindow = 500
+): Promise<UpcomingService[]> {
+  const vehicles = await listAllVehicles();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const results = await Promise.all(
+    vehicles.map(async (vehicle) => {
+      const records = await listOilRecordsForVehicle(vehicle.id);
+      const latest = records[0];
+      if (!latest) return null;
+
+      const { daysUntil, kmRemaining } = computeServiceStatus(vehicle, latest, today);
+      const dateDue = daysUntil !== null && daysUntil <= windowDays;
+      const kmDue = kmRemaining !== null && kmRemaining <= kmWindow;
+      if (!dateDue && !kmDue) return null;
+
+      return { vehicle, record: latest, daysUntil, kmRemaining };
+    })
+  );
+
+  return results.filter((r): r is UpcomingService => !!r);
 }
 
 // ---------- Bakım Fotoğrafları ----------
