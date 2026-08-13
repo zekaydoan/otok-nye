@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { resizeImageFile } from "@/lib/imageClient";
 import { useToast } from "@/components/Toast";
@@ -40,6 +40,19 @@ export default function AddOilRecordForm({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [isRefreshing, startRefresh] = useTransition();
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Kayıt başarıyla eklendikten sonra formu hemen kapatırsak, arka plandaki liste
+  // henüz sunucudan yeni veriyi almadığı için bir an "henüz kayıt yok" durumu
+  // görünüp kayboluyordu. router.refresh() çağrısını bir transition içine alıp,
+  // yeni veri gelene kadar formu açık tutarak bu görsel titremeyi engelliyoruz.
+  useEffect(() => {
+    if (justSaved && !isRefreshing) {
+      setOpen(false);
+      setJustSaved(false);
+    }
+  }, [justSaved, isRefreshing]);
 
   async function handleAddFavorite() {
     if (!form.oilBrand || !form.oilModel) return;
@@ -97,7 +110,6 @@ export default function AddOilRecordForm({
       setError(data.error || "Bir hata oluştu.");
       return;
     }
-    setOpen(false);
     setForm({
       ...form,
       oilBrand: "",
@@ -110,7 +122,11 @@ export default function AddOilRecordForm({
     });
     setBeforePhoto(null);
     setAfterPhoto(null);
-    router.refresh();
+    showToast("Kayıt eklendi.");
+    setJustSaved(true);
+    startRefresh(() => {
+      router.refresh();
+    });
   }
 
   if (!open) {
@@ -326,15 +342,16 @@ export default function AddOilRecordForm({
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || isRefreshing}
           className="rounded-lg bg-brand-600 px-4 py-2 font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
         >
-          {loading ? "Kaydediliyor..." : "Kaydet"}
+          {loading ? "Kaydediliyor..." : isRefreshing ? "Liste güncelleniyor..." : "Kaydet"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-600 hover:bg-slate-50"
+          disabled={isRefreshing}
+          className="rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
         >
           Vazgeç
         </button>
