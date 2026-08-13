@@ -7,11 +7,15 @@ import PaymentBadges from "@/components/PaymentBadges";
 export default function StickerOrderForm({
   unitPriceTry,
   defaultPhone,
+  defaultName,
 }: {
   unitPriceTry: number;
   defaultPhone?: string;
+  defaultName?: string;
 }) {
   const [quantity, setQuantity] = useState(50);
+  const [labelName, setLabelName] = useState(defaultName || "");
+  const [labelPhone, setLabelPhone] = useState(defaultPhone || "");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState(defaultPhone || "");
   const [addressLine, setAddressLine] = useState("");
@@ -42,6 +46,8 @@ export default function StickerOrderForm({
         quantity,
         identityNumber,
         contractAccepted,
+        labelName,
+        labelPhone,
         address: { fullName, phone, addressLine, district, city, postalCode },
       }),
     });
@@ -88,6 +94,37 @@ export default function StickerOrderForm({
           </button>
         </div>
         <p className="mt-1 text-xs text-slate-400">Birim fiyat: {unitPriceTry.toFixed(2)}₺</p>
+      </div>
+
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <h3 className="text-sm font-semibold text-slate-700">Etikette Görünecek Bilgiler</h3>
+        <p className="mt-1 text-xs text-slate-500">
+          Her etiket, hangi araca yapıştırılacağı önceden bilinmediği için plakasız
+          basılır — bunun yerine firma/usta adınız ve telefonunuz görünür. Etiketi
+          bir araca yapıştırıp ilk kez okuttuğunuzda o etiket o araca bağlanır.
+        </p>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className="block text-xs font-medium text-slate-600">Firma / Usta Adı *</label>
+            <input
+              required
+              value={labelName}
+              onChange={(e) => setLabelName(e.target.value)}
+              placeholder="Zeki Servis"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-600">Etiket Telefonu *</label>
+            <input
+              required
+              value={labelPhone}
+              onChange={(e) => setLabelPhone(e.target.value)}
+              placeholder="05XX XXX XX XX"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">

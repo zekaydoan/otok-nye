@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { STICKER_ORDER_STATUS_LABELS, type StickerOrder, type StickerOrderStatus } from "@/lib/types";
 import { stickerOrderStatusBadgeClass } from "@/lib/stickerOrderUi";
 import { useToast } from "@/components/Toast";
@@ -49,6 +50,15 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
             {order.shippingAddress.addressLine}, {order.shippingAddress.district}/{order.shippingAddress.city}
             {order.shippingAddress.postalCode ? ` ${order.shippingAddress.postalCode}` : ""}
           </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Etikette: {order.labelName || order.shopName} · {order.labelPhone || order.shippingAddress.phone}
+          </p>
+          <Link
+            href={`/admin/siparisler/${order.id}/etiketler`}
+            className="mt-1 inline-block text-xs font-semibold text-brand-600 underline"
+          >
+            Etiket QR listesini görüntüle ({order.quantity})
+          </Link>
         </div>
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${stickerOrderStatusBadgeClass(order.status)}`}

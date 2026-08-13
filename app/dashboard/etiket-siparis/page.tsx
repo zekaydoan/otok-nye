@@ -14,6 +14,7 @@ const BENEFITS = [
   "Motor bölmesi sıcaklığına, yağa ve neme dayanıklı malzeme",
   "Su geçirmez, UV korumalı baskı — kendi yazıcınızdan çıkardığınız kağıt etiket gibi solmaz",
   "Profesyonel görünüm — firmanızı daha güvenilir gösterir",
+  "Her etiketin kendine özel QR kodu vardır — plakasız basılır, hangi araca yapıştırırsanız ilk okutmada o araca bağlanır",
 ];
 
 export default async function StickerOrderPage() {
@@ -65,22 +66,16 @@ export default async function StickerOrderPage() {
                 </div>
               </div>
             </div>
-            <div className="mt-2 flex justify-center">
-              <div className="flex overflow-hidden rounded border-2 border-slate-900">
-                <div className="flex items-center bg-brand-700 px-1">
-                  <span className="text-[6px] font-bold leading-none text-white">TR</span>
-                </div>
-                <div className="bg-white px-1.5 py-0.5">
-                  <span className="text-[10px] font-extrabold text-slate-900">34 ABC 123</span>
-                </div>
-              </div>
+            <div className="mt-2 text-center">
+              <p className="text-[9px] font-bold text-slate-800">{shop?.name || "Zeki Servis"}</p>
+              <p className="text-[8px] text-slate-500">{shop?.phone || "05XX XXX XX XX"}</p>
             </div>
             <p className="mt-1.5 text-[8px] text-slate-400">Su geçirmez · UV korumalı</p>
           </div>
         </div>
       </div>
 
-      <StickerOrderForm unitPriceTry={unitPriceTry} defaultPhone={shop?.phone} />
+      <StickerOrderForm unitPriceTry={unitPriceTry} defaultPhone={shop?.phone} defaultName={shop?.name} />
 
       {orders.length > 0 && (
         <div className="mt-10">

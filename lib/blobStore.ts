@@ -1,6 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
-import type { OilRecord, Shop, StickerOrder, Vehicle } from "./types";
+import type { OilRecord, Shop, StickerOrder, StickerToken, Vehicle } from "./types";
 
 // Netlify Blobs tabanlı basit veri katmanı.
 // Store'lar: shops, shops_by_email, vehicles, vehicles_by_plate, oilrecords
@@ -22,6 +22,10 @@ const shopVehicleLinksStore = () => getStore("shop_vehicle_links");
 const stickerOrdersStore = () => getStore("sticker_orders");
 const stickerOrdersByShopStore = () => getStore("sticker_orders_by_shop");
 const stickerOrderTokensStore = () => getStore("sticker_order_tokens");
+// Fiziksel etiket başına benzersiz QR token'ları (bkz. StickerToken tip tanımı) ve
+// bir siparişe ait tüm token'ları listeleyebilmek için sipariş->token indeksi.
+const stickerTokensStore = () => getStore("sticker_tokens");
+const stickerTokensByOrderStore = () => getStore("sticker_tokens_by_order");
 const settingsStore = () => getStore("settings");
 // Şifre sıfırlama: token -> { shopId, expiresAt }. Token tek kullanımlıktır,
 // kullanıldıktan hemen sonra veya süresi dolduğunda silinir.
@@ -234,6 +238,9 @@ export async function listOilRecordsForVehicle(
   vehicleId: string,
   opts?: ConsistencyOpts
 ): Promise<OilRecord[]> {
+  // Not: @netlify/blobs .list() çağrısı consistency seçeneğini desteklemiyor (yalnızca
+  // .get()/.set() destekliyor) — bu yüzden burada kaldırıldı; aşağıdaki tekil .get()
+  // çağrılarında hâlâ isteğe bağlı "strong" tutarlılık uygulanıyor.
   const { blobs } = await oilRecordsStore().list({
     prefix: `${vehicleId}/`,
   });
@@ -398,6 +405,53 @@ export async function updateStickerOrder(
     if (writeResult.modified) return updated;
   }
   throw new Error("Sipariş eşzamanlı olarak değiştirildi, lütfen tekrar deneyin.");
+}
+
+// ---------- Etiket Token ----------
+// Bir sipariş onaylandığında (veya sipariş anında) quantity kadar benzersiz token
+// üretir — her biri fiziksel olarak basılacak bir etikete karşılık gelir.
+export async function createStickerTokens(
+  shopId: string,
+  orderId: string,
+  quantity: number
+): Promise<string[]> {
+  const tokens: string[] = [];
+  for (let i = 0; i < quantity; i++) {
+    const token = randomUUID().replace(/-/g, "").slice(0, 12);
+    const record: StickerToken = { token, shopId, orderId, createdAt: new Date().toISOString() };
+    await stickerTokensStore().setJSON(token, record);
+    await stickerTokensByOrderStore().set(`${orderId}/${token}`, token);
+    tokens.push(token);
+  }
+  return tokens;
+}
+
+export async function getStickerToken(
+  token: string,
+  opts?: ConsistencyOpts
+): Promise<StickerToken | null> {
+  return (await stickerTokensStore().get(token, {
+    type: "json",
+    consistency: opts?.consistency,
+  })) as StickerToken | null;
+}
+
+export async function listStickerTokensByOrder(orderId: string): Promise<StickerToken[]> {
+  const { blobs } = await stickerTokensByOrderStore().list({ prefix: `${orderId}/` });
+  const tokens = await Promise.all(
+    blobs.map((b) => getStickerToken(b.key.slice(orderId.length + 1)))
+  );
+  return tokens.filter((t): t is StickerToken => !!t);
+}
+
+// Etiketi bir araca bağlar. Token'ın zaten bağlı olup olmadığı ve doğru bayiye ait
+// olup olmadığı çağıran API route tarafından önceden kontrol edilmelidir.
+export async function bindStickerToken(token: string, vehicleId: string): Promise<StickerToken> {
+  const record = await getStickerToken(token, { consistency: "strong" });
+  if (!record) throw new Error("Etiket bulunamadı.");
+  const updated: StickerToken = { ...record, vehicleId, boundAt: new Date().toISOString() };
+  await stickerTokensStore().setJSON(token, updated);
+  return updated;
 }
 
 // Etiket birim fiyatı henüz kesinleşmedi (baskı tedarikçisi araştırması sürüyor) —

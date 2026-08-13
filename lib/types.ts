@@ -111,6 +111,25 @@ export interface StickerOrder {
   trackingCarrier?: string;
   trackingNumber?: string;
   adminNote?: string;
+  // Etikette basılı görünecek isim/telefon — genelde bayi adı/telefonuyla aynıdır
+  // ama sipariş formunda değiştirilebilir (ör. belirli bir ustanın adı/telefonu).
+  labelName?: string;
+  labelPhone?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ---------- Etiket Token (fiziksel etiketin üzerindeki benzersiz QR kimliği) ----------
+// Sipariş anında hangi aracın plakasının basılacağı bilinmediğinden (etiketler önceden
+// toplu üretilip bayiye gönderilir, sonra zamanla farklı araçlara tek tek yapıştırılır),
+// her fiziksel etiket plakasız, yalnızca kendine özel bir "token" ile basılır. Bayi
+// etiketi bir araca yapıştırıp ilk kez okuttuğunda (bkz. app/e/[token]) token o araca
+// kalıcı olarak bağlanır; sonraki okutmalarda doğrudan o aracın sayfasına yönlendirir.
+export interface StickerToken {
+  token: string;
+  shopId: string;
+  orderId: string;
+  vehicleId?: string;
+  createdAt: string;
+  boundAt?: string;
 }
