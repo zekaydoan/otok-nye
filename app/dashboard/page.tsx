@@ -15,7 +15,7 @@ import QrScanner from "@/components/QrScanner";
 import VehicleListSection from "@/components/VehicleListSection";
 import { CalendarIcon } from "@/components/icons";
 
-function dueBadge(daysUntil: number): { text: string; className: string } {
+function dateBadge(daysUntil: number): { text: string; className: string } {
   if (daysUntil < 0) {
     return { text: `${Math.abs(daysUntil)} gün gecikti`, className: "bg-red-100 text-red-700" };
   }
@@ -23,6 +23,16 @@ function dueBadge(daysUntil: number): { text: string; className: string } {
     return { text: "Bugün", className: "bg-amber-100 text-amber-700" };
   }
   return { text: `${daysUntil} gün kaldı`, className: "bg-brand-50 text-brand-700" };
+}
+
+function kmBadge(kmRemaining: number): { text: string; className: string } {
+  if (kmRemaining < 0) {
+    return {
+      text: `${Math.abs(kmRemaining).toLocaleString("tr-TR")} km geçti`,
+      className: "bg-red-100 text-red-700",
+    };
+  }
+  return { text: `${kmRemaining.toLocaleString("tr-TR")} km kaldı`, className: "bg-sky-50 text-sky-700" };
 }
 
 export default async function DashboardPage() {
@@ -130,8 +140,7 @@ export default async function DashboardPage() {
           <div className="mt-6">
             <h2 className="text-lg font-bold text-slate-900">Yaklaşan Bakımlar</h2>
             <div className="mt-3 space-y-2">
-              {upcoming.map(({ vehicle, record, daysUntil }) => {
-                const badge = dueBadge(daysUntil);
+              {upcoming.map(({ vehicle, record, daysUntil, kmRemaining }) => {
                 const whatsAppLink = vehicle.ownerPhone
                   ? buildWhatsAppLink(vehicle.ownerPhone, buildReminderMessage(vehicle, record))
                   : null;
@@ -141,9 +150,22 @@ export default async function DashboardPage() {
                     className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-l-4 border-amber-400 bg-white p-4 shadow-sm ring-1 ring-slate-100"
                   >
                     <div className="flex items-center gap-3">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}>
-                        {badge.text}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        {daysUntil !== null && (
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${dateBadge(daysUntil).className}`}
+                          >
+                            {dateBadge(daysUntil).text}
+                          </span>
+                        )}
+                        {kmRemaining !== null && (
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${kmBadge(kmRemaining).className}`}
+                          >
+                            {kmBadge(kmRemaining).text}
+                          </span>
+                        )}
+                      </div>
                       <div>
                         <Link
                           href={`/dashboard/araclar/${vehicle.id}`}
@@ -152,7 +174,9 @@ export default async function DashboardPage() {
                           {vehicle.plateDisplay}
                         </Link>
                         <p className="text-xs text-slate-500">
-                          {vehicle.brand} {vehicle.model} · önerilen: {record.nextServiceDate}
+                          {vehicle.brand} {vehicle.model}
+                          {record.nextServiceDate ? ` · önerilen: ${record.nextServiceDate}` : ""}
+                          {record.nextServiceKm ? ` · ${record.nextServiceKm.toLocaleString("tr-TR")} km` : ""}
                         </p>
                       </div>
                     </div>

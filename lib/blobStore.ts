@@ -202,6 +202,29 @@ export async function getOrCreateReportToken(vehicleId: string): Promise<string 
   return token;
 }
 
+// Aracın bilinen en güncel kilometresini günceller — ya bir bakım kaydı eklenirken
+// otomatik olarak (bkz. createOilRecord), ya da araç detay sayfasındaki hızlı "Güncel
+// Km" alanından elle çağrılır. Kilometre yalnızca ileri gidebilir: geriye giden bir
+// değer muhtemelen yanlış girilmiştir ve km bazlı hatırlatmayı (bkz.
+// listUpcomingServicesForShop) yanlış yönde sıfırlayıp bir bakımın "henüz uzak"
+// görünmesine yol açabilir.
+export async function updateVehicleKm(vehicleId: string, km: number): Promise<Vehicle> {
+  const vehicle = await getVehicleById(vehicleId, { consistency: "strong" });
+  if (!vehicle) throw new Error("Araç bulunamadı.");
+  if (typeof vehicle.lastKnownKm === "number" && km < vehicle.lastKnownKm) {
+    throw new Error(
+      `Yeni km (${km.toLocaleString("tr-TR")}), bilinen son km'den (${vehicle.lastKnownKm.toLocaleString("tr-TR")}) düşük olamaz.`
+    );
+  }
+  const updated: Vehicle = {
+    ...vehicle,
+    lastKnownKm: km,
+    lastKnownKmUpdatedAt: new Date().toISOString(),
+  };
+  await vehiclesStore().setJSON(vehicleId, updated);
+  return updated;
+}
+
 // Bir bayiyi bir araçla ilişkilendirir (araç oluşturma veya bakım kaydı ekleme anında
 // çağrılır). Aynı araca birden fazla bayi kayıt eklerse, her biri kendi "Araçlarım"
 // listesinde bu aracı görür — araç tek bir bayiye kilitli değildir.
@@ -237,6 +260,20 @@ export async function createOilRecord(record: OilRecord): Promise<void> {
   await oilRecordsStore().setJSON(`${record.vehicleId}/${record.id}`, record);
   // Kaydı giren bayi, aracı oluşturan bayi olmasa bile "Araçlarım" listesinde görsün.
   await linkShopVehicle(record.shopId, record.vehicleId);
+
+  // Bakım kaydına girilen km, o anki bilinen güncel km kabul edilir — km bazlı
+  // hatırlatmanın (bkz. listUpcomingServicesForShop) çalışabilmesi için aracın
+  // lastKnownKm alanını da burada güncelliyoruz. updateVehicleKm, km geriye
+  // gidiyorsa hata fırlatır (ör. bu kayıt km tutarlılık uyarısı tetikleyen türden
+  // yanlış girilmiş bir değerse) — bu durumda bakım kaydının kendisi zaten
+  // oluşturulduğundan hatayı sessizce yutuyoruz.
+  if (typeof record.km === "number") {
+    try {
+      await updateVehicleKm(record.vehicleId, record.km);
+    } catch {
+      // yok say
+    }
+  }
 }
 
 export async function listOilRecordsForVehicle(
@@ -272,15 +309,21 @@ export async function getOilRecordById(
 export interface UpcomingService {
   vehicle: Vehicle;
   record: OilRecord;
-  daysUntil: number; // negatif ise bakım zamanı geçmiş demektir
+  daysUntil: number | null; // negatif ise bakım zamanı geçmiş demektir; tarih hedefi yoksa null
+  kmRemaining: number | null; // negatif ise km hedefi geçilmiş demektir; hesaplanamıyorsa null
 }
 
-// Bu bayinin ilgilendiği araçlardan, sonraki bakım tarihi belirtilen pencere
-// içinde olan (veya zamanı geçmiş) olanları listeler. Dashboard'daki
-// "Yaklaşan Bakımlar" widget'i için kullanılır.
+// Bu bayinin ilgilendiği araçlardan, sonraki bakım tarihi belirtilen gün penceresi
+// içinde OLAN YA DA sonraki bakım km hedefine belirtilen km penceresi kadar
+// YAKLAŞMIŞ (veya geçmiş) olanları listeler. Dashboard'daki "Yaklaşan Bakımlar"
+// widget'ı için kullanılır. Km bazlı hesap, aracın lastKnownKm alanına dayanır —
+// bu alan bir bakım kaydı eklenirken otomatik, ya da araç detay sayfasından elle
+// güncellenir (bkz. updateVehicleKm). lastKnownKm hiç girilmemişse km bazlı
+// kontrol devre dışı kalır, yalnızca tarih bazlı kontrol çalışır.
 export async function listUpcomingServicesForShop(
   shopId: string,
-  windowDays = 14
+  windowDays = 14,
+  kmWindow = 500
 ): Promise<UpcomingService[]> {
   const vehicles = await listVehiclesByShop(shopId);
   const today = new Date();
@@ -290,17 +333,35 @@ export async function listUpcomingServicesForShop(
     vehicles.map(async (vehicle) => {
       const records = await listOilRecordsForVehicle(vehicle.id);
       const latest = records[0];
-      if (!latest || !latest.nextServiceDate) return null;
-      const target = new Date(latest.nextServiceDate);
-      const daysUntil = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-      if (daysUntil > windowDays) return null;
-      return { vehicle, record: latest, daysUntil };
+      if (!latest) return null;
+
+      let daysUntil: number | null = null;
+      if (latest.nextServiceDate) {
+        const target = new Date(latest.nextServiceDate);
+        daysUntil = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      }
+
+      let kmRemaining: number | null = null;
+      if (typeof latest.nextServiceKm === "number" && typeof vehicle.lastKnownKm === "number") {
+        kmRemaining = latest.nextServiceKm - vehicle.lastKnownKm;
+      }
+
+      const dateDue = daysUntil !== null && daysUntil <= windowDays;
+      const kmDue = kmRemaining !== null && kmRemaining <= kmWindow;
+      if (!dateDue && !kmDue) return null;
+
+      return { vehicle, record: latest, daysUntil, kmRemaining };
     })
   );
 
   return results
     .filter((r): r is UpcomingService => !!r)
-    .sort((a, b) => a.daysUntil - b.daysUntil);
+    .sort((a, b) => {
+      const aKey = a.daysUntil ?? Infinity;
+      const bKey = b.daysUntil ?? Infinity;
+      if (aKey !== bKey) return aKey - bKey;
+      return (a.kmRemaining ?? Infinity) - (b.kmRemaining ?? Infinity);
+    });
 }
 
 // ---------- Bakım Fotoğrafları ----------

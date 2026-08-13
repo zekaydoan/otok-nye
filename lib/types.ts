@@ -33,6 +33,14 @@ export interface Vehicle {
   ownerName?: string;
   ownerPhone?: string;
   reportToken?: string; // paylaşılabilir satış raporu bağlantısı için
+  // Aracın bilinen en güncel kilometresi — bir bakım kaydı eklenirken kayıttaki km
+  // otomatik olarak buraya yazılır (bkz. blobStore.createOilRecord), ayrıca araç
+  // detay sayfasından tam bakım girmeden de elle güncellenebilir (bkz.
+  // components/VehicleKmUpdate). Km bazlı bakım hatırlatması (bkz.
+  // listUpcomingServicesForShop) bu değeri, son kaydın nextServiceKm hedefiyle
+  // karşılaştırarak hesaplanır.
+  lastKnownKm?: number;
+  lastKnownKmUpdatedAt?: string; // ISO
   createdByShopId: string;
   createdAt: string;
 }

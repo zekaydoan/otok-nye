@@ -12,6 +12,7 @@ import AddOilRecordForm from "@/components/AddOilRecordForm";
 import ShareReportButton from "@/components/ShareReportButton";
 import ScoreBadge from "@/components/ScoreBadge";
 import EmptyState from "@/components/EmptyState";
+import VehicleKmUpdate from "@/components/VehicleKmUpdate";
 import { CheckIcon, DocumentIcon, PencilIcon, WarningIcon } from "@/components/icons";
 import type { FavoriteOil, OilRecord, Vehicle } from "@/lib/types";
 
@@ -31,8 +32,14 @@ export default function VehicleDetailView({
   plakaGuncellendi?: boolean;
 }) {
   const [records, setRecords] = useState<OilRecord[]>(initialRecords);
+  // "Güncel Km" widget'ının (bkz. VehicleKmUpdate) sunucuya yazdığı güncellemeyi
+  // sayfa yenilenmeden burada da yansıtabilmek için (ör. "Sonraki Bakım" altındaki
+  // "X km kaldı" etiketi) ayrı bir state olarak tutuyoruz.
+  const [currentKm, setCurrentKm] = useState<number | undefined>(vehicle.lastKnownKm);
 
   const latest = records[0];
+  const kmRemaining =
+    latest?.nextServiceKm && typeof currentKm === "number" ? latest.nextServiceKm - currentKm : null;
   const kmIssues = useMemo(() => checkKmConsistency(records), [records]);
   const score = useMemo(() => computeMaintenanceScore(records), [records]);
   const kmIssueRecordIds = useMemo(() => new Set(kmIssues.map((i) => i.recordId)), [kmIssues]);
@@ -126,7 +133,7 @@ export default function VehicleDetailView({
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-3 border-t border-slate-100 pt-4 text-center sm:text-left">
+        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-center sm:grid-cols-4 sm:text-left">
           <div>
             <p className="text-xs text-slate-400">Toplam Kayıt</p>
             <p className="mt-0.5 text-lg font-bold text-slate-900">{records.length}</p>
@@ -140,6 +147,20 @@ export default function VehicleDetailView({
             <p className="mt-0.5 text-lg font-bold text-brand-700">
               {latest?.nextServiceDate || "—"}
             </p>
+            {kmRemaining !== null && (
+              <p className="mt-0.5 text-xs text-slate-400">
+                {kmRemaining >= 0
+                  ? `${kmRemaining.toLocaleString("tr-TR")} km kaldı`
+                  : `${Math.abs(kmRemaining).toLocaleString("tr-TR")} km geçti`}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col items-center sm:items-start">
+            <VehicleKmUpdate
+              vehicleId={vehicle.id}
+              initialKm={vehicle.lastKnownKm}
+              onUpdated={(v) => setCurrentKm(v.lastKnownKm)}
+            />
           </div>
         </div>
 
