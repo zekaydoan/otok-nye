@@ -6,6 +6,15 @@ import { checkRateLimit, getClientIp, resetRateLimit } from "@/lib/rateLimit";
 const MAX_ATTEMPTS = 8;
 const WINDOW_MS = 15 * 60 * 1000; // 15 dakika
 
+// Hesap bulunamadığında da gerçek bir bcrypt karşılaştırması çalıştırmak için
+// kullanılan sahte (rastgele bir şifreden üretilmiş, hiçbir hesaba ait olmayan)
+// bcrypt hash'i. Amaç: "e-posta hiç kayıtlı değil" durumuyla "e-posta kayıtlı
+// ama şifre yanlış" durumunun yanıt süresini birbirine yaklaştırmak — aksi
+// hâlde bcrypt.compare çağrılmayan ilk durum sistematik olarak daha hızlı
+// döner ve bu fark, saldırganın hangi e-postaların sistemde kayıtlı olduğunu
+// zamanlama farkından (timing side-channel) çıkarmasına izin verebilir.
+const DUMMY_HASH = "$2a$10$CwTycUXWue0Thq9StjUM0uJ8Y6b0zM/9WlS5uHFAqhAOWvhWfAyfy";
+
 export async function POST(req: NextRequest) {
   const { email, password } = (await req.json()) as { email?: string; password?: string };
   if (!email || !password) {
@@ -30,16 +39,27 @@ export async function POST(req: NextRequest) {
   // hesabına ait olabilir (bkz. lib/types.ts StaffAccount) — iki tablo da aynı
   // e-posta alanı için global olarak benzersiz tutulur (bkz. signup ve
   // app/api/staff POST), bu yüzden en fazla biri eşleşir.
-  const shop = await getShopByEmail(email);
-  if (shop && (await verifyPassword(password, shop.passwordHash))) {
+  const [shop, staff] = await Promise.all([getShopByEmail(email), getStaffByEmail(email)]);
+
+  // Hesabın var olup olmamasından bağımsız olarak her istekte tam olarak bir kez
+  // bcrypt.compare çalıştırılır (var olan hesabın hash'i, ya da hiçbiri yoksa
+  // sahte DUMMY_HASH). Böylece "e-posta kayıtlı değil", "e-posta kayıtlı ama
+  // şifre yanlış" ve "e-posta+şifre doğru" durumları arasında bcrypt çağrı
+  // sayısı hep aynı kalır — sadece sonuca göre dallanılır, zamanlama farkı
+  // (timing side-channel) ile hesap varlığı tahmin edilemez.
+  const passwordMatches = await verifyPassword(
+    password,
+    shop?.passwordHash ?? staff?.passwordHash ?? DUMMY_HASH
+  );
+
+  if (shop && passwordMatches) {
     await resetRateLimit("login", rateLimitKey);
     const token = await createSessionToken({ shopId: shop.id, role: "sahibi" });
     setSessionCookie(token);
     return NextResponse.json({ ok: true });
   }
 
-  const staff = await getStaffByEmail(email);
-  if (staff && (await verifyPassword(password, staff.passwordHash))) {
+  if (staff && passwordMatches) {
     await resetRateLimit("login", rateLimitKey);
     const token = await createSessionToken({
       shopId: staff.shopId,
