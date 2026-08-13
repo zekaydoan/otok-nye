@@ -63,6 +63,16 @@ export default function NewVehiclePage() {
         if (data.vehicleId) setExistingVehicleId(data.vehicleId);
         return;
       }
+      // Netlify Blobs'un .list() metodu strong consistency desteklemediğinden,
+      // kullanıcı kısa süre içinde "Araçlarım" sayfasına dönerse sunucu az önce
+      // eklenen aracı henüz göremeyebiliyor. Aracı burada sessionStorage'a yazıp,
+      // dashboard'un onu anında listeye eklemesini sağlıyoruz (bkz. VehicleListSection).
+      try {
+        sessionStorage.setItem("otoKunyeYeniArac", JSON.stringify(data.vehicle));
+      } catch {
+        // sessionStorage kullanılamıyorsa sessizce yok say — tek etkisi dashboard'a
+        // hemen dönülürse eski davranışa (bir yenilemeye kadar gecikme) dönmesi.
+      }
       router.push(`/dashboard/araclar/${data.vehicle.id}`);
       router.refresh();
     } catch {
