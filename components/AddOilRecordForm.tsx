@@ -5,16 +5,21 @@ import { useRouter } from "next/navigation";
 import { resizeImageFile } from "@/lib/imageClient";
 import { useToast } from "@/components/Toast";
 import { StarIcon } from "@/components/icons";
-import type { FavoriteOil } from "@/lib/types";
+import type { FavoriteOil, OilRecord } from "@/lib/types";
 
 export default function AddOilRecordForm({
   vehicleId,
   hasOwnerPhone,
   favoriteOils = [],
+  onCreated,
 }: {
   vehicleId: string;
   hasOwnerPhone: boolean;
   favoriteOils?: FavoriteOil[];
+  // Kayıt sunucuda oluşturulduğunda API'nin döndürdüğü tam kayıt nesnesini üst
+  // bileşene iletir — böylece liste, yavaş/tutarsız olabilen bir router.refresh()
+  // beklemeden anında güncellenebilir (bkz. VehicleDetailView).
+  onCreated?: (record: OilRecord) => void;
 }) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -128,6 +133,10 @@ export default function AddOilRecordForm({
       setBeforePhoto(null);
       setAfterPhoto(null);
       showToast("Kayıt eklendi.");
+      // API zaten oluşturulan kaydı geri döndürüyor — sunucudan yeniden okumayı
+      // (ve Netlify Blobs .list()'in olası gecikmesini) beklemeden üst bileşene
+      // iletip listeyi anında güncelliyoruz.
+      if (data.record) onCreated?.(data.record);
       setJustSaved(true);
       startRefresh(() => {
         router.refresh();
