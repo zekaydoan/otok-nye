@@ -1,7 +1,10 @@
 import type { OilRecord, Vehicle } from "./types";
 
-const DEFAULT_INTERVAL_MONTHS = 6;
-const DEFAULT_INTERVAL_KM = 10000;
+// Üretici bakım kılavuzları taraması (Ford, Toyota, VW, Fiat, Renault, Hyundai vb.)
+// genel olarak tam sentetik yağda 10.000-15.000 km VEYA 12 ay (hangisi önce
+// gelirse) öneriyor; 12.500 km / 12 ay bu aralığın ortalaması olarak alındı.
+const DEFAULT_INTERVAL_MONTHS = 12;
+const DEFAULT_INTERVAL_KM = 12500;
 
 export function defaultNextServiceDate(fromDateISO: string): string {
   const d = new Date(fromDateISO);

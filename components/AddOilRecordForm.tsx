@@ -318,7 +318,7 @@ export default function AddOilRecordForm({
               onChange={(e) => setForm({ ...form, nextServiceDate: e.target.value })}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
             />
-            <p className="mt-1 text-[11px] text-slate-400">Boş bırakılırsa +6 ay olarak ayarlanır.</p>
+            <p className="mt-1 text-[11px] text-slate-400">Boş bırakılırsa +12 ay olarak ayarlanır.</p>
           </div>
           <div>
             <label className="block text-xs text-slate-600">Önerilen Km</label>
@@ -329,7 +329,7 @@ export default function AddOilRecordForm({
               onChange={(e) => setForm({ ...form, nextServiceKm: e.target.value })}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
             />
-            <p className="mt-1 text-[11px] text-slate-400">Boş bırakılırsa +10.000 km olarak ayarlanır.</p>
+            <p className="mt-1 text-[11px] text-slate-400">Boş bırakılırsa +12.500 km olarak ayarlanır.</p>
           </div>
         </div>
       </div>
