@@ -98,14 +98,16 @@ export default async function RemindersPage() {
                           </p>
                         </div>
                       </div>
-                      <a
-                        href={whatsAppLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
-                      >
-                        WhatsApp'tan Hatırlat
-                      </a>
+                      {whatsAppLink && (
+                        <a
+                          href={whatsAppLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
+                        >
+                          WhatsApp'tan Hatırlat
+                        </a>
+                      )}
                     </div>
                   );
                 })}
