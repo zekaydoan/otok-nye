@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Dokunmatik cihazlarda buton/link hedeflerinin küçülmemesi için */
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tüm uygulamadaki bağlantı/buton hover-renk, gölge ve hafif kaldırma
+   geçişlerini tek yerden tutarlı kılar — her bileşende ayrı ayrı
+   "transition-colors" eklemek yerine global bir temel davranış tanımlar. */
+a,
+button {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease,
+    box-shadow 150ms ease, transform 150ms ease, opacity 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a,
+  button {
+    transition: none;
+  }
+}
+
+/* Kart/liste öğelerinde hover'da hafif yukarı kalkma efekti için ortak sınıf
+   (a/button dışındaki div tabanlı kartlar için kendi geçişini de tanımlar) */
+.hover-lift {
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hover-lift {
+    transition: none;
+  }
+}
+
+/* Karşılama panelleri ve hero bölümleri için sayfa yüklenirken hafif
+   belirme + yukarı kayma girişi. */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up {
+    animation: none;
+  }
+}
+
+input,
+select,
+textarea {
+  font-size: 16px; /* iOS Safari'de otomatik zoom'u önler */
+}
+
+@media (min-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 0.875rem;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  /* Kağıt kenar boşluğunu daraltır — tarayıcının varsayılan geniş kenar boşluğu
+     etiket kartı sayısını sayfa başına gereksiz azaltıyordu. */
+  @page {
+    margin: 10mm;
+  }
+  /* Etiket yazdırma sayfasındaki kart ızgarası (bkz. components/StickerEditor.tsx):
+     ekranda geniş masaüstünde 3 sütuna çıkıyor, ama A4 kağıtta 3 sütun kartları
+     aşırı küçültüyor — yazdırırken sabit 2 sütuna döner. */
+  .print-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Toast bildirimleri için hafif yukarı kayarak beliren giriş animasyonu
+   (bkz. components/Toast.tsx) */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
