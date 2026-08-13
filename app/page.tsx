@@ -18,6 +18,16 @@ import {
   XCircleIcon,
 } from "@/components/icons";
 
+// Hero'nun altındaki "Öne Çıkanlar" şeridinde sırayla beliren kısa özellik
+// tanıtımları — tam açıklama yerine tek satırlık, dikkat çekici ifadeler.
+const tickerItems = [
+  { icon: BellIcon, text: "Bakım zamanı gelince otomatik hatırlatma gönderilir" },
+  { icon: CalendarIcon, text: "Günlük randevularınızı tek panelden yönetin" },
+  { icon: MicIcon, text: "Elleriniz kirliyken bile sesle kayıt girin" },
+  { icon: UsersIcon, text: "Ekibinize kendi giriş bilgisiyle erişim tanımlayın" },
+  { icon: QrIcon, text: "Her araca özel, reklam alanlı QR etiket üretin" },
+];
+
 const steps = [
   {
     title: "1. Aracı kaydedin",
@@ -271,14 +281,40 @@ export default function HomePage() {
 
               {/* Ana kartın üzerine hafifçe taşan iki küçük rozet — QR okutma anını
                   ve otomatik hatırlatmayı görsel olarak somutlaştırıyor. */}
-              <div className="absolute -left-6 -top-5 hidden -rotate-6 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-lg sm:flex">
+              <div
+                className="animate-float-badge absolute -left-6 -top-5 hidden -rotate-6 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-lg sm:flex"
+              >
                 <QrIcon className="h-5 w-5 text-brand-600" />
                 <span className="text-xs font-semibold text-slate-700">QR okutuldu</span>
               </div>
-              <div className="absolute -bottom-5 -right-4 hidden rotate-3 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 shadow-lg sm:flex">
+              <div
+                className="animate-float-badge absolute -bottom-5 -right-4 hidden rotate-3 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 shadow-lg sm:flex"
+                style={{ animationDelay: "-1.6s" }}
+              >
                 <BellIcon className="h-5 w-5 text-amber-600" />
                 <span className="text-xs font-semibold text-amber-800">Hatırlatma gönderildi</span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Öne Çıkanlar şeridi — hero'nun hemen altında, JavaScript kullanmadan
+            saf CSS ile birkaç özelliği sırayla tanıtan hareketli bir bant. Sayfanın
+            en üstünde göze çarpan, canlı bir ilk izlenim yaratmak için eklendi. */}
+        <div className="relative border-t border-brand-100 bg-white/70 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-2 px-4 py-3 text-sm sm:justify-start sm:px-6">
+            <span className="shrink-0 font-semibold text-slate-500">Öne Çıkanlar:</span>
+            <div className="relative h-5 w-full max-w-md overflow-hidden sm:w-80">
+              {tickerItems.map((item, i) => (
+                <div
+                  key={item.text}
+                  className="animate-ticker absolute inset-0 flex items-center gap-1.5 font-medium text-brand-700"
+                  style={{ animationDelay: `${-i * 2}s` }}
+                >
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.text}
+                </div>
+              ))}
             </div>
           </div>
         </div>

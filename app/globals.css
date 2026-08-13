@@ -116,3 +116,62 @@ textarea {
     transform: translateY(0);
   }
 }
+
+/* Hero'daki iki küçük rozet kartın (QR okutuldu / Hatırlatma gönderildi)
+   yavaşça yukarı-aşağı süzülmesi için — sayfanın en üstüne hareket katarak
+   dikkat çekmesi amaçlanır (bkz. app/page.tsx). Süre kartlar arasında farklı
+   tutulur ki ikisi de aynı anda hareket etmesin, daha doğal görünsün. */
+@keyframes float-badge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float-badge {
+  animation: float-badge 3.2s ease-in-out infinite;
+}
+
+/* Ana sayfanın en üstündeki, birkaç özelliği sırayla tanıtan "hareketli
+   şerit" (bkz. app/page.tsx "Öne Çıkanlar" bandı). Her öğe aynı 10 saniyelik
+   döngüyü paylaşır ama negatif animation-delay ile faz kaydırılarak sırayla
+   belirip kaybolur — ekstra JavaScript olmadan, saf CSS ile çalışır. */
+@keyframes ticker-cycle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  2% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.animate-ticker {
+  animation: ticker-cycle 10s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-badge {
+    animation: none;
+  }
+  .animate-ticker {
+    animation: none;
+    opacity: 0;
+  }
+  .animate-ticker:first-child {
+    opacity: 1;
+  }
+}
