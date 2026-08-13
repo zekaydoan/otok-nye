@@ -142,6 +142,16 @@ export interface Appointment {
   note?: string;
   status: AppointmentStatus;
   createdAt: string;
+  // Müşteri, WhatsApp hatırlatmasındaki "Evet, randevu oluşturalım" butonuna
+  // bastığında sistem tarafından otomatik oluşturulan randevuları elle
+  // eklenenlerden ayırt etmek için (bkz. app/api/whatsapp/webhook). Alan
+  // tanımsızsa "manuel" kabul edilir — geriye dönük uyumluluk için varsayılan
+  // eklenmedi.
+  source?: "manuel" | "whatsapp_onay";
+  // Bayi panelinde header'daki Randevular rozetinin sayısını hesaplamak için:
+  // WhatsApp onayıyla gelen bir randevu, bayi Randevular sayfasını ziyaret
+  // edene kadar "yeni" sayılır (bkz. blobStore.markWhatsappAppointmentsSeen).
+  seenByShop?: boolean;
 }
 
 // ---------- Etiket Mağazası (fiziksel QR etiket siparişi) ----------

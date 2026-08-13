@@ -80,6 +80,28 @@ Başka hiçbir dosyanın değişmesi gerekmez — tarama mantığı, tekrar gön
 engelleyen döngü takibi (`hasReminderBeenSent`/`markReminderSent`) ve zamanlama
 zaten hazır ve test edilebilir durumda.
 
+### Evet/Hayır butonuyla otomatik randevu
+
+Hatırlatma mesajına iki hızlı cevap butonu ekleniyor: "Evet, randevu oluşturalım" /
+"Hayır, şimdilik değil" (bkz. `send-maintenance-reminders.ts` içindeki `buttons`
+parametresi, `lib/whatsappReminder.ts` → `encodeConfirmationPayload`). Müşteri
+"Evet"e bastığında WhatsApp bunu `app/api/whatsapp/webhook/route.ts` uç noktasına
+bildirir; bu uç nokta otomatik olarak bir randevu kaydı açar (`source: "whatsapp_onay"`)
+— bayi bunu hem Randevular sayfasında hem de panel header'ındaki Randevular
+ikonunun üzerindeki kırmızı sayı rozetinde görür (bkz. `countUnseenWhatsappAppointments`).
+Rozet, bayi Randevular sayfasını ziyaret edince otomatik sıfırlanır.
+
+Bu uç nokta da aynı sebeple (Meta iş doğrulaması bekliyor) henüz canlı çalışmıyor —
+kod tarafı hazır. Devreye almak için ek olarak:
+
+```
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=...   # Meta'nın webhook kaydı sırasında istediği doğrulama token'ı
+WHATSAPP_APP_SECRET=...             # Gelen isteklerin imzasını doğrulamak için (Meta App ayarları)
+```
+
+ve Meta App ayarlarında webhook URL'si olarak `https://yagbakim-defteri.netlify.app/api/whatsapp/webhook`
+tanımlanması yeterli.
+
 **Merkezi mi, bayi kendi numarasından mı?** Mesajlar Oto Künye'nin tek merkezi
 WhatsApp hattından gönderiliyor (her bayiye ayrı Meta iş hesabı açtırmak büyük bir
 kayıt engeli olurdu); mesaj içeriğinde bayinin adı ve telefonu geçtiği için müşteri

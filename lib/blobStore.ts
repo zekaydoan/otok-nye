@@ -575,6 +575,28 @@ export async function deleteAppointment(shopId: string, appointmentId: string): 
   await appointmentsStore().delete(`${shopId}/${appointmentId}`);
 }
 
+// WhatsApp hatırlatmasındaki "Evet" cevabıyla otomatik açılan, henüz bayinin
+// görmediği randevu sayısı — dashboard header'ındaki Randevular rozeti için
+// (bkz. app/dashboard/layout.tsx). Bayi Randevular sayfasını ziyaret edince
+// markWhatsappAppointmentsSeen ile sıfırlanır.
+export async function countUnseenWhatsappAppointments(shopId: string): Promise<number> {
+  const appointments = await listAppointmentsForShop(shopId);
+  return appointments.filter((a) => a.source === "whatsapp_onay" && !a.seenByShop).length;
+}
+
+export async function markWhatsappAppointmentsSeen(shopId: string): Promise<void> {
+  const appointments = await listAppointmentsForShop(shopId);
+  const unseen = appointments.filter((a) => a.source === "whatsapp_onay" && !a.seenByShop);
+  await Promise.all(
+    unseen.map((a) =>
+      updateAppointment(shopId, a.id, (current) => ({ ...current, seenByShop: true })).catch(() => {
+        // Bir tanesi eşzamanlı çakışmayla başarısız olsa bile diğerlerini engellemesin —
+        // en kötü ihtimalle rozet bir sonraki ziyarette sıfırlanır.
+      })
+    )
+  );
+}
+
 // ---------- Etiket Mağazası ----------
 export async function createStickerOrder(order: StickerOrder): Promise<void> {
   await stickerOrdersStore().setJSON(order.id, order);

@@ -1,10 +1,14 @@
 import { getCurrentShopId } from "@/lib/auth";
-import { listAppointmentsForShop } from "@/lib/blobStore";
+import { listAppointmentsForShop, markWhatsappAppointmentsSeen } from "@/lib/blobStore";
 import AppointmentsSection from "@/components/AppointmentsSection";
 
 export default async function AppointmentsPage() {
   const shopId = await getCurrentShopId();
   const appointments = shopId ? await listAppointmentsForShop(shopId) : [];
+  // Sayfa açıldığı an, WhatsApp onayıyla gelen ama henüz görülmemiş randevular
+  // "görüldü" işaretlenir — header'daki kırmızı rozet (bkz. app/dashboard/layout.tsx)
+  // bir sonraki sayfa yüklemesinde sıfırlanmış olur.
+  if (shopId) await markWhatsappAppointmentsSeen(shopId);
 
   return (
     <div>

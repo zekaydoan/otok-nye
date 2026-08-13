@@ -58,11 +58,22 @@ export function buildAutoReminderMessage(params: {
   );
 }
 
+export interface ReminderQuickReplyButton {
+  id: string; // encodeConfirmationPayload() çıktısı
+  title: string; // ör. "Evet, randevu oluşturalım" / "Hayır"
+}
+
 // Sağlayıcı bağlandığında yalnızca bu fonksiyonun içi doldurulacak — çağıran
 // kodun (netlify/functions/send-maintenance-reminders.ts) değişmesine gerek yok.
+// `buttons` verilirse mesaj, seçilen sağlayıcının interaktif "quick reply"
+// buton formatına göre gönderilir (Meta WhatsApp Business Platform bunu
+// template mesajlarında destekliyor); sağlayıcı netleşince burada gerçek
+// template adı/parametre eşlemesi yapılacak — şimdilik generic bir gövde
+// gönderiyoruz, amaç akışın uçtan uca hazır olması.
 export async function sendWhatsAppReminder(
   phone: string,
-  message: string
+  message: string,
+  buttons?: ReminderQuickReplyButton[]
 ): Promise<WhatsAppSendResult> {
   const normalized = normalizeTrPhone(phone);
   if (!normalized) {
@@ -75,7 +86,8 @@ export async function sendWhatsAppReminder(
   if (!apiKey || !apiUrl) {
     console.warn(
       `[whatsapp] WHATSAPP_API_KEY/WHATSAPP_API_URL tanımlı değil, gönderim atlandı. ` +
-        `(Alıcı: ${normalized}) Mesaj: ${message}`
+        `(Alıcı: ${normalized}) Mesaj: ${message}` +
+        (buttons ? ` Butonlar: ${buttons.map((b) => b.title).join(" / ")}` : "")
     );
     return { sent: false, reason: "not_configured" };
   }
@@ -87,7 +99,7 @@ export async function sendWhatsAppReminder(
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ to: normalized, message }),
+      body: JSON.stringify({ to: normalized, message, buttons }),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
@@ -108,6 +120,42 @@ export function describeReminderReason(daysUntil: number | null, kmRemaining: nu
   if (daysUntil !== null && daysUntil <= 3) return `bakım zamanı ${daysUntil} gün içinde geliyor`;
   if (kmRemaining !== null && kmRemaining <= 500) return `bakım kilometresine ${kmRemaining} km kaldı`;
   return "bakım zamanı yaklaşıyor";
+}
+
+// ---------- Evet/Hayır buton onayı ----------
+// Hatırlatma mesajına eklenecek "Evet, randevu oluşturalım" / "Hayır" hızlı
+// cevap butonlarının kimliği. Meta'nın interaktif buton mesajlarında her
+// butona serbest bir metin kimliği (id) verilebiliyor — müşteri butona
+// bastığında bu id, webhook'a olduğu gibi geri dönüyor (bkz.
+// app/api/whatsapp/webhook/route.ts). Telefon numarasından değil, doğrudan bu
+// id'den hangi araç/hangi bakım döngüsü için cevap verildiğini çözüyoruz; bu
+// sayede aynı numaranın birden fazla aracı olsa bile karışıklık olmaz ve eski
+// bir hatırlatmaya geç gelen cevap, araç başka bir bakım döngüsüne geçmişse
+// sessizce yok sayılabilir (bkz. decodeConfirmationPayload kullanım örneği).
+export interface ReminderConfirmationPayload {
+  vehicleId: string;
+  cycleKey: string;
+  answer: "evet" | "hayir";
+}
+
+export function encodeConfirmationPayload(
+  vehicleId: string,
+  cycleKey: string,
+  answer: "evet" | "hayir"
+): string {
+  const json = JSON.stringify({ v: vehicleId, c: cycleKey, a: answer });
+  return Buffer.from(json, "utf-8").toString("base64url");
+}
+
+export function decodeConfirmationPayload(payload: string): ReminderConfirmationPayload | null {
+  try {
+    const json = Buffer.from(payload, "base64url").toString("utf-8");
+    const parsed = JSON.parse(json) as { v?: string; c?: string; a?: string };
+    if (!parsed.v || !parsed.c || (parsed.a !== "evet" && parsed.a !== "hayir")) return null;
+    return { vehicleId: parsed.v, cycleKey: parsed.c, answer: parsed.a };
+  } catch {
+    return null;
+  }
 }
 
 export function reminderCycleKey(record: OilRecord): string {

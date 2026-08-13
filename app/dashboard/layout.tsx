@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth";
-import { getShopById, getStaffById } from "@/lib/blobStore";
+import { countUnseenWhatsappAppointments, getShopById, getStaffById } from "@/lib/blobStore";
 import { PLAN_LIMITS } from "@/lib/types";
 import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
@@ -20,6 +20,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     session.role === "calisan" && session.staffId
       ? await getStaffById(session.shopId, session.staffId)
       : null;
+  // Müşterinin WhatsApp hatırlatmasına "Evet" diyerek otomatik açtırdığı ama
+  // bayinin henüz görmediği randevu sayısı — Randevular ikonunda kırmızı rozet
+  // olarak gösterilir (bkz. lib/blobStore.countUnseenWhatsappAppointments).
+  const unseenWhatsappAppointments = await countUnseenWhatsappAppointments(session.shopId);
 
   return (
     <ToastProvider>
@@ -41,11 +45,24 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 href="/dashboard/randevular"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                aria-label="Randevular"
-                title="Randevular"
+                className="relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                aria-label={
+                  unseenWhatsappAppointments > 0
+                    ? `Randevular (${unseenWhatsappAppointments} yeni WhatsApp onayı)`
+                    : "Randevular"
+                }
+                title={
+                  unseenWhatsappAppointments > 0
+                    ? `${unseenWhatsappAppointments} yeni WhatsApp onayı`
+                    : "Randevular"
+                }
               >
                 <CalendarIcon className="h-[18px] w-[18px]" />
+                {unseenWhatsappAppointments > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                    {unseenWhatsappAppointments}
+                  </span>
+                )}
               </Link>
               <Link
                 href="/dashboard/oneriler"

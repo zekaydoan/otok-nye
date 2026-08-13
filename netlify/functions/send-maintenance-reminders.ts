@@ -22,6 +22,7 @@ import {
 import {
   buildAutoReminderMessage,
   describeReminderReason,
+  encodeConfirmationPayload,
   reminderCycleKey,
   sendWhatsAppReminder,
   vehicleHasReminderConsent,
@@ -55,7 +56,14 @@ export default async () => {
       reasonText: describeReminderReason(daysUntil, kmRemaining),
     });
 
-    const result = await sendWhatsAppReminder(vehicle.ownerPhone!, message);
+    // Müşteri butona basınca app/api/whatsapp/webhook bu id'yi geri alıp hangi
+    // araç/döngü için "evet" dendiğini çözüyor ve otomatik randevu açıyor.
+    const buttons = [
+      { id: encodeConfirmationPayload(vehicle.id, cycleKey, "evet"), title: "Evet, randevu oluşturalım" },
+      { id: encodeConfirmationPayload(vehicle.id, cycleKey, "hayir"), title: "Hayır, şimdilik değil" },
+    ];
+
+    const result = await sendWhatsAppReminder(vehicle.ownerPhone!, message, buttons);
     if (result.sent) {
       sent++;
       await markReminderSent(vehicle.id, cycleKey);

@@ -113,8 +113,14 @@ export default function AppointmentsSection({
           </span>
           <div>
             <p className="font-semibold text-slate-900">
-              {isToday ? "Bugün" : a.date} · {a.time}
+              {isToday ? "Bugün" : a.date}
+              {a.time ? ` · ${a.time}` : ""}
               {a.plateDisplay ? ` · ${a.plateDisplay}` : ""}
+              {a.source === "whatsapp_onay" && (
+                <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                  WhatsApp'tan onaylandı
+                </span>
+              )}
             </p>
             <p className="text-xs text-slate-500">
               {[a.customerName, a.customerPhone].filter(Boolean).join(" · ") || "Müşteri bilgisi girilmedi"}
