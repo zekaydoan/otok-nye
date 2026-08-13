@@ -5,7 +5,7 @@ import type { SVGProps } from "react";
 // SVG'lerin (ör. onay işareti path'i) yerini alır. Her ikon `currentColor`
 // kullanır, boyut/renk çağıran tarafın className'i ile ayarlanır
 // (ör. `<CheckIcon className="h-4 w-4 text-green-600" />`).
-type IconProps = SVGProps<SVGSVGElement>;
+type IconProps = SVGProps<SVGSVGElement> & { title?: string };
 
 export function CheckIcon(props: IconProps) {
   return (
