@@ -12,7 +12,7 @@ Araç bakım işletmeleri (tamirciler, oto servisler, galeriler) için QR kodlu,
 - Her bakım kaydı için markalı, doğrulama QR'lı PDF servis fişi
 - Her araç için benzersiz QR kod + firma adı/telefonu için reklam alanı içeren yazdırılabilir etiket
 - QR okutulduğunda açılan, giriş gerektirmeyen genel görünüm sayfası (`/arac/[id]`) — plaka, marka, model ve tüm yağ bakım geçmişini gösterir
-- Abonelik planları (Ücretsiz / Pro / İşletme) — panelden seçilip hesaba kaydedilir
+- Abonelik planları (Ücretsiz / Pro / İşletme / İşletme Yıllık — yıllıkta 2 ay ücretsiz kampanyası) — panelden seçilip hesaba kaydedilir
 - Gerçek içerikli KVKK aydınlatma metni (`/kvkk`) ve kayıt/araç ekleme formlarında açık rıza onayı
 - **Paylaşımlı araç defteri:** Bir araç hangi bayi tarafından eklenirse eklensin, plaka ile arayıp bulan başka bir yetkili bayi de o araca bakım kaydı ekleyebilir. Araç, kayıt ekleyen her bayinin kendi "Araçlarım" listesinde görünür — araç tek bir bayiye kilitli değildir, geçmişi araçla birlikte taşınır.
 - **Km tutarlılık uyarısı:** Bir sonraki bakım kaydında kilometre bir öncekinden düşükse (klasik km düşürme göstergesi), sistem otomatik uyarı verir — panelde detaylı, herkese açık sayfada "tutarsızlık var" olarak.

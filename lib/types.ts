@@ -1,4 +1,4 @@
-export type Plan = "free" | "pro" | "business";
+export type Plan = "free" | "pro" | "business" | "business_yillik";
 
 export interface FavoriteOil {
   brand: string;
@@ -87,11 +87,34 @@ export interface OilRecord {
 
 export const PLAN_LIMITS: Record<
   Plan,
-  { maxVehicles: number; maxStaff: number; label: string; price: string }
+  {
+    maxVehicles: number;
+    maxStaff: number;
+    label: string;
+    price: string;
+    /** Fatura döngüsünü kısaca belirtir (ör. "/ay", "/yıl") — fiyat kartlarında price'ın yanında gösterilir. */
+    period: string;
+    /** Kampanya rozeti (ör. "2 Ay Ücretsiz") — sadece bazı planlarda gösterilir. */
+    badge?: string;
+  }
 > = {
-  free: { maxVehicles: 15, maxStaff: 1, label: "Ücretsiz", price: "0₺/ay" },
-  pro: { maxVehicles: 250, maxStaff: 5, label: "Pro", price: "349₺/ay" },
-  business: { maxVehicles: Infinity, maxStaff: Infinity, label: "İşletme", price: "899₺/ay" },
+  free: { maxVehicles: 15, maxStaff: 1, label: "Ücretsiz", price: "0₺", period: "/ay" },
+  pro: { maxVehicles: 250, maxStaff: 5, label: "Pro", price: "499₺", period: "/ay" },
+  business: {
+    maxVehicles: Infinity,
+    maxStaff: Infinity,
+    label: "İşletme",
+    price: "999₺",
+    period: "/ay",
+  },
+  business_yillik: {
+    maxVehicles: Infinity,
+    maxStaff: Infinity,
+    label: "İşletme (Yıllık)",
+    price: "9.990₺",
+    period: "/yıl",
+    badge: "2 Ay Ücretsiz",
+  },
 };
 
 // ---------- Randevu ----------

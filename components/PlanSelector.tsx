@@ -37,19 +37,32 @@ export default function PlanSelector({ currentPlan }: { currentPlan: Plan }) {
   return (
     <div className="mt-6">
       {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {(Object.keys(PLAN_LIMITS) as Plan[]).map((key) => {
         const plan = PLAN_LIMITS[key];
         const active = key === currentPlan;
+        const isCampaign = Boolean(plan.badge);
         return (
           <div
             key={key}
-            className={`rounded-xl border p-5 ${
-              active ? "border-brand-500 ring-2 ring-brand-200" : "border-slate-200"
-            } bg-white`}
+            className={`relative rounded-xl border p-5 ${
+              isCampaign
+                ? "border-accent-400 bg-gradient-to-br from-accent-50 to-white ring-2 ring-accent-200"
+                : active
+                  ? "border-brand-500 ring-2 ring-brand-200 bg-white"
+                  : "border-slate-200 bg-white"
+            }`}
           >
+            {isCampaign && (
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-accent-500 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow">
+                🎉 Kampanya: {plan.badge}
+              </span>
+            )}
             <h3 className="font-bold text-slate-900">{plan.label}</h3>
-            <p className="mt-1 text-2xl font-extrabold text-slate-900">{plan.price}</p>
+            <p className="mt-1">
+              <span className="text-2xl font-extrabold text-slate-900">{plan.price}</span>
+              <span className="text-sm font-medium text-slate-500">{plan.period}</span>
+            </p>
             <p className="mt-2 text-sm text-slate-500">
               {plan.maxVehicles === Infinity ? "Sınırsız araç" : `${plan.maxVehicles} araca kadar`}
             </p>
@@ -59,7 +72,9 @@ export default function PlanSelector({ currentPlan }: { currentPlan: Plan }) {
               className={`mt-4 w-full rounded-lg py-2 text-sm font-semibold ${
                 active
                   ? "bg-slate-100 text-slate-400"
-                  : "bg-brand-600 text-white hover:bg-brand-700"
+                  : isCampaign
+                    ? "bg-accent-500 text-white hover:bg-accent-600"
+                    : "bg-brand-600 text-white hover:bg-brand-700"
               } disabled:opacity-60`}
             >
               {active ? "Mevcut Plan" : loading === key ? "Değiştiriliyor..." : "Bu Planı Seç"}

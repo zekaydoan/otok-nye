@@ -537,15 +537,20 @@ export default function HomePage() {
               </span>
             ))}
           </div>
-          <div className="mt-10 grid gap-6 sm:grid-cols-3">
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {(Object.keys(PLAN_LIMITS) as Array<keyof typeof PLAN_LIMITS>).map((key) => {
               const plan = PLAN_LIMITS[key];
               const isPopular = key === "pro";
+              const isCampaign = Boolean(plan.badge);
               return (
                 <div
                   key={key}
                   className={`relative rounded-2xl p-6 ${
-                    isPopular ? "bg-brand-600 ring-4 ring-accent-500" : "bg-slate-800"
+                    isCampaign
+                      ? "bg-gradient-to-br from-accent-500 to-accent-600 ring-4 ring-white/40 shadow-xl shadow-accent-500/30"
+                      : isPopular
+                        ? "bg-brand-600 ring-4 ring-accent-500"
+                        : "bg-slate-800"
                   }`}
                 >
                   {isPopular && (
@@ -553,9 +558,19 @@ export default function HomePage() {
                       En Popüler
                     </span>
                   )}
+                  {isCampaign && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 animate-pulse rounded-full bg-white px-3 py-1 text-xs font-bold uppercase tracking-wide text-accent-600 shadow">
+                      🎉 Kampanya: {plan.badge}
+                    </span>
+                  )}
                   <h3 className="text-lg font-bold">{plan.label}</h3>
-                  <p className="mt-2 text-3xl font-extrabold">{plan.price}</p>
-                  <ul className="mt-4 space-y-2 text-sm text-slate-200">
+                  <p className="mt-2">
+                    <span className="text-3xl font-extrabold">{plan.price}</span>
+                    <span className={`text-sm font-medium ${isCampaign ? "text-white/80" : "text-slate-300"}`}>
+                      {plan.period}
+                    </span>
+                  </p>
+                  <ul className={`mt-4 space-y-2 text-sm ${isCampaign ? "text-white/90" : "text-slate-200"}`}>
                     <li className="flex items-center gap-2">
                       <CheckIcon className="h-4 w-4 shrink-0 text-accent-400" />
                       {plan.maxVehicles === Infinity
