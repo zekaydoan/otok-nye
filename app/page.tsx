@@ -23,6 +23,7 @@ import {
 // ve öz tutulur, uzun cümleler kesilip yarım okunmasın diye.
 const tickerItems = [
   { icon: BellIcon, text: "Otomatik bakım hatırlatma" },
+  { icon: CheckCircleIcon, text: "WhatsApp'tan Evet/Hayır ile randevu" },
   { icon: CalendarIcon, text: "Randevu yönetimi" },
   { icon: MicIcon, text: "Sesle kayıt girişi" },
   { icon: UsersIcon, text: "Çoklu çalışan hesabı" },
@@ -68,6 +69,11 @@ const features = [
     icon: CalendarIcon,
     title: "Randevu ve günlük iş listesi",
     desc: "Günlük randevularınızı planlayın, müşteriye WhatsApp'tan hatırlatma gönderin, işi geldi/iptal olarak tek tıkla işaretleyin.",
+  },
+  {
+    icon: CheckCircleIcon,
+    title: "WhatsApp'tan Evet/Hayır ile otomatik randevu",
+    desc: "Hatırlatma mesajındaki butona müşteri \"Evet\" derse panelinizde randevu kendiliğinden açılır, bir bildirim rozetiyle sizi uyarır — telefonu açmanıza bile gerek kalmaz.",
   },
   {
     icon: UploadIcon,
@@ -196,7 +202,7 @@ export default function HomePage() {
               <div
                 key={item.text}
                 className="animate-ticker absolute inset-0 flex items-center justify-center gap-1.5 whitespace-nowrap font-medium text-white sm:justify-start"
-                style={{ animationDelay: `${-i * 2}s` }}
+                style={{ animationDelay: `${-i * (10 / tickerItems.length)}s` }}
               >
                 <item.icon className="h-4 w-4 shrink-0 text-accent-400" />
                 {item.text}
@@ -404,7 +410,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* İki öne çıkan özelliği gerçek panel arayüzüne sadık, sadeleştirilmiş
+      {/* Öne çıkan özellikleri gerçek panel arayüzüne sadık, sadeleştirilmiş
           mockup kartlarla görselleştiriyoruz — soyut bir liste yerine ürünü
           somut olarak gösterip satın alma kararını kolaylaştırır. */}
       <section className="bg-white py-16">
@@ -444,6 +450,51 @@ export default function HomePage() {
                 <button className="mt-4 w-full rounded-lg border border-green-300 bg-green-50 py-2 text-sm font-medium text-green-700">
                   WhatsApp&apos;tan Hatırlat
                 </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <div className="text-center lg:text-left">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+                <CheckCircleIcon className="h-4 w-4" />
+                Çift Yönlü WhatsApp
+              </span>
+              <h3 className="mt-4 text-2xl font-bold text-slate-900">
+                Müşteri WhatsApp'tan cevap versin, randevu kendiliğinden açılsın.
+              </h3>
+              <p className="mt-3 text-slate-600">
+                Hatırlatma mesajına "Evet, randevu oluşturalım" ve "Hayır, şimdilik değil"
+                butonları eklenir. Müşteri "Evet" derse panelinizde otomatik bir randevu kaydı
+                açılır ve Randevular ikonunda bir bildirim rozeti belirir — siz telefonu açıp
+                aramadan, müşteri bekletmeden randevu kendi kendine oluşur.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-lg">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  WhatsApp Hatırlatması
+                </p>
+                <div className="mt-3 rounded-2xl rounded-tl-none bg-green-50 p-3 text-sm text-slate-700 ring-1 ring-green-100">
+                  <p>
+                    Merhaba Ahmet, Zeki Servis bakım takibi hatırlatması:{" "}
+                    <strong>34 ABC 123</strong> plakalı aracınızın bakım zamanı geldi.
+                  </p>
+                  <div className="mt-3 flex flex-col gap-2">
+                    <span className="rounded-lg border border-green-300 bg-white py-1.5 text-center text-xs font-semibold text-green-700">
+                      Evet, randevu oluşturalım
+                    </span>
+                    <span className="rounded-lg border border-slate-200 bg-white py-1.5 text-center text-xs font-medium text-slate-500">
+                      Hayır, şimdilik değil
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2 rounded-xl bg-brand-50 p-3">
+                  <CalendarIcon className="h-4 w-4 shrink-0 text-brand-600" />
+                  <p className="text-xs font-medium text-brand-700">
+                    Panelinize düştü: "34 ABC 123 bakıma gelecek"
+                  </p>
+                </div>
               </div>
             </div>
           </div>
