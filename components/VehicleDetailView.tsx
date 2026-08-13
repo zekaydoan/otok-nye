@@ -179,7 +179,7 @@ export default function VehicleDetailView({
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
           <span className="text-sm font-medium text-slate-700">Bakım Hatırlatması:</span>
           {whatsAppLink && (
-            
+            <a
               href={whatsAppLink}
               target="_blank"
               rel="noreferrer"
@@ -283,7 +283,7 @@ export default function VehicleDetailView({
                           )}
                         </div>
                       )}
-                      
+                      <a
                         href={`/api/vehicles/${vehicle.id}/records/${r.id}/pdf`}
                         target="_blank"
                         className="mt-2 inline-block text-xs font-medium text-brand-600 underline"
@@ -360,7 +360,7 @@ export default function VehicleDetailView({
                       </td>
                       <td className="px-4 py-3 text-slate-500">{r.shopName}</td>
                       <td className="px-4 py-3">
-                        
+                        <a
                           href={`/api/vehicles/${vehicle.id}/records/${r.id}/pdf`}
                           target="_blank"
                           className="text-xs font-medium text-brand-600 underline"
