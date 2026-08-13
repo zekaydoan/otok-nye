@@ -236,7 +236,6 @@ export async function listOilRecordsForVehicle(
 ): Promise<OilRecord[]> {
   const { blobs } = await oilRecordsStore().list({
     prefix: `${vehicleId}/`,
-    consistency: opts?.consistency,
   });
   const all = await Promise.all(
     blobs.map(
