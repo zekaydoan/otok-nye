@@ -8,11 +8,13 @@ import {
   computeMaintenanceScore,
 } from "@/lib/maintenance";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import type { ReminderStatusDisplay } from "@/lib/whatsappReminder";
 import AddOilRecordForm from "@/components/AddOilRecordForm";
 import ShareReportButton from "@/components/ShareReportButton";
 import ScoreBadge from "@/components/ScoreBadge";
 import EmptyState from "@/components/EmptyState";
 import VehicleKmUpdate from "@/components/VehicleKmUpdate";
+import WhatsAppReminderButton from "@/components/WhatsAppReminderButton";
 import { CheckIcon, DocumentIcon, PencilIcon, WarningIcon } from "@/components/icons";
 import type { FavoriteOil, OilRecord, Vehicle } from "@/lib/types";
 
@@ -23,6 +25,7 @@ export default function VehicleDetailView({
   creatorShopName,
   favoriteOils,
   plakaGuncellendi,
+  reminderStatus,
 }: {
   vehicle: Vehicle;
   initialRecords: OilRecord[];
@@ -30,6 +33,7 @@ export default function VehicleDetailView({
   creatorShopName?: string | null;
   favoriteOils: FavoriteOil[];
   plakaGuncellendi?: boolean;
+  reminderStatus?: ReminderStatusDisplay | null;
 }) {
   const [records, setRecords] = useState<OilRecord[]>(initialRecords);
   // "Güncel Km" widget'ının (bkz. VehicleKmUpdate) sunucuya yazdığı güncellemeyi
@@ -192,15 +196,13 @@ export default function VehicleDetailView({
       {vehicle.ownerPhone && (
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
           <span className="text-sm font-medium text-slate-700">Bakım Hatırlatması:</span>
-          {whatsAppLink && (
-            <a
-              href={whatsAppLink}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
+          {whatsAppLink && <WhatsAppReminderButton vehicleId={vehicle.id} whatsAppLink={whatsAppLink} />}
+          {reminderStatus && (
+            <span
+              className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${reminderStatus.className}`}
             >
-              WhatsApp'tan Gönder
-            </a>
+              {reminderStatus.text}
+            </span>
           )}
         </div>
       )}

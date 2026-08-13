@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { getCurrentShopId } from "@/lib/auth";
-import { listUpcomingServicesForShop } from "@/lib/blobStore";
+import { getReminderLogEntry, listUpcomingServicesForShop } from "@/lib/blobStore";
 import { buildReminderMessage } from "@/lib/maintenance";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { isWhatsAppAutoConfigured, reminderCycleKey, reminderStatusLabel } from "@/lib/whatsappReminder";
+import WhatsAppReminderButton from "@/components/WhatsAppReminderButton";
 
 function dateBadge(daysUntil: number): { text: string; className: string } {
   if (daysUntil < 0) {
@@ -31,8 +33,20 @@ function kmBadge(kmRemaining: number): { text: string; className: string } {
 export default async function RemindersPage() {
   const shopId = await getCurrentShopId();
   const upcoming = shopId ? await listUpcomingServicesForShop(shopId, 30, 1500) : [];
+  const autoConfigured = isWhatsAppAutoConfigured();
 
-  const withPhone = upcoming.filter((u) => u.vehicle.ownerPhone);
+  const withPhone = await Promise.all(
+    upcoming
+      .filter((u) => u.vehicle.ownerPhone)
+      .map(async (u) => ({
+        ...u,
+        reminderStatus: reminderStatusLabel(
+          await getReminderLogEntry(u.vehicle.id),
+          reminderCycleKey(u.record),
+          autoConfigured
+        ),
+      }))
+  );
   const withoutPhone = upcoming.filter((u) => !u.vehicle.ownerPhone);
 
   return (
@@ -43,7 +57,8 @@ export default async function RemindersPage() {
       <h1 className="mt-4 text-2xl font-bold text-slate-900">Toplu Hatırlatmalar</h1>
       <p className="mt-1 text-sm text-slate-500">
         Bakım tarihi veya kilometresi yaklaşan tüm araçlar (30 gün / 1500 km içinde).
-        Her biri için ayrı ayrı WhatsApp mesajı gönderebilirsiniz.
+        Oto Künye telefonu kayıtlı araçları her gün otomatik tarar; isterseniz aşağıdan
+        kendiniz de tek tıkla WhatsApp mesajı gönderebilirsiniz.
       </p>
 
       {upcoming.length === 0 ? (
@@ -58,7 +73,7 @@ export default async function RemindersPage() {
                 Telefonu Kayıtlı ({withPhone.length})
               </h2>
               <div className="mt-2 space-y-2">
-                {withPhone.map(({ vehicle, record, daysUntil, kmRemaining }) => {
+                {withPhone.map(({ vehicle, record, daysUntil, kmRemaining, reminderStatus }) => {
                   const whatsAppLink = buildWhatsAppLink(
                     vehicle.ownerPhone!,
                     buildReminderMessage(vehicle, record)
@@ -96,17 +111,15 @@ export default async function RemindersPage() {
                             {vehicle.brand} {vehicle.model}
                             {vehicle.ownerName ? ` · ${vehicle.ownerName}` : ""}
                           </p>
+                          <span
+                            className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${reminderStatus.className}`}
+                          >
+                            {reminderStatus.text}
+                          </span>
                         </div>
                       </div>
                       {whatsAppLink && (
-                        <a
-                          href={whatsAppLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
-                        >
-                          WhatsApp'tan Hatırlat
-                        </a>
+                        <WhatsAppReminderButton vehicleId={vehicle.id} whatsAppLink={whatsAppLink} />
                       )}
                     </div>
                   );

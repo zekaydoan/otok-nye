@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentShopId } from "@/lib/auth";
 import {
+  getReminderLogEntry,
   getShopById,
   listAppointmentsForShop,
   listUpcomingServicesForShop,
@@ -8,11 +9,13 @@ import {
 } from "@/lib/blobStore";
 import { buildReminderMessage } from "@/lib/maintenance";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { isWhatsAppAutoConfigured, reminderCycleKey, reminderStatusLabel } from "@/lib/whatsappReminder";
 import { getTimeGreeting } from "@/lib/greeting";
 import { PLAN_LIMITS } from "@/lib/types";
 import PlateSearch from "@/components/PlateSearch";
 import QrScanner from "@/components/QrScanner";
 import VehicleListSection from "@/components/VehicleListSection";
+import WhatsAppReminderButton from "@/components/WhatsAppReminderButton";
 import { CalendarIcon } from "@/components/icons";
 
 function dateBadge(daysUntil: number): { text: string; className: string } {
@@ -39,7 +42,20 @@ export default async function DashboardPage() {
   const shopId = await getCurrentShopId();
   const shop = shopId ? await getShopById(shopId) : null;
   const vehicles = shopId ? await listVehiclesByShop(shopId) : [];
-  const upcoming = shopId ? await listUpcomingServicesForShop(shopId, 14) : [];
+  const upcomingRaw = shopId ? await listUpcomingServicesForShop(shopId, 14) : [];
+  const autoConfigured = isWhatsAppAutoConfigured();
+  const upcoming = await Promise.all(
+    upcomingRaw.map(async (u) => ({
+      ...u,
+      reminderStatus: u.vehicle.ownerPhone
+        ? reminderStatusLabel(
+            await getReminderLogEntry(u.vehicle.id),
+            reminderCycleKey(u.record),
+            autoConfigured
+          )
+        : null,
+    }))
+  );
   const appointments = shopId ? await listAppointmentsForShop(shopId) : [];
   const limit = shop ? PLAN_LIMITS[shop.plan] : null;
 
@@ -152,7 +168,7 @@ export default async function DashboardPage() {
               </Link>
             </div>
             <div className="mt-3 space-y-2">
-              {upcoming.map(({ vehicle, record, daysUntil, kmRemaining }) => {
+              {upcoming.map(({ vehicle, record, daysUntil, kmRemaining, reminderStatus }) => {
                 const whatsAppLink = vehicle.ownerPhone
                   ? buildWhatsAppLink(vehicle.ownerPhone, buildReminderMessage(vehicle, record))
                   : null;
@@ -190,17 +206,17 @@ export default async function DashboardPage() {
                           {record.nextServiceDate ? ` · önerilen: ${record.nextServiceDate}` : ""}
                           {record.nextServiceKm ? ` · ${record.nextServiceKm.toLocaleString("tr-TR")} km` : ""}
                         </p>
+                        {reminderStatus && (
+                          <span
+                            className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${reminderStatus.className}`}
+                          >
+                            {reminderStatus.text}
+                          </span>
+                        )}
                       </div>
                     </div>
                     {whatsAppLink && (
-                      <a
-                        href={whatsAppLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
-                      >
-                        WhatsApp'tan Hatırlat
-                      </a>
+                      <WhatsAppReminderButton vehicleId={vehicle.id} whatsAppLink={whatsAppLink} />
                     )}
                   </div>
                 );

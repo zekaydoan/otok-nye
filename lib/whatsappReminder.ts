@@ -17,6 +17,7 @@
 // değişiklik gerekmez. Env tanımlı değilken sistem sessizce "gönderilmedi" döner,
 // hiçbir akışı bozmaz (bkz. lib/email.ts'teki aynı desen).
 import type { Vehicle, OilRecord } from "./types";
+import type { ReminderLogEntry } from "./blobStore";
 
 export interface WhatsAppSendResult {
   sent: boolean;
@@ -113,6 +114,50 @@ export function reminderCycleKey(record: OilRecord): string {
   // Bir bakım kaydına ait hedef tarih/km değişmediği sürece aynı döngü için
   // ikinci kez hatırlatma gönderilmesini engeller (bkz. blobStore.hasReminderBeenSent).
   return `${record.id}:${record.nextServiceDate ?? ""}:${record.nextServiceKm ?? ""}`;
+}
+
+// Sağlayıcı bağlanmış mı — yalnızca sunucu tarafında (server component/route)
+// çağrılmalı. Panelde "otomatik hatırlatma bu gece gönderilecek" mi yoksa
+// "otomatik gönderim yakında aktif olacak" mı gösterileceğine karar vermek için
+// kullanılır (bkz. reminderStatusLabel).
+export function isWhatsAppAutoConfigured(): boolean {
+  return Boolean(process.env.WHATSAPP_API_KEY && process.env.WHATSAPP_API_URL);
+}
+
+export interface ReminderStatusDisplay {
+  text: string;
+  className: string;
+}
+
+// Bayi panelinde her araç satırının yanında gösterilecek durum rozetini üretir
+// — "sizin için arka planda çalışıyoruz" görünürlüğünün kalbi burası. Amaç:
+// bayi otomatik sistemin gerçekten çalıştığını (ya da henüz aktif olmadığını,
+// dürüstçe) görsün.
+export function reminderStatusLabel(
+  entry: ReminderLogEntry | null,
+  cycleKey: string,
+  autoConfigured: boolean
+): ReminderStatusDisplay {
+  if (entry && entry.cycleKey === cycleKey) {
+    const when = new Date(entry.sentAt).toLocaleString("tr-TR", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const who = entry.channel === "manuel" ? "Elle gönderildi" : "Otomatik gönderildi";
+    return { text: `✓ ${who} · ${when}`, className: "bg-green-100 text-green-700" };
+  }
+  if (autoConfigured) {
+    return {
+      text: "⏳ Otomatik hatırlatma bu gece gönderilecek",
+      className: "bg-amber-100 text-amber-700",
+    };
+  }
+  return {
+    text: "⏳ Otomatik gönderim yakında aktif olacak",
+    className: "bg-slate-100 text-slate-500",
+  };
 }
 
 export function vehicleHasReminderConsent(vehicle: Vehicle): boolean {

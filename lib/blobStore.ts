@@ -493,17 +493,36 @@ export async function getPhoto(
 }
 
 // ---------- Bakım Hatırlatma Günlüğü ----------
-// Aynı hatırlatma döngüsü için tekrar SMS gönderilmesini engeller.
+// Aynı hatırlatma döngüsü için tekrar mesaj gönderilmesini engeller VE bayi
+// panelinde "hatırlatma gönderildi mi" görünürlüğü sağlar (bkz. app/dashboard/
+// hatirlatmalar, app/dashboard/page.tsx). channel: otomatik gece taraması mı
+// yoksa bayinin panelden elle "WhatsApp'tan Hatırlat" butonuna basması mı
+// olduğunu ayırt eder.
+export interface ReminderLogEntry {
+  cycleKey: string;
+  sentAt: string; // ISO
+  channel: "otomatik" | "manuel";
+}
+
 export async function hasReminderBeenSent(
   vehicleId: string,
   cycleKey: string
 ): Promise<boolean> {
-  const last = await reminderLogStore().get(vehicleId, { type: "text" });
-  return last === cycleKey;
+  const entry = await getReminderLogEntry(vehicleId);
+  return entry?.cycleKey === cycleKey;
 }
 
-export async function markReminderSent(vehicleId: string, cycleKey: string): Promise<void> {
-  await reminderLogStore().set(vehicleId, cycleKey);
+export async function markReminderSent(
+  vehicleId: string,
+  cycleKey: string,
+  channel: "otomatik" | "manuel" = "otomatik"
+): Promise<void> {
+  const entry: ReminderLogEntry = { cycleKey, sentAt: new Date().toISOString(), channel };
+  await reminderLogStore().setJSON(vehicleId, entry);
+}
+
+export async function getReminderLogEntry(vehicleId: string): Promise<ReminderLogEntry | null> {
+  return (await reminderLogStore().get(vehicleId, { type: "json" })) as ReminderLogEntry | null;
 }
 
 // ---------- Randevular ----------

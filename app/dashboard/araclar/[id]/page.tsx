@@ -1,6 +1,12 @@
 import { notFound } from "next/navigation";
 import { getCurrentShopId } from "@/lib/auth";
-import { getShopById, getVehicleById, listOilRecordsForVehicle } from "@/lib/blobStore";
+import {
+  getReminderLogEntry,
+  getShopById,
+  getVehicleById,
+  listOilRecordsForVehicle,
+} from "@/lib/blobStore";
+import { isWhatsAppAutoConfigured, reminderCycleKey, reminderStatusLabel } from "@/lib/whatsappReminder";
 import VehicleDetailView from "@/components/VehicleDetailView";
 
 export default async function VehicleDetailPage({
@@ -24,6 +30,16 @@ export default async function VehicleDetailPage({
   const creatorShop = !isOwnVehicle ? await getShopById(vehicle.createdByShopId) : null;
   const currentShop = currentShopId ? await getShopById(currentShopId) : null;
 
+  const latestRecord = records[0];
+  const reminderStatus =
+    vehicle.ownerPhone && latestRecord
+      ? reminderStatusLabel(
+          await getReminderLogEntry(vehicle.id),
+          reminderCycleKey(latestRecord),
+          isWhatsAppAutoConfigured()
+        )
+      : null;
+
   return (
     <VehicleDetailView
       vehicle={vehicle}
@@ -32,6 +48,7 @@ export default async function VehicleDetailPage({
       creatorShopName={creatorShop?.name}
       favoriteOils={currentShop?.favoriteOils || []}
       plakaGuncellendi={!!searchParams.plakaGuncellendi}
+      reminderStatus={reminderStatus}
     />
   );
 }
