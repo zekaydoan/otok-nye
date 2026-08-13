@@ -1,6 +1,6 @@
 # Oto Künye
 
-Oto tamircileri için QR kodlu, otomatik kayıt tutan yağ bakım defteri SaaS'ı.
+Araç bakım işletmeleri (tamirciler, oto servisler, galeriler) için QR kodlu, otomatik kayıt tutan yağ bakım defteri SaaS'ı.
 
 ## Özellikler
 

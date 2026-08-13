@@ -5,7 +5,7 @@ import { ImageResponse } from "next/og";
 // metadata'ya ekstra bir şey yazmadan sitenin <meta property="og:image"> ve
 // Twitter kart etiketlerine bağlanır. Böylece bir bağlantı WhatsApp/Slack/X gibi
 // platformlarda paylaşıldığında markayla uyumlu bir önizleme kartı görünür.
-export const alt = "Oto Künye — Oto tamircileri için QR'lı dijital yağ bakım defteri";
+export const alt = "Oto Künye — Araç bakım işletmeleri için QR'lı dijital yağ bakım defteri";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -62,7 +62,7 @@ export default function Image() {
             display: "flex",
           }}
         >
-          Oto tamircileri için QR&apos;lı dijital yağ bakım defteri
+          Araç bakım işletmeleri için QR&apos;lı dijital yağ bakım defteri
         </div>
       </div>
     ),

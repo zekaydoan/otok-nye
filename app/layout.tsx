@@ -8,12 +8,12 @@ const SITE_URL = process.env.URL || "https://yagbakim-defteri.netlify.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Oto Künye | Oto Tamircileri için QR'lı Yağ Takip Sistemi",
+  title: "Oto Künye | Araç Bakım İşletmeleri için QR'lı Yağ Takip Sistemi",
   description:
-    "Araca yapıştırılan QR kod ile yağ bakım geçmişini otomatik kaydedin ve gösterin. Oto tamircileri için SaaS.",
+    "Araca yapıştırılan QR kod ile yağ bakım geçmişini otomatik kaydedin ve gösterin. Tamirciler, oto servisler ve galeriler için SaaS.",
   manifest: "/manifest.json",
   openGraph: {
-    title: "Oto Künye | Oto Tamircileri için QR'lı Yağ Takip Sistemi",
+    title: "Oto Künye | Araç Bakım İşletmeleri için QR'lı Yağ Takip Sistemi",
     description:
       "Araca yapıştırılan QR kod ile yağ bakım geçmişini otomatik kaydedin ve gösterin.",
     locale: "tr_TR",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Oto Künye | Oto Tamircileri için QR'lı Yağ Takip Sistemi",
+    title: "Oto Künye | Araç Bakım İşletmeleri için QR'lı Yağ Takip Sistemi",
     description:
       "Araca yapıştırılan QR kod ile yağ bakım geçmişini otomatik kaydedin ve gösterin.",
   },

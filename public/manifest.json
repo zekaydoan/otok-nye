@@ -1,7 +1,7 @@
 {
   "name": "Oto Künye",
   "short_name": "Oto Künye",
-  "description": "Oto tamircileri için QR'lı dijital yağ bakım defteri.",
+  "description": "Araç bakım işletmeleri için QR'lı dijital yağ bakım defteri.",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#f8fafc",
