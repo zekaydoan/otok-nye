@@ -18,14 +18,15 @@ import {
   XCircleIcon,
 } from "@/components/icons";
 
-// Hero'nun altındaki "Öne Çıkanlar" şeridinde sırayla beliren kısa özellik
-// tanıtımları — tam açıklama yerine tek satırlık, dikkat çekici ifadeler.
+// Header'ın hemen altındaki "Öne Çıkanlar" bandında sırayla beliren kısa
+// özellik tanıtımları — ticker tek satıra sığması için bilinçli olarak kısa
+// ve öz tutulur, uzun cümleler kesilip yarım okunmasın diye.
 const tickerItems = [
-  { icon: BellIcon, text: "Bakım zamanı gelince otomatik hatırlatma gönderilir" },
-  { icon: CalendarIcon, text: "Günlük randevularınızı tek panelden yönetin" },
-  { icon: MicIcon, text: "Elleriniz kirliyken bile sesle kayıt girin" },
-  { icon: UsersIcon, text: "Ekibinize kendi giriş bilgisiyle erişim tanımlayın" },
-  { icon: QrIcon, text: "Her araca özel, reklam alanlı QR etiket üretin" },
+  { icon: BellIcon, text: "Otomatik bakım hatırlatma" },
+  { icon: CalendarIcon, text: "Randevu yönetimi" },
+  { icon: MicIcon, text: "Sesle kayıt girişi" },
+  { icon: UsersIcon, text: "Çoklu çalışan hesabı" },
+  { icon: QrIcon, text: "Reklamlı QR etiket" },
 ];
 
 const steps = [
@@ -183,6 +184,28 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* Öne Çıkanlar bandı — header'ın hemen altında, koyu zemin ve beyaz
+          yazıyla yüksek kontrastlı, JavaScript kullanmadan saf CSS ile
+          birkaç özelliği sırayla tanıtan hareketli bir bant. Sayfanın en
+          görünür noktasında olduğu için ilk bakışta fark ediliyor. */}
+      <div className="bg-brand-700 py-2.5 text-white">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-2 px-4 text-sm sm:justify-start sm:px-6">
+          <span className="shrink-0 font-semibold text-brand-100">Öne Çıkanlar:</span>
+          <div className="relative h-5 w-64 sm:w-72">
+            {tickerItems.map((item, i) => (
+              <div
+                key={item.text}
+                className="animate-ticker absolute inset-0 flex items-center gap-1.5 whitespace-nowrap font-medium text-white"
+                style={{ animationDelay: `${-i * 2}s` }}
+              >
+                <item.icon className="h-4 w-4 shrink-0 text-accent-400" />
+                {item.text}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <section className="relative overflow-hidden bg-gradient-to-b from-brand-50/60 via-white to-white">
         {/* Dekoratif arka plan lekeleri + hafif nokta deseni — saf CSS, ekstra
             görsel dosyası gerektirmez ama sayfanın en üstüne biraz derinlik katar. */}
@@ -294,27 +317,6 @@ export default function HomePage() {
                 <BellIcon className="h-5 w-5 text-amber-600" />
                 <span className="text-xs font-semibold text-amber-800">Hatırlatma gönderildi</span>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Öne Çıkanlar şeridi — hero'nun hemen altında, JavaScript kullanmadan
-            saf CSS ile birkaç özelliği sırayla tanıtan hareketli bir bant. Sayfanın
-            en üstünde göze çarpan, canlı bir ilk izlenim yaratmak için eklendi. */}
-        <div className="relative border-t border-brand-100 bg-white/70 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-2 px-4 py-3 text-sm sm:justify-start sm:px-6">
-            <span className="shrink-0 font-semibold text-slate-500">Öne Çıkanlar:</span>
-            <div className="relative h-5 w-full max-w-md overflow-hidden sm:w-80">
-              {tickerItems.map((item, i) => (
-                <div
-                  key={item.text}
-                  className="animate-ticker absolute inset-0 flex items-center gap-1.5 font-medium text-brand-700"
-                  style={{ animationDelay: `${-i * 2}s` }}
-                >
-                  <item.icon className="h-4 w-4 shrink-0" />
-                  {item.text}
-                </div>
-              ))}
             </div>
           </div>
         </div>
