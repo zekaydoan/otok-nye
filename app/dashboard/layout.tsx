@@ -65,6 +65,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 href="/dashboard/ayarlar"
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                 aria-label="Ayarlar"
+                title="Ayarlar"
               >
                 <SettingsIcon className="h-[18px] w-[18px]" />
               </Link>
