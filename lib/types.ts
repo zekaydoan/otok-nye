@@ -190,3 +190,26 @@ export interface StickerToken {
   createdAt: string;
   boundAt?: string;
 }
+
+// ---------- Öneri / Geri Bildirim ----------
+// Bayilerin panelden doğrudan Oto Künye ekibine özellik önerisi ya da geri
+// bildirim gönderebildiği basit bir kutu — "sizinle birlikte gelişiyoruz"
+// yaklaşımının somut karşılığı. Admin panelinden okundu/okunmadı olarak
+// işaretlenebilir; bayiye otomatik bir yanıt gönderilmez (bkz.
+// app/dashboard/oneriler, app/admin/oneriler).
+export type SuggestionStatus = "yeni" | "okundu";
+
+export const SUGGESTION_STATUS_LABELS: Record<SuggestionStatus, string> = {
+  yeni: "Yeni",
+  okundu: "Okundu",
+};
+
+export interface Suggestion {
+  id: string;
+  shopId: string;
+  shopName: string;
+  authorName?: string; // gönderen bir çalışan hesabıysa adı (bkz. StaffAccount)
+  message: string;
+  status: SuggestionStatus;
+  createdAt: string;
+}

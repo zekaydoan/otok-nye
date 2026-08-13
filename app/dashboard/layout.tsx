@@ -6,7 +6,7 @@ import { PLAN_LIMITS } from "@/lib/types";
 import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
 import { ToastProvider } from "@/components/Toast";
-import { CalendarIcon, SettingsIcon } from "@/components/icons";
+import { CalendarIcon, LightbulbIcon, SettingsIcon } from "@/components/icons";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getCurrentSession();
@@ -46,6 +46,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 title="Randevular"
               >
                 <CalendarIcon className="h-[18px] w-[18px]" />
+              </Link>
+              <Link
+                href="/dashboard/oneriler"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Öneri Kutusu"
+                title="Öneri Kutusu"
+              >
+                <LightbulbIcon className="h-[18px] w-[18px]" />
               </Link>
               <Link
                 href="/dashboard/plan"

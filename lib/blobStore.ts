@@ -1,6 +1,16 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
-import type { Appointment, OilRecord, Shop, StaffAccount, StickerOrder, StickerToken, Vehicle } from "./types";
+import type {
+  Appointment,
+  OilRecord,
+  Shop,
+  StaffAccount,
+  StickerOrder,
+  StickerToken,
+  Suggestion,
+  SuggestionStatus,
+  Vehicle,
+} from "./types";
 
 // Netlify Blobs tabanlı basit veri katmanı.
 // Store'lar: shops, shops_by_email, vehicles, vehicles_by_plate, oilrecords
@@ -42,6 +52,11 @@ const passwordResetTokensStore = () => getStore("password_reset_tokens");
 // kullanılır — Shop'un shopsByEmailStore'una paralel bir yapı.
 const staffStore = () => getStore("staff");
 const staffByEmailStore = () => getStore("staff_by_email");
+// Öneri/geri bildirim kutusu: siparişlerdeki desenle aynı — kayıtlar kendi
+// kimlikleriyle tek bir store'da tutulur, bir bayinin kendi önerilerini tek
+// taramayla listeleyebilmesi için ayrı bir shopId->id indeksi kullanılır.
+const suggestionsStore = () => getStore("suggestions");
+const suggestionsByShopStore = () => getStore("suggestions_by_shop");
 
 export function normalizePlate(plate: string): string {
   return plate.toUpperCase().replace(/[^A-Z0-9ÇĞİÖŞÜ]/g, "");
@@ -623,4 +638,46 @@ export async function getStickerUnitPriceTry(): Promise<number> {
 
 export async function setStickerUnitPriceTry(priceTry: number): Promise<void> {
   await settingsStore().set("sticker_unit_price_try", String(priceTry));
+}
+
+// ---------- Öneri / Geri Bildirim ----------
+export async function createSuggestion(suggestion: Suggestion): Promise<void> {
+  await suggestionsStore().setJSON(suggestion.id, suggestion);
+  await suggestionsByShopStore().set(`${suggestion.shopId}/${suggestion.id}`, suggestion.createdAt);
+}
+
+export async function getSuggestionById(id: string): Promise<Suggestion | null> {
+  return (await suggestionsStore().get(id, { type: "json" })) as Suggestion | null;
+}
+
+export async function listSuggestionsForShop(shopId: string): Promise<Suggestion[]> {
+  const { blobs } = await suggestionsByShopStore().list({ prefix: `${shopId}/` });
+  const suggestions = await Promise.all(
+    blobs.map((b) => getSuggestionById(b.key.slice(shopId.length + 1)))
+  );
+  return suggestions
+    .filter((s): s is Suggestion => !!s)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+// Admin öneri kutusu için tüm önerileri döner. Hacim büyüdükçe (bkz.
+// kapasite-analizi.md) sayfalama eklenmesi gerekebilir — sipariş listesindeki
+// aynı not burada da geçerli.
+export async function listAllSuggestions(): Promise<Suggestion[]> {
+  const { blobs } = await suggestionsStore().list();
+  const suggestions = await Promise.all(blobs.map((b) => getSuggestionById(b.key)));
+  return suggestions
+    .filter((s): s is Suggestion => !!s)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+export async function updateSuggestionStatus(
+  id: string,
+  status: SuggestionStatus
+): Promise<Suggestion> {
+  const existing = await getSuggestionById(id);
+  if (!existing) throw new Error("Öneri bulunamadı.");
+  const updated: Suggestion = { ...existing, status };
+  await suggestionsStore().setJSON(id, updated);
+  return updated;
 }

@@ -150,6 +150,21 @@ export function CalendarIcon(props: IconProps) {
   );
 }
 
+// Öneri/geri bildirim ekranı (bkz. app/dashboard/oneriler) için — dashboard
+// başlığındaki nav bağlantısında ve boş durum kartında kullanılır.
+export function LightbulbIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M10 2.8a5 5 0 0 0-3 9c.6.5 1 1.2 1 2v.4h4v-.4c0-.8.4-1.5 1-2a5 5 0 0 0-3-9Z"
+      />
+      <path strokeLinecap="round" d="M8.3 16.8h3.4M8.8 18.4h2.4" />
+    </svg>
+  );
+}
+
 // Marka rozeti (bkz. components/Logo.tsx) — jenerik "OK" baş harf kutusu yerine
 // yağ damlası + onay işareti birleşimi: "yağ bakımı tamamlandı, kayıt altında"
 // fikrini tek bir işarette somutlaştırır. Tek renk (currentColor) kullanır, bu
