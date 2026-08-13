@@ -14,19 +14,24 @@ export default function AdminPriceSetting({ currentPriceTry }: { currentPriceTry
   async function handleSave() {
     setSaving(true);
     setMessage(null);
-    const res = await fetch("/api/admin/etiket-fiyat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ unitPriceTry: Number(value) }),
-    });
-    setSaving(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setMessage(data.error || "Kaydedilemedi.");
-      return;
+    try {
+      const res = await fetch("/api/admin/etiket-fiyat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ unitPriceTry: Number(value) }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setMessage(data.error || "Kaydedilemedi.");
+        return;
+      }
+      showToast("Etiket fiyatı güncellendi.");
+      router.refresh();
+    } catch {
+      setMessage("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setSaving(false);
     }
-    showToast("Etiket fiyatı güncellendi.");
-    router.refresh();
   }
 
   return (

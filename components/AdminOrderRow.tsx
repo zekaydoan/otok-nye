@@ -19,19 +19,24 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
   async function handleSave() {
     setSaving(true);
     setError(null);
-    const res = await fetch(`/api/admin/siparisler/${order.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, trackingCarrier, trackingNumber }),
-    });
-    setSaving(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || "Kaydedilemedi.");
-      return;
+    try {
+      const res = await fetch(`/api/admin/siparisler/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, trackingCarrier, trackingNumber }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Kaydedilemedi.");
+        return;
+      }
+      showToast("Sipariş güncellendi.");
+      router.refresh();
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setSaving(false);
     }
-    showToast("Sipariş güncellendi.");
-    router.refresh();
   }
 
   return (

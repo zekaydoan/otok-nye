@@ -29,19 +29,24 @@ function ResetPasswordForm() {
     }
 
     setLoading(true);
-    const res = await fetch("/api/auth/reset-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, password }),
-    });
-    setLoading(false);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setError(data.error || "Bir hata oluştu.");
-      return;
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Bir hata oluştu.");
+        return;
+      }
+      setDone(true);
+      setTimeout(() => router.push("/giris"), 2000);
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setLoading(false);
     }
-    setDone(true);
-    setTimeout(() => router.push("/giris"), 2000);
   }
 
   if (!token) {

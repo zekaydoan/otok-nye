@@ -19,18 +19,23 @@ export default function TokenLoginPrompt() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    setLoading(false);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setError(data.error || "Giriş başarısız.");
-      return;
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Giriş başarısız.");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setLoading(false);
     }
-    router.refresh();
   }
 
   return (

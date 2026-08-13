@@ -16,14 +16,19 @@ export default function PlateSearch({ currentShopId }: { currentShopId: string }
     setError(null);
     setResult(null);
     setLoading(true);
-    const res = await fetch(`/api/vehicles/search?plate=${encodeURIComponent(plate)}`);
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error || "Bir hata oluştu.");
-      return;
+    try {
+      const res = await fetch(`/api/vehicles/search?plate=${encodeURIComponent(plate)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Bir hata oluştu.");
+        return;
+      }
+      setResult(data);
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setLoading(false);
     }
-    setResult(data);
   }
 
   return (

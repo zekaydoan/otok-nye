@@ -21,21 +21,26 @@ export default function ChangePasswordForm() {
     }
 
     setSaving(true);
-    const res = await fetch("/api/shop/change-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-    setSaving(false);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setError(data.error || "Şifre güncellenemedi.");
-      return;
+    try {
+      const res = await fetch("/api/shop/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Şifre güncellenemedi.");
+        return;
+      }
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      showToast("Şifreniz güncellendi.");
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setSaving(false);
     }
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    showToast("Şifreniz güncellendi.");
   }
 
   return (

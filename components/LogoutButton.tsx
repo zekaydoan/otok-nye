@@ -5,9 +5,16 @@ import { useRouter } from "next/navigation";
 export default function LogoutButton() {
   const router = useRouter();
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/");
-    router.refresh();
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Ağ hatası olsa bile kullanıcıyı ana sayfaya yönlendirmeye devam ediyoruz;
+      // oturum çerezinin sunucuda temizlenmesi bu isteğe bağlı olsa da, en azından
+      // kullanıcı arayüzde takılıp kalmasın.
+    } finally {
+      router.push("/");
+      router.refresh();
+    }
   }
   return (
     <button

@@ -46,19 +46,24 @@ export default function BindStickerForm({ token }: { token: string }) {
     }
 
     setLoading(true);
-    const res = await fetch(`/api/etiket-token/${token}/bind`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, plate: formatPlateForDisplay(plateCheck.normalized) }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error || "Bir hata oluştu.");
-      return;
+    try {
+      const res = await fetch(`/api/etiket-token/${token}/bind`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, plate: formatPlateForDisplay(plateCheck.normalized) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Bir hata oluştu.");
+        return;
+      }
+      router.push(`/dashboard/araclar/${data.vehicleId}`);
+      router.refresh();
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setLoading(false);
     }
-    router.push(`/dashboard/araclar/${data.vehicleId}`);
-    router.refresh();
   }
 
   return (

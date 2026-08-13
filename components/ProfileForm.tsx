@@ -22,19 +22,24 @@ export default function ProfileForm({
     e.preventDefault();
     setSaving(true);
     setError(null);
-    const res = await fetch("/api/shop/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, phone }),
-    });
-    setSaving(false);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setError(data.error || "Güncellenemedi.");
-      return;
+    try {
+      const res = await fetch("/api/shop/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Güncellenemedi.");
+        return;
+      }
+      showToast("Firma bilgileri güncellendi.");
+      router.refresh();
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setSaving(false);
     }
-    showToast("Firma bilgileri güncellendi.");
-    router.refresh();
   }
 
   return (

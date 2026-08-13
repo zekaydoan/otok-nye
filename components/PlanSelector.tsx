@@ -14,19 +14,24 @@ export default function PlanSelector({ currentPlan }: { currentPlan: Plan }) {
   async function choosePlan(plan: Plan) {
     setLoading(plan);
     setError(null);
-    const res = await fetch("/api/shop/plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan }),
-    });
-    setLoading(null);
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error || "Plan değiştirilemedi, lütfen tekrar deneyin.");
-      return;
+    try {
+      const res = await fetch("/api/shop/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Plan değiştirilemedi, lütfen tekrar deneyin.");
+        return;
+      }
+      showToast("Plan güncellendi.");
+      router.refresh();
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setLoading(null);
     }
-    showToast("Plan güncellendi.");
-    router.refresh();
   }
 
   return (

@@ -51,20 +51,25 @@ export default function NewVehiclePage() {
     }
 
     setLoading(true);
-    const res = await fetch("/api/vehicles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, plate: formatPlateForDisplay(plateCheck.normalized) }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error || "Bir hata oluştu.");
-      if (data.vehicleId) setExistingVehicleId(data.vehicleId);
-      return;
+    try {
+      const res = await fetch("/api/vehicles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, plate: formatPlateForDisplay(plateCheck.normalized) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Bir hata oluştu.");
+        if (data.vehicleId) setExistingVehicleId(data.vehicleId);
+        return;
+      }
+      router.push(`/dashboard/araclar/${data.vehicle.id}`);
+      router.refresh();
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setLoading(false);
     }
-    router.push(`/dashboard/araclar/${data.vehicle.id}`);
-    router.refresh();
   }
 
   return (

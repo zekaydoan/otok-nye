@@ -16,21 +16,26 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const res = await fetch("/api/auth/forgot-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    setLoading(false);
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setError(data.error || "Bir hata oluştu.");
-      return;
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Bir hata oluştu.");
+        return;
+      }
+      // Sunucu, e-postanın kayıtlı olup olmadığından bağımsız olarak aynı genel
+      // mesajı döner (bkz. api/auth/forgot-password/route.ts) — bu sayede kayıtlı
+      // e-postalar dışarıdan sızdırılmaz.
+      setSent(true);
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setLoading(false);
     }
-    // Sunucu, e-postanın kayıtlı olup olmadığından bağımsız olarak aynı genel
-    // mesajı döner (bkz. api/auth/forgot-password/route.ts) — bu sayede kayıtlı
-    // e-postalar dışarıdan sızdırılmaz.
-    setSent(true);
   }
 
   return (

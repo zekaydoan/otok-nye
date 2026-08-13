@@ -39,27 +39,32 @@ export default function StickerOrderForm({
     }
 
     setLoading(true);
-    const res = await fetch("/api/etiket-siparis", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        quantity,
-        identityNumber,
-        contractAccepted,
-        labelName,
-        labelPhone,
-        address: { fullName, phone, addressLine, district, city, postalCode },
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
+    try {
+      const res = await fetch("/api/etiket-siparis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quantity,
+          identityNumber,
+          contractAccepted,
+          labelName,
+          labelPhone,
+          address: { fullName, phone, addressLine, district, city, postalCode },
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Sipariş oluşturulamadı, lütfen tekrar deneyin.");
+        return;
+      }
+      // Ödeme sayfasına yönlendir — kart bilgileri iyzico'nun barındırdığı sayfada
+      // girilir, bu sunucudan hiç geçmez.
+      window.location.href = data.paymentPageUrl;
+    } catch {
+      setError("Bağlantı hatası, sipariş oluşturulamadı. Lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
       setLoading(false);
-      setError(data.error || "Sipariş oluşturulamadı, lütfen tekrar deneyin.");
-      return;
     }
-    // Ödeme sayfasına yönlendir — kart bilgileri iyzico'nun barındırdığı sayfada
-    // girilir, bu sunucudan hiç geçmez.
-    window.location.href = data.paymentPageUrl;
   }
 
   return (

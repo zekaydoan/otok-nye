@@ -44,22 +44,27 @@ export default function EditVehicleForm({ vehicle }: { vehicle: Vehicle }) {
     }
 
     setLoading(true);
-    const res = await fetch(`/api/vehicles/${vehicle.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, plate: formatPlateForDisplay(plateCheck.normalized) }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error || "Bir hata oluştu.");
-      if (data.vehicleId) setExistingVehicleId(data.vehicleId);
-      return;
-    }
+    try {
+      const res = await fetch(`/api/vehicles/${vehicle.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, plate: formatPlateForDisplay(plateCheck.normalized) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Bir hata oluştu.");
+        if (data.vehicleId) setExistingVehicleId(data.vehicleId);
+        return;
+      }
 
-    const query = data.plateChanged ? "?plakaGuncellendi=1" : "";
-    router.push(`/dashboard/araclar/${vehicle.id}${query}`);
-    router.refresh();
+      const query = data.plateChanged ? "?plakaGuncellendi=1" : "";
+      router.push(`/dashboard/araclar/${vehicle.id}${query}`);
+      router.refresh();
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

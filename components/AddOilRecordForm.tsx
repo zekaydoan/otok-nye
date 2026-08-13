@@ -57,16 +57,21 @@ export default function AddOilRecordForm({
   async function handleAddFavorite() {
     if (!form.oilBrand || !form.oilModel) return;
     setSavingFavorite(true);
-    const res = await fetch("/api/shop/oils", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ brand: form.oilBrand, model: form.oilModel }),
-    });
-    const data = await res.json();
-    setSavingFavorite(false);
-    if (res.ok) {
-      setFavorites(data.favoriteOils || []);
-      showToast("Sık kullanılanlara eklendi.");
+    try {
+      const res = await fetch("/api/shop/oils", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brand: form.oilBrand, model: form.oilModel }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFavorites(data.favoriteOils || []);
+        showToast("Sık kullanılanlara eklendi.");
+      }
+    } catch {
+      showToast("Bağlantı hatası, tekrar deneyin.");
+    } finally {
+      setSavingFavorite(false);
     }
   }
 
@@ -93,40 +98,45 @@ export default function AddOilRecordForm({
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const res = await fetch(`/api/vehicles/${vehicleId}/records`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      const res = await fetch(`/api/vehicles/${vehicleId}/records`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          nextServiceKm: form.nextServiceKm || undefined,
+          nextServiceDate: form.nextServiceDate || undefined,
+          beforePhoto,
+          afterPhoto,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Bir hata oluştu.");
+        return;
+      }
+      setForm({
         ...form,
-        nextServiceKm: form.nextServiceKm || undefined,
-        nextServiceDate: form.nextServiceDate || undefined,
-        beforePhoto,
-        afterPhoto,
-      }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      setError(data.error || "Bir hata oluştu.");
-      return;
+        oilBrand: "",
+        oilModel: "",
+        quantityKg: "",
+        km: "",
+        note: "",
+        nextServiceDate: "",
+        nextServiceKm: "",
+      });
+      setBeforePhoto(null);
+      setAfterPhoto(null);
+      showToast("Kayıt eklendi.");
+      setJustSaved(true);
+      startRefresh(() => {
+        router.refresh();
+      });
+    } catch {
+      setError("Bağlantı hatası, kayıt eklenemedi. Lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setLoading(false);
     }
-    setForm({
-      ...form,
-      oilBrand: "",
-      oilModel: "",
-      quantityKg: "",
-      km: "",
-      note: "",
-      nextServiceDate: "",
-      nextServiceKm: "",
-    });
-    setBeforePhoto(null);
-    setAfterPhoto(null);
-    showToast("Kayıt eklendi.");
-    setJustSaved(true);
-    startRefresh(() => {
-      router.refresh();
-    });
   }
 
   if (!open) {

@@ -23,14 +23,19 @@ export default function ShareReportButton({ vehicleId }: { vehicleId: string }) 
       return;
     }
     setLoading(true);
-    const res = await fetch(`/api/vehicles/${vehicleId}/rapor`, { method: "POST" });
-    const data = await res.json().catch(() => ({}));
-    setLoading(false);
-    if (res.ok) {
-      setUrl(data.url);
-      showToast("Satış raporu bağlantısı oluşturuldu.");
-    } else {
-      showToast(data.error || "Rapor oluşturulamadı, lütfen tekrar deneyin.", "error");
+    try {
+      const res = await fetch(`/api/vehicles/${vehicleId}/rapor`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setUrl(data.url);
+        showToast("Satış raporu bağlantısı oluşturuldu.");
+      } else {
+        showToast(data.error || "Rapor oluşturulamadı, lütfen tekrar deneyin.", "error");
+      }
+    } catch {
+      showToast("Bağlantı hatası, lütfen tekrar deneyin.", "error");
+    } finally {
+      setLoading(false);
     }
   }
 
