@@ -173,8 +173,9 @@ export default function HomePage() {
         </div>
       </header>
 
-      <section className="relative overflow-hidden">
-        {/* Dekoratif arka plan lekeleri — saf CSS, ekstra görsel dosyası gerektirmez */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-brand-50/60 via-white to-white">
+        {/* Dekoratif arka plan lekeleri + hafif nokta deseni — saf CSS, ekstra
+            görsel dosyası gerektirmez ama sayfanın en üstüne biraz derinlik katar. */}
         <div
           aria-hidden
           className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-brand-100/70 blur-3xl"
@@ -182,6 +183,16 @@ export default function HomePage() {
         <div
           aria-hidden
           className="pointer-events-none absolute -right-24 top-32 h-80 w-80 rounded-full bg-accent-500/10 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.4]"
+          style={{
+            backgroundImage: "radial-gradient(#93c5fd 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+            maskImage: "linear-gradient(to bottom, black, transparent 70%)",
+            WebkitMaskImage: "linear-gradient(to bottom, black, transparent 70%)",
+          }}
         />
 
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:items-center lg:py-24">
@@ -202,7 +213,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
               <Link
                 href="/kayit"
-                className="rounded-lg bg-brand-600 px-6 py-3 text-lg font-semibold text-white hover:bg-brand-700 active:scale-[0.98]"
+                className="rounded-lg bg-brand-600 px-6 py-3 text-lg font-semibold text-white shadow-lg shadow-brand-600/20 hover:bg-brand-700 active:scale-[0.98]"
               >
                 Ücretsiz Hesap Aç
               </Link>
@@ -224,33 +235,49 @@ export default function HomePage() {
           </div>
 
           {/* Ürünü somutlaştıran kart mockup'ı — gerçek ekran görüntüsü yerine
-              sadeleştirilmiş bir temsil; QR okutulunca görünen özet karta benzer. */}
-          <div className="hidden justify-self-center lg:flex">
-            <div className="w-full max-w-sm rotate-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl transition-transform hover:rotate-0">
-              <div className="flex items-center justify-between border-b border-dashed border-slate-200 pb-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Araç</p>
-                  <p className="text-2xl font-extrabold text-slate-900">34 ABC 123</p>
+              sadeleştirilmiş bir temsil; QR okutulunca görünen özet karta benzer.
+              Artık mobilde de görünür (öncesinde yalnızca geniş ekranlarda vardı),
+              üzerine binen iki küçük rozet kartla sayfanın en üstüne biraz derinlik
+              ve hareket katıyor. */}
+          <div className="relative flex justify-center lg:justify-self-center">
+            <div className="relative w-full max-w-sm">
+              <div className="rotate-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl transition-transform hover:rotate-0">
+                <div className="flex items-center justify-between border-b border-dashed border-slate-200 pb-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Araç</p>
+                    <p className="text-2xl font-extrabold text-slate-900">34 ABC 123</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-0.5 rounded-lg bg-slate-900 p-2">
+                    {Array.from({ length: 9 }).map((_, i) => (
+                      <span
+                        key={i}
+                        className={`h-1.5 w-1.5 rounded-sm ${[0, 2, 4, 6, 8].includes(i) ? "bg-white" : "bg-slate-600"}`}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-0.5 rounded-lg bg-slate-900 p-2">
-                  {Array.from({ length: 9 }).map((_, i) => (
-                    <span
-                      key={i}
-                      className={`h-1.5 w-1.5 rounded-sm ${[0, 2, 4, 6, 8].includes(i) ? "bg-white" : "bg-slate-600"}`}
-                    />
-                  ))}
+                <p className="mt-3 text-sm text-slate-600">Volkswagen Passat · 2019</p>
+                <div className="mt-4 rounded-xl bg-brand-50 p-3">
+                  <p className="text-xs font-semibold text-brand-700">Son Yağ Bakımı</p>
+                  <p className="mt-1 text-sm text-slate-700">
+                    12.08.2026 · Castrol Edge 5W-30 · <strong>4,5 kg</strong>
+                  </p>
+                </div>
+                <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-green-700">
+                  <CheckIcon className="h-4 w-4" />
+                  Düzenli Bakımlı
                 </div>
               </div>
-              <p className="mt-3 text-sm text-slate-600">Volkswagen Passat · 2019</p>
-              <div className="mt-4 rounded-xl bg-brand-50 p-3">
-                <p className="text-xs font-semibold text-brand-700">Son Yağ Bakımı</p>
-                <p className="mt-1 text-sm text-slate-700">
-                  12.08.2026 · Castrol Edge 5W-30 · <strong>4,5 kg</strong>
-                </p>
+
+              {/* Ana kartın üzerine hafifçe taşan iki küçük rozet — QR okutma anını
+                  ve otomatik hatırlatmayı görsel olarak somutlaştırıyor. */}
+              <div className="absolute -left-6 -top-5 hidden -rotate-6 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-lg sm:flex">
+                <QrIcon className="h-5 w-5 text-brand-600" />
+                <span className="text-xs font-semibold text-slate-700">QR okutuldu</span>
               </div>
-              <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-green-700">
-                <CheckIcon className="h-4 w-4" />
-                Düzenli Bakımlı
+              <div className="absolute -bottom-5 -right-4 hidden rotate-3 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 shadow-lg sm:flex">
+                <BellIcon className="h-5 w-5 text-amber-600" />
+                <span className="text-xs font-semibold text-amber-800">Hatırlatma gönderildi</span>
               </div>
             </div>
           </div>
@@ -557,6 +584,10 @@ export default function HomePage() {
         <div className="mt-4 flex justify-center">
           <PaymentBadges />
         </div>
+        <p className="mx-auto mt-4 max-w-2xl text-xs text-slate-400">
+          Oto Künye; Sarper Dijital, SARPER DİJİTAL TEKNOLOJİLER VE KİRALAMA A.Ş
+          tarafından tasarlanmış ve yönetilmektedir. Patent ve Tasarım hakları saklıdır.
+        </p>
       </footer>
     </main>
   );
