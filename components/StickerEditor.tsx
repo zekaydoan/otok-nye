@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import Link from "next/link";
-import { BrandMark } from "@/components/icons";
+import { BrandMark, WarningIcon } from "@/components/icons";
 
 interface Props {
   vehicleId: string;
@@ -73,6 +73,20 @@ export default function StickerEditor({
             Geri
           </Link>
         </div>
+      </div>
+
+      <div className="no-print mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <WarningIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+        <p className="text-sm text-amber-800">
+          Bu etiketi kendi yazıcınızdan bastırıp standart bir yapışkanla monte ediyorsunuz;
+          motor bölmesindeki sıcaklık, yağ ve nem zamanla baskının solmasına veya etiketin
+          yerinden çıkmasına yol açabilir. Uzun süre okunur ve sağlam kalması için, mümkünse
+          etiketi laminatlı ya da su geçirmez bir yüzeye yapıştırın —{" "}
+          <Link href="/dashboard/etiket-siparis" className="font-semibold text-amber-900 underline hover:text-amber-950">
+            dayanıklı, hazır basılmış QR etiket seçeneğimize
+          </Link>{" "}
+          de göz atabilirsiniz.
+        </p>
       </div>
 
       <div className="print-grid grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
