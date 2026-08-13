@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { getCurrentShopId } from "@/lib/auth";
-import { getShopById, listUpcomingServicesForShop, listVehiclesByShop } from "@/lib/blobStore";
+import {
+  getShopById,
+  listAppointmentsForShop,
+  listUpcomingServicesForShop,
+  listVehiclesByShop,
+} from "@/lib/blobStore";
 import { buildReminderMessage } from "@/lib/maintenance";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { getTimeGreeting } from "@/lib/greeting";
@@ -8,6 +13,7 @@ import { PLAN_LIMITS } from "@/lib/types";
 import PlateSearch from "@/components/PlateSearch";
 import QrScanner from "@/components/QrScanner";
 import VehicleListSection from "@/components/VehicleListSection";
+import { CalendarIcon } from "@/components/icons";
 
 function dueBadge(daysUntil: number): { text: string; className: string } {
   if (daysUntil < 0) {
@@ -24,9 +30,14 @@ export default async function DashboardPage() {
   const shop = shopId ? await getShopById(shopId) : null;
   const vehicles = shopId ? await listVehiclesByShop(shopId) : [];
   const upcoming = shopId ? await listUpcomingServicesForShop(shopId, 14) : [];
+  const appointments = shopId ? await listAppointmentsForShop(shopId) : [];
   const limit = shop ? PLAN_LIMITS[shop.plan] : null;
 
   const greeting = getTimeGreeting();
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const todaysAppointments = appointments
+    .filter((a) => a.date === todayISO && a.status === "bekliyor")
+    .sort((a, b) => (a.time < b.time ? -1 : 1));
 
   return (
     <div>
@@ -75,6 +86,32 @@ export default async function DashboardPage() {
         </div>
         <span className="text-brand-600">→</span>
       </Link>
+
+      {todaysAppointments.length > 0 && (
+        <Link
+          href="/dashboard/randevular"
+          className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-slate-100 hover:ring-brand-300"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+              <CalendarIcon className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-slate-900">
+                Bugün {todaysAppointments.length} randevunuz var
+              </p>
+              <p className="text-xs text-slate-500">
+                {todaysAppointments
+                  .slice(0, 3)
+                  .map((a) => `${a.time}${a.plateDisplay ? ` · ${a.plateDisplay}` : ""}`)
+                  .join(" · ")}
+                {todaysAppointments.length > 3 ? " · ..." : ""}
+              </p>
+            </div>
+          </div>
+          <span className="text-brand-600">→</span>
+        </Link>
+      )}
 
       <VehicleListSection
         shopId={shopId}

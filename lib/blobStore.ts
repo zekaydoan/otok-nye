@@ -1,6 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
-import type { OilRecord, Shop, StickerOrder, StickerToken, Vehicle } from "./types";
+import type { Appointment, OilRecord, Shop, StickerOrder, StickerToken, Vehicle } from "./types";
 
 // Netlify Blobs tabanlı basit veri katmanı.
 // Store'lar: shops, shops_by_email, vehicles, vehicles_by_plate, oilrecords
@@ -16,6 +16,11 @@ const reminderLogStore = () => getStore("reminder_log");
 // Anahtar: `${shopId}/${vehicleId}`, değer: son etkileşim zamanı (ISO). Bu sayede
 // "Araçlarım" listesi tüm araçları taramak yerine doğrudan bayiye özel anahtarları okur.
 const shopVehicleLinksStore = () => getStore("shop_vehicle_links");
+// Randevular: anahtar `${shopId}/${appointmentId}` — bir bayinin tüm randevularını
+// tek bir prefix taramasıyla listeleyebilmek için oil kayıtlarındaki
+// `${vehicleId}/${id}` deseniyle aynı mantık kullanılır. Randevular araçlardan
+// farklı olarak paylaşımlı değildir; yalnızca kaydı oluşturan bayiye görünür.
+const appointmentsStore = () => getStore("appointments");
 // Etiket mağazası: siparişler, bayi->sipariş indeksi, iyzico token->sipariş
 // eşlemesi (ödeme sonrası callback yalnızca token ile döner) ve admin tarafından
 // değiştirilebilen ayarlar (ör. birim fiyat).
@@ -337,6 +342,56 @@ export async function hasReminderBeenSent(
 
 export async function markReminderSent(vehicleId: string, cycleKey: string): Promise<void> {
   await reminderLogStore().set(vehicleId, cycleKey);
+}
+
+// ---------- Randevular ----------
+// Anahtar `${shopId}/${id}` — oil kayıtlarındaki `${vehicleId}/${id}` deseniyle
+// aynı mantık: bir bayinin tüm randevularını tek bir prefix taramasıyla
+// listeleyebiliriz. Vehicle'ların aksine randevular paylaşımlı değildir, bu yüzden
+// IDOR riski yok — API route'ları her zaman oturumdaki shopId'yi kullanır.
+export async function createAppointment(appointment: Appointment): Promise<void> {
+  await appointmentsStore().setJSON(`${appointment.shopId}/${appointment.id}`, appointment);
+}
+
+export async function listAppointmentsForShop(shopId: string): Promise<Appointment[]> {
+  const { blobs } = await appointmentsStore().list({ prefix: `${shopId}/` });
+  const all = await Promise.all(
+    blobs.map(
+      (b) => appointmentsStore().get(b.key, { type: "json" }) as Promise<Appointment | null>
+    )
+  );
+  return all
+    .filter((a): a is Appointment => !!a)
+    .sort((a, b) => (a.date + a.time < b.date + b.time ? -1 : 1));
+}
+
+// Diğer mutasyon fonksiyonlarıyla (updateShopFields, updateStickerOrder) tutarlı
+// olması için iyimser kilitleme kullanılır — tek kullanıcı tarafından yönetilse bile
+// aynı randevunun iki sekmede aynı anda güncellenmesi durumuna karşı güvenli.
+export async function updateAppointment(
+  shopId: string,
+  appointmentId: string,
+  mutate: (appointment: Appointment) => Appointment
+): Promise<Appointment> {
+  const key = `${shopId}/${appointmentId}`;
+  const MAX_ATTEMPTS = 3;
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const result = await appointmentsStore().getWithMetadata(key, {
+      type: "json",
+      consistency: "strong",
+    });
+    if (!result || !result.data) throw new Error("Randevu bulunamadı.");
+    const updated = mutate(result.data as Appointment);
+    const writeResult = await appointmentsStore().set(key, JSON.stringify(updated), {
+      onlyIfMatch: result.etag,
+    });
+    if (writeResult.modified) return updated;
+  }
+  throw new Error("Randevu eşzamanlı olarak değiştirildi, lütfen tekrar deneyin.");
+}
+
+export async function deleteAppointment(shopId: string, appointmentId: string): Promise<void> {
+  await appointmentsStore().delete(`${shopId}/${appointmentId}`);
 }
 
 // ---------- Etiket Mağazası ----------

@@ -5,6 +5,10 @@ import type { SVGProps } from "react";
 // SVG'lerin (ör. onay işareti path'i) yerini alır. Her ikon `currentColor`
 // kullanır, boyut/renk çağıran tarafın className'i ile ayarlanır
 // (ör. `<CheckIcon className="h-4 w-4 text-green-600" />`).
+// SVGProps'un standart tip tanımı "title" özelliğini içermez (HTML elemanlarının
+// aksine SVG'de bu React'in tip tanımlarına dahil edilmemiş) — ama tarayıcıda
+// gayet geçerli bir tooltip özelliğidir (bkz. WarningIcon'un "Km tutarsızlığı"
+// tooltip'i için kullanımı). Bu yüzden burada tip tanımına elle ekleniyor.
 type IconProps = SVGProps<SVGSVGElement> & { title?: string };
 
 export function CheckIcon(props: IconProps) {
@@ -120,6 +124,17 @@ export function SettingsIcon(props: IconProps) {
         strokeLinecap="round"
         d="M10 2.8v1.7M10 15.5v1.7M17.2 10h-1.7M4.5 10H2.8M15.1 4.9l-1.2 1.2M6.1 13.9l-1.2 1.2M15.1 15.1l-1.2-1.2M6.1 6.1 4.9 4.9"
       />
+    </svg>
+  );
+}
+
+// Randevu/takvim ekranları için — dashboard başlığındaki nav bağlantısı ve
+// "Yaklaşan Randevu Yok" boş durum kartında kullanılır (bkz. AppointmentsSection).
+export function CalendarIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <rect x="3" y="4.5" width="14" height="12" rx="1.5" />
+      <path strokeLinecap="round" d="M3 8h14M6.5 2.8v3M13.5 2.8v3" />
     </svg>
   );
 }

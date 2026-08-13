@@ -64,6 +64,33 @@ export const PLAN_LIMITS: Record<Plan, { maxVehicles: number; label: string; pri
   business: { maxVehicles: Infinity, label: "İşletme", price: "899₺/ay" },
 };
 
+// ---------- Randevu ----------
+// Ustanın günlük iş listesini planlayabilmesi için basit bir randevu kaydı.
+// Sisteme henüz kayıtlı olmayan bir araç için de randevu girilebilsin diye
+// vehicleId zorunlu tutulmadı — plaka yalnızca serbest metin olarak saklanır.
+// Randevu, bir Vehicle kaydına otomatik/kalıcı olarak bağlanmaz; bakım kaydı
+// eklendiğinde ilişki zaten doğal olarak (plaka üzerinden) kurulmuş olur.
+export type AppointmentStatus = "bekliyor" | "geldi" | "iptal";
+
+export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
+  bekliyor: "Bekleniyor",
+  geldi: "Geldi",
+  iptal: "İptal",
+};
+
+export interface Appointment {
+  id: string;
+  shopId: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
+  plateDisplay?: string;
+  customerName?: string;
+  customerPhone?: string;
+  note?: string;
+  status: AppointmentStatus;
+  createdAt: string;
+}
+
 // ---------- Etiket Mağazası (fiziksel QR etiket siparişi) ----------
 // Bayiler panelden dayanıklı, profesyonel basılmış QR etiketi sipariş edip iyzico
 // üzerinden ödeme yapabilir. Kargo takibi otomasyonu yok — sipariş durumu

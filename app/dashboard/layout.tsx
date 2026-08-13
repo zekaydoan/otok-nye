@@ -6,7 +6,7 @@ import { PLAN_LIMITS } from "@/lib/types";
 import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
 import { ToastProvider } from "@/components/Toast";
-import { SettingsIcon } from "@/components/icons";
+import { CalendarIcon, SettingsIcon } from "@/components/icons";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const shopId = await getCurrentShopId();
@@ -27,6 +27,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <span className="truncate">{shop.name}</span>
             </Link>
             <div className="flex items-center gap-2 sm:gap-3">
+              <Link
+                href="/dashboard/randevular"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Randevular"
+                title="Randevular"
+              >
+                <CalendarIcon className="h-[18px] w-[18px]" />
+              </Link>
               <Link
                 href="/dashboard/plan"
                 className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 sm:px-3"
