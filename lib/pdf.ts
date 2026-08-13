@@ -20,13 +20,30 @@ export async function generateServiceReceiptPdf(
   const gray = rgb(0.4, 0.44, 0.5);
   const dark = rgb(0.06, 0.09, 0.16);
 
+  // pdf-lib'in gömülü StandardFonts'u (Helvetica) WinAnsi kodlamasını kullanır — bu
+  // kodlama ğ/Ğ, ı/İ, ş/Ş harflerini içermez (ç/ö/ü/Ç/Ö/Ü Latin-1'de olduğu için
+  // sorunsuz). Bu harfler geçtiğinde pdf-lib hata fırlatıp isteği 500 ile
+  // çökertiyordu (ör. "Yağ Filtresi", "Değiştirildi" etiketleri). Özel bir Türkçe
+  // font gömmek yerine (ekstra bağımlılık + font dosyası gerektirir), burada sadece
+  // desteklenmeyen dört harfi ASCII karşılığına çeviriyoruz — küçük bir görsel
+  // ödün, ama fiş her zaman güvenilir şekilde üretiliyor.
+  function winAnsiSafe(value: string): string {
+    return value
+      .replace(/ğ/g, "g")
+      .replace(/Ğ/g, "G")
+      .replace(/ı/g, "i")
+      .replace(/İ/g, "I")
+      .replace(/ş/g, "s")
+      .replace(/Ş/g, "S");
+  }
+
   function text(
     value: string,
     x: number,
     yy: number,
     opts: { size?: number; bold?: boolean; color?: ReturnType<typeof rgb> } = {}
   ) {
-    page.drawText(value, {
+    page.drawText(winAnsiSafe(value), {
       x,
       y: yy,
       size: opts.size ?? 11,
