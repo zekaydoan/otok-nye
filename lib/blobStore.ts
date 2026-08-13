@@ -287,6 +287,17 @@ export async function linkShopVehicle(shopId: string, vehicleId: string): Promis
   await shopVehicleLinksStore().set(`${shopId}/${vehicleId}`, new Date().toISOString());
 }
 
+// Bir bayinin bu araçla gerçekten "ilgilendiği" (oluşturmuş ya da en az bir bakım
+// kaydı eklemiş) olup olmadığını tek bir anahtar okumasıyla kontrol eder.
+// Paylaşımlı defter modelinde herkes bir aracı görüntüleyip kayıt ekleyebilir,
+// ama hatırlatma günlüğü gibi yan etkili işlemlerde (bkz. app/api/vehicles/[id]/
+// reminder-sent) ilgisiz bir bayinin başka bir bayinin otomatik hatırlatmasını
+// sessizce bastırmasını önlemek için bu daha sıkı kontrol kullanılır.
+export async function isVehicleLinkedToShop(shopId: string, vehicleId: string): Promise<boolean> {
+  const value = await shopVehicleLinksStore().get(`${shopId}/${vehicleId}`, { type: "text" });
+  return value !== null;
+}
+
 export async function listVehiclesByShop(shopId: string): Promise<Vehicle[]> {
   const { blobs } = await shopVehicleLinksStore().list({ prefix: `${shopId}/` });
   const withDates = await Promise.all(

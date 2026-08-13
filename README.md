@@ -74,7 +74,10 @@ Business modülü) anlaşma yapıldığında:
    sağlayıcının gerçek istek/yanıt formatına göre güncellenir (şu an generic bir
    POST isteği taslağı var).
 3. Mesaj metni Meta'ya "utility" kategorisinde şablon olarak onaylatılır
-   (`buildReminderMessage` fonksiyonundaki metin, şablonun taslağıdır).
+   (`lib/whatsappReminder.ts` → `buildAutoReminderMessage` fonksiyonundaki metin,
+   şablonun taslağıdır — panelden tek tıkla manuel gönderim yapan ayrı bir
+   `buildReminderMessage` fonksiyonu da var, bkz. `lib/maintenance.ts`, ikisini
+   karıştırmayın).
 
 Başka hiçbir dosyanın değişmesi gerekmez — tarama mantığı, tekrar gönderimi
 engelleyen döngü takibi (`hasReminderBeenSent`/`markReminderSent`) ve zamanlama

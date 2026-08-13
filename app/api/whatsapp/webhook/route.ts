@@ -1,7 +1,7 @@
-import { randomUUID } from "crypto";
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, randomUUID, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createAppointment, getVehicleById, listOilRecordsForVehicle } from "@/lib/blobStore";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { decodeConfirmationPayload, reminderCycleKey } from "@/lib/whatsappReminder";
 import type { Appointment } from "@/lib/types";
 
@@ -11,12 +11,11 @@ import type { Appointment } from "@/lib/types";
 //    bir bildirim düşer — "Evet" ise otomatik randevu açılır (bkz. lib/blobStore
 //    createAppointment), panelde Randevular sayfasında ve header'daki rozette görünür.
 //
-// DURUM: WHATSAPP_API_KEY/URL gibi bu uç nokta da dormant değil — Meta bu URL'yi
-// çağırabilmek için önce Meta App ayarlarında tanımlanmış olmalı, o da şirket
-// kuruluşu + WhatsApp Business hesabı kurulumunu bekliyor (bkz. README). Kod
-// tarafı hazır; sağlayıcı bağlanınca Meta App ayarlarına bu URL girilip
-// WHATSAPP_WEBHOOK_VERIFY_TOKEN ve (varsa) WHATSAPP_APP_SECRET tanımlanması
-// yeterli.
+// DURUM: Meta bu URL'yi çağırabilmek için önce Meta App ayarlarında tanımlanmış
+// olmalı, o da şirket kuruluşu + WhatsApp Business hesabı kurulumunu bekliyor
+// (bkz. README). Kod tarafı hazır; sağlayıcı bağlanınca Meta App ayarlarına bu
+// URL girilip WHATSAPP_WEBHOOK_VERIFY_TOKEN VE WHATSAPP_APP_SECRET'ın (ikisi de
+// zorunlu, opsiyonel değil — bkz. isValidSignature) tanımlanması yeterli.
 
 export async function GET(req: NextRequest) {
   const mode = req.nextUrl.searchParams.get("hub.mode");
@@ -37,14 +36,18 @@ export async function GET(req: NextRequest) {
 
 // Meta, App Secret tanımlıysa her POST isteğine gövdenin HMAC-SHA256 imzasını
 // X-Hub-Signature-256 header'ında ekler — sahte isteklere karşı bu imza
-// doğrulanmalı. WHATSAPP_APP_SECRET tanımlı değilken (henüz kurulum
-// tamamlanmadığında) doğrulamayı atlıyoruz ama loglayarak uyarıyoruz; canlıya
-// alınmadan önce bu değişkenin mutlaka tanımlanması gerekir.
+// doğrulanmalı. Bu uç nokta dışa açık ve isteği tetiklediğinde gerçek para/veri
+// etkisi olan bir işlem (otomatik randevu açma) yaptığı için, diğer "dormant"
+// modüllerin aksine (ör. lib/email.ts, lib/whatsappReminder.ts — anahtar
+// yokken sessizce no-op) burada GÜVENLİ TARAF seçildi: WHATSAPP_APP_SECRET
+// tanımlı değilken istek KABUL EDİLMEZ (fail-closed). Aksi hâlde imza kontrolü
+// fiilen devre dışı kalır ve herkes rastgele bir vehicleId biliyorsa sahte
+// randevu açtırabilirdi.
 function isValidSignature(rawBody: string, signatureHeader: string | null): boolean {
   const appSecret = process.env.WHATSAPP_APP_SECRET;
   if (!appSecret) {
-    console.warn("[whatsapp-webhook] WHATSAPP_APP_SECRET tanımlı değil, imza doğrulaması atlandı.");
-    return true;
+    console.warn("[whatsapp-webhook] WHATSAPP_APP_SECRET tanımlı değil, istek reddedildi (fail-closed).");
+    return false;
   }
   if (!signatureHeader?.startsWith("sha256=")) return false;
   const expected = createHmac("sha256", appSecret).update(rawBody, "utf-8").digest("hex");
@@ -63,6 +66,16 @@ interface WhatsAppInboundMessage {
 }
 
 export async function POST(req: NextRequest) {
+  // İmza doğrulaması geçersiz isteği zaten reddediyor, ama imza kontrolünün
+  // kendisi (HMAC hesaplama) ucuz değil — IP başına kaba bir hız sınırı,
+  // birinin bu uç noktayı sürekli yeniden denemesini/kaynak tüketmesini
+  // en baştan engeller.
+  const ip = getClientIp(req);
+  const rateLimit = await checkRateLimit("whatsapp-webhook", ip, 120, 60 * 1000);
+  if (!rateLimit.allowed) {
+    return new NextResponse("rate_limited", { status: 429 });
+  }
+
   const rawBody = await req.text();
   const signature = req.headers.get("x-hub-signature-256");
   if (!isValidSignature(rawBody, signature)) {

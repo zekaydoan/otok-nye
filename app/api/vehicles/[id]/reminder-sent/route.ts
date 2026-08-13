@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentShopId } from "@/lib/auth";
-import { getVehicleById, listOilRecordsForVehicle, markReminderSent } from "@/lib/blobStore";
+import {
+  getVehicleById,
+  isVehicleLinkedToShop,
+  listOilRecordsForVehicle,
+  markReminderSent,
+} from "@/lib/blobStore";
+import { checkRateLimit } from "@/lib/rateLimit";
 import { reminderCycleKey } from "@/lib/whatsappReminder";
 
 // Bayi panelden "WhatsApp'tan Hatırlat" butonuna bastığında (elle gönderim)
@@ -10,6 +16,21 @@ import { reminderCycleKey } from "@/lib/whatsappReminder";
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const shopId = await getCurrentShopId();
   if (!shopId) return NextResponse.json({ error: "Giriş yapmalısınız." }, { status: 401 });
+
+  // Aracın gerçekten bu bayinin ilgilendiği (oluşturduğu ya da kayıt eklediği)
+  // araçlardan biri olması gerekir — aksi hâlde ilgisiz bir bayi, başka bir
+  // bayinin otomatik gece hatırlatmasını sessizce bastırabilirdi (araç
+  // sayfasını görüntülemek serbest olsa da, hatırlatma günlüğünü değiştirmek
+  // gibi yan etkili bir işlem için bu daha sıkı kontrol gerekli).
+  const linked = await isVehicleLinkedToShop(shopId, params.id);
+  if (!linked) {
+    return NextResponse.json({ error: "Bu araç için yetkiniz yok." }, { status: 403 });
+  }
+
+  const rateLimit = await checkRateLimit("reminder-sent", shopId, 60, 60 * 60 * 1000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json({ error: "Çok fazla istek, lütfen biraz sonra tekrar deneyin." }, { status: 429 });
+  }
 
   const vehicle = await getVehicleById(params.id);
   if (!vehicle) return NextResponse.json({ error: "Araç bulunamadı." }, { status: 404 });
