@@ -57,7 +57,7 @@ export default async function RemindersPage() {
       <h1 className="mt-4 text-2xl font-bold text-slate-900">Toplu Hatırlatmalar</h1>
       <p className="mt-1 text-sm text-slate-500">
         Bakım tarihi veya kilometresi yaklaşan tüm araçlar (30 gün / 1500 km içinde).
-        Oto Künye telefonu kayıtlı araçları her gün otomatik tarar; isterseniz aşağıdan
+        OtoHafıza telefonu kayıtlı araçları her gün otomatik tarar; isterseniz aşağıdan
         kendiniz de tek tıkla WhatsApp mesajı gönderebilirsiniz.
       </p>
 

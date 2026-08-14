@@ -131,7 +131,7 @@ export async function generateServiceReceiptPdf(
   text(shop.name, margin, y - 52, { size: 9, bold: true });
   if (shop.phone) text(shop.phone, margin, y - 66, { size: 9, color: gray });
 
-  text("Oto Künye ile oluşturulmuştur.", margin, 24, { size: 8, color: gray });
+  text("OtoHafıza ile oluşturulmuştur.", margin, 24, { size: 8, color: gray });
 
   return pdfDoc.save();
 }

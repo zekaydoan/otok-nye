@@ -68,7 +68,7 @@ export default function NewVehiclePage() {
       // eklenen aracı henüz göremeyebiliyor. Aracı burada sessionStorage'a yazıp,
       // dashboard'un onu anında listeye eklemesini sağlıyoruz (bkz. VehicleListSection).
       try {
-        sessionStorage.setItem("otoKunyeYeniArac", JSON.stringify(data.vehicle));
+        sessionStorage.setItem("otoHafizaYeniArac", JSON.stringify(data.vehicle));
       } catch {
         // sessionStorage kullanılamıyorsa sessizce yok say — tek etkisi dashboard'a
         // hemen dönülürse eski davranışa (bir yenilemeye kadar gecikme) dönmesi.

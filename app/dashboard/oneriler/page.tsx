@@ -10,7 +10,7 @@ export default async function SuggestionsPage() {
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Öneri Kutusu</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Oto Künye&apos;yi sizinle birlikte geliştiriyoruz. Uygulamada görmek istediğiniz bir
+        OtoHafıza&apos;yı sizinle birlikte geliştiriyoruz. Uygulamada görmek istediğiniz bir
         özellik, karşılaştığınız bir eksiklik ya da aklınıza takılan herhangi bir fikir varsa,
         aşağıya yazmanız yeterli — her öneriyi tek tek okuyoruz.
       </p>

@@ -98,7 +98,7 @@ const features = [
   {
     icon: LightbulbIcon,
     title: "Sizinle birlikte gelişiyoruz",
-    desc: "Panelden doğrudan bize öneri gönderin — Oto Künye'yi kullanan ustaların fikirleriyle sürekli geliştiriyoruz.",
+    desc: "Panelden doğrudan bize öneri gönderin — OtoHafıza'yı kullanan ustaların fikirleriyle sürekli geliştiriyoruz.",
   },
 ];
 
@@ -334,13 +334,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Elle defter tutmanın sıkıntılarını somutlaştırıp Oto Künye'nin çözümüyle
+      {/* Elle defter tutmanın sıkıntılarını somutlaştırıp OtoHafıza'nın çözümüyle
           yan yana gösteren karşılaştırma — ürünün "neden" gerekli olduğunu satın
           alma kararından önce netleştirir. */}
       <section className="bg-white py-16">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-center text-2xl font-bold text-slate-900">
-            Kağıt defter mi, Oto Künye mi?
+            Kağıt defter mi, OtoHafıza mi?
           </h2>
           <p className="mx-auto mt-2 max-w-2xl text-center text-slate-600">
             Kağıt defterle bugüne kadar idare ettiyseniz, aşağıdakiler tanıdık gelecek.
@@ -358,7 +358,7 @@ export default function HomePage() {
               </ul>
             </div>
             <div className="rounded-2xl border border-brand-200 bg-brand-50/60 p-6">
-              <h3 className="font-semibold text-brand-800">Oto Künye</h3>
+              <h3 className="font-semibold text-brand-800">OtoHafıza</h3>
               <ul className="mt-4 space-y-3">
                 {solutions.map((s) => (
                   <li key={s} className="flex items-start gap-2.5 text-sm text-slate-700">
@@ -676,7 +676,7 @@ export default function HomePage() {
 
       <footer className="border-t bg-white py-8 text-center text-sm text-slate-500">
         <p>
-          © {new Date().getFullYear()} Oto Künye — Araç bakım işletmeleri için QR&apos;lı dijital bakım defteri.
+          © {new Date().getFullYear()} OtoHafıza — Araç bakım işletmeleri için QR&apos;lı dijital bakım defteri.
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           <Link href="/kvkk" className="underline">
@@ -695,7 +695,7 @@ export default function HomePage() {
           <PaymentBadges />
         </div>
         <p className="mx-auto mt-4 max-w-2xl text-xs text-slate-400">
-          Oto Künye;{" "}
+          OtoHafıza;{" "}
           <a
             href="https://www.sarperdijital.com"
             target="_blank"

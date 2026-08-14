@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import type { StaffRole } from "./types";
 
-const DEV_FALLBACK_SECRET = "oto-kunye-gelistirme-anahtari-2026";
+const DEV_FALLBACK_SECRET = "otohafiza-gelistirme-anahtari-2026";
 
 // AUTH_SECRET, oturum jetonlarını (JWT) imzalamak için kullanılır — kodun kendisi
 // herkese açık olabileceğinden (ör. bu depo), üretimde bilinen/varsayılan bir anahtarla

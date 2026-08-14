@@ -1,4 +1,4 @@
-# Oto Künye — Kapasite ve Ölçeklenebilirlik Analizi
+# OtoHafıza — Kapasite ve Ölçeklenebilirlik Analizi
 
 **Senaryo:** Ayda 30.000 toplam ziyaretçi (tamirci/bayi panel kullanıcıları + QR okutan araç sahipleri dahil toplam trafik).
 

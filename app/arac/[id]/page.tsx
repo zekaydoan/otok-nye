@@ -149,7 +149,7 @@ export default async function PublicVehiclePage({ params }: { params: { id: stri
               </p>
               <p className="mt-1 text-sm text-slate-500">
                 Yağ markası/modeli, kilometre, servis notları, fotoğraflar ve servis fişleri
-                dahil {records.length} kaydın tamamını görmek için Oto Künye'ye giriş
+                dahil {records.length} kaydın tamamını görmek için OtoHafıza'ya giriş
                 yapmanız gerekir.
               </p>
               <div className="mt-4 flex justify-center gap-3">
@@ -178,7 +178,7 @@ export default async function PublicVehiclePage({ params }: { params: { id: stri
         </div>
 
         <p className="mt-8 text-center text-xs text-slate-400">
-          Bu sayfa <Link href="/" className="underline">Oto Künye</Link> ile otomatik oluşturulmuştur.
+          Bu sayfa <Link href="/" className="underline">OtoHafıza</Link> ile otomatik oluşturulmuştur.
         </p>
       </div>
     </main>

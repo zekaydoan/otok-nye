@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Mesafeli Satış Sözleşmesi | Oto Künye",
+  title: "Mesafeli Satış Sözleşmesi | OtoHafıza",
 };
 
 export default function MesafeliSatisSozlesmesiPage() {
@@ -36,14 +36,14 @@ export default function MesafeliSatisSozlesmesiPage() {
           MERSİS No], [E-posta], [Telefon] ("Satıcı").
         </p>
         <p className="mt-2 text-sm text-slate-600">
-          <strong>Alıcı:</strong> Oto Künye panelinde oturum açmış, sipariş formunda
+          <strong>Alıcı:</strong> OtoHafıza panelinde oturum açmış, sipariş formunda
           teslimat bilgilerini beyan eden bayi/işletme ("Alıcı"). Alıcı, siparişi
           işletmesinin ticari faaliyeti kapsamında verdiğini kabul eder.
         </p>
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">2. Sözleşmenin Konusu</h2>
         <p className="mt-2 text-sm text-slate-600">
-          İşbu sözleşmenin konusu, Alıcı'nın Oto Künye panelinden elektronik
+          İşbu sözleşmenin konusu, Alıcı'nın OtoHafıza panelinden elektronik
           ortamda sipariş verdiği, motor bölmesi gibi zorlu koşullara dayanıklı
           (su geçirmez, UV korumalı) profesyonel basılmış QR etiketin (“Ürün”)
           satışı ve teslimine ilişkin tarafların hak ve yükümlülüklerinin

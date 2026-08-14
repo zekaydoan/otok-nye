@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Kullanım Şartları | Oto Künye",
+  title: "Kullanım Şartları | OtoHafıza",
 };
 
 export default function TermsPage() {
@@ -15,7 +15,7 @@ export default function TermsPage() {
         <p className="mt-2 text-sm text-slate-500">Son güncelleme: Ağustos 2026</p>
 
         <div className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
-          Bu metin, Oto Künye hizmetinin kullanım koşullarını genel hatlarıyla açıklayan
+          Bu metin, OtoHafıza hizmetinin kullanım koşullarını genel hatlarıyla açıklayan
           bir <strong>şablondur</strong>. Yayına almadan önce köşeli parantez içindeki
           alanları ([ ]) kendi işletme bilgilerinizle doldurmanız ve metni bir hukuk
           danışmanına onaylatmanız önerilir. Bu içerik hukuki tavsiye niteliği taşımaz.
@@ -23,7 +23,7 @@ export default function TermsPage() {
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">1. Hizmetin Tanımı</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Oto Künye ("Platform"), [Firma Unvanınız] tarafından işletilen; araçlara
+          OtoHafıza ("Platform"), [Firma Unvanınız] tarafından işletilen; araçlara
           yapıştırılan QR etiketleri aracılığıyla yağ bakım geçmişinin dijital olarak
           kaydedilmesini ve görüntülenmesini sağlayan bir SaaS (hizmet olarak yazılım)
           uygulamasıdır. Platform, oto tamircileri ve servisler ("Bayi") tarafından

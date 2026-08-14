@@ -12,7 +12,7 @@ export interface EmailResult {
 
 async function sendEmail(to: string, subject: string, html: string): Promise<EmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM || "Oto Künye <bildirim@oto-kunye.example>";
+  const from = process.env.RESEND_FROM || "OtoHafıza <bildirim@otohafiza.example>";
 
   if (!apiKey) {
     console.warn(
@@ -46,7 +46,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
       <p>Merhaba,</p>
-      <p>Oto Künye hesabınız için bir şifre sıfırlama talebi aldık. Aşağıdaki bağlantı
+      <p>OtoHafıza hesabınız için bir şifre sıfırlama talebi aldık. Aşağıdaki bağlantı
       1 saat boyunca geçerlidir:</p>
       <p><a href="${resetUrl}" style="display:inline-block;background:#1d4ed8;color:#fff;
       padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">
@@ -55,5 +55,5 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
       herhangi bir değişiklik yapılmayacaktır.</p>
     </div>
   `;
-  return sendEmail(to, "Oto Künye — Şifre Sıfırlama", html);
+  return sendEmail(to, "OtoHafıza — Şifre Sıfırlama", html);
 }

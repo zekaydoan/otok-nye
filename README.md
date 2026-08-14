@@ -1,4 +1,4 @@
-# Oto Künye
+# OtoHafıza
 
 Araç bakım işletmeleri (tamirciler, oto servisler, galeriler) için QR kodlu, otomatik kayıt tutan yağ bakım defteri SaaS'ı.
 
@@ -105,7 +105,7 @@ WHATSAPP_APP_SECRET=...             # Gelen isteklerin imzasını doğrulamak i�
 ve Meta App ayarlarında webhook URL'si olarak `https://yagbakim-defteri.netlify.app/api/whatsapp/webhook`
 tanımlanması yeterli.
 
-**Merkezi mi, bayi kendi numarasından mı?** Mesajlar Oto Künye'nin tek merkezi
+**Merkezi mi, bayi kendi numarasından mı?** Mesajlar OtoHafıza'nın tek merkezi
 WhatsApp hattından gönderiliyor (her bayiye ayrı Meta iş hesabı açtırmak büyük bir
 kayıt engeli olurdu); mesaj içeriğinde bayinin adı ve telefonu geçtiği için müşteri
 kimin hatırlattığını görür. "Kendi numaranızdan gönderin" (Meta Embedded Signup ile)
@@ -136,8 +136,8 @@ Bu proje için Netlify'da **yagbakim-defteri** adında bir site zaten oluşturul
 (site ID: `beb5d615-d68d-4a08-9720-8c2783e666a0`) ve `AUTH_SECRET` ortam değişkeni
 tanımlandı. Siteye https://app.netlify.com/projects/yagbakim-defteri adresinden
 ulaşabilirsiniz. *(Bu, sadece Netlify'daki teknik proje/alt alan adıdır; markanız
-"Oto Künye" olarak değişti. İsterseniz Netlify panelinden Site settings → Change
-site name yoluyla proje adını da `oto-kunye` yapıp kendi alan adınızı
+"OtoHafıza" olarak değişti. İsterseniz Netlify panelinden Site settings → Change
+site name yoluyla proje adını da `otohafiza` yapıp kendi alan adınızı
 bağlayabilirsiniz — henüz canlıda gerçek kullanıcı olmadığı için bu değişiklik
 risksizdir.)*
 

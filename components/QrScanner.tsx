@@ -70,7 +70,7 @@ export default function QrScanner() {
         }, 400);
         return;
       }
-      setStatus("Bu bir Oto Künye etiketi değil, taramaya devam ediliyor...");
+      setStatus("Bu bir OtoHafıza etiketi değil, taramaya devam ediliyor...");
     }
     rafRef.current = requestAnimationFrame(tick);
   }

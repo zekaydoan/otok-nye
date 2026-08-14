@@ -22,7 +22,7 @@ export default function Logo({
       >
         <BrandMark className={iconClass} />
       </span>
-      {withText && <span className="font-bold text-brand-700">Oto Künye</span>}
+      {withText && <span className="font-bold text-brand-700">OtoHafıza</span>}
     </span>
   );
 }

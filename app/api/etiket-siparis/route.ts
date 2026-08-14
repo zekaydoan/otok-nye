@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
       {
         id: "qr-etiket",
         price: priceStr,
-        name: `Oto Künye Dayanıklı QR Etiket x${quantity}`,
+        name: `OtoHafıza Dayanıklı QR Etiket x${quantity}`,
         category1: "Etiket",
         itemType: "PHYSICAL",
       },

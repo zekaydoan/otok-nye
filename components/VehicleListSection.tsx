@@ -6,12 +6,12 @@ import EmptyState from "@/components/EmptyState";
 import { CarIcon } from "@/components/icons";
 import type { Vehicle } from "@/lib/types";
 
-const PENDING_VEHICLE_KEY = "otoKunyeYeniArac";
+const PENDING_VEHICLE_KEY = "otoHafizaYeniArac";
 // Toplu araç içe aktarma (bkz. app/dashboard/araclar/toplu-ekle) sonrasında eklenen
 // araçların tümünü bu ayrı anahtar altında bir dizi olarak yazar — tekil ekleme akışı
 // (PENDING_VEHICLE_KEY) tek bir nesne bekliyor, iki deseni karıştırmamak için ayrı
 // tutuldu.
-const PENDING_BULK_VEHICLES_KEY = "otoKunyeTopluArac";
+const PENDING_BULK_VEHICLES_KEY = "otoHafizaTopluArac";
 
 export default function VehicleListSection({
   shopId,

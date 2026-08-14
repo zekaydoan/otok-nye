@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "KVKK Aydınlatma Metni | Oto Künye",
+  title: "KVKK Aydınlatma Metni | OtoHafıza",
 };
 
 export default function KvkkPage() {
@@ -32,7 +32,7 @@ export default function KvkkPage() {
 
         <h3 className="mt-4 font-semibold text-slate-800">1.1 Veri Sorumlusu</h3>
         <p className="mt-2 text-sm text-slate-600">
-          İşbu aydınlatma metni, [Firma Unvanınız] ("Oto Künye", "Platform")
+          İşbu aydınlatma metni, [Firma Unvanınız] ("OtoHafıza", "Platform")
           tarafından, 6698 sayılı Kişisel Verilerin Korunması Kanunu'nun ("KVKK") 10.
           maddesi uyarınca veri sorumlusu sıfatıyla hazırlanmıştır. İletişim: [Adres],
           [E-posta], [Telefon].

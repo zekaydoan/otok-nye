@@ -1,9 +1,9 @@
-// Otomatik WhatsApp bakım hatırlatması — merkezi (Oto Künye) hattan gönderim.
+// Otomatik WhatsApp bakım hatırlatması — merkezi (OtoHafıza) hattan gönderim.
 //
 // Neden merkezi: Her bayinin kendi WhatsApp Business hesabını platforma bağlaması
 // (Meta "Embedded Signup") teknik olarak mümkün ama her bayi için ayrı Meta iş
 // doğrulaması + ayrı numara gerektirir — küçük esnaf için ciddi bir kayıt engeli.
-// Bunun yerine tek bir Oto Künye WhatsApp hattından gönderiyoruz; mesaj içeriğinde
+// Bunun yerine tek bir OtoHafıza WhatsApp hattından gönderiyoruz; mesaj içeriğinde
 // bayinin adı/telefonu geçtiği için müşteri kimin hatırlattığını her zaman görür.
 // Ölçek büyürse "kendi numaranızdan gönderin" üst pakete taşınabilecek ayrı bir
 // özellik olarak eklenebilir.

@@ -60,7 +60,7 @@ export default function VehicleDetailView({
     });
 
     try {
-      sessionStorage.setItem("otoKunyeYeniArac", JSON.stringify(vehicle));
+      sessionStorage.setItem("otoHafizaYeniArac", JSON.stringify(vehicle));
     } catch {
     }
   }

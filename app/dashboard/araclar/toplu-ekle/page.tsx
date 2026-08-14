@@ -136,7 +136,7 @@ export default function BulkImportPage() {
       // (bkz. VehicleListSection) anında listeye ekleniyor.
       if (data.created?.length) {
         try {
-          sessionStorage.setItem("otoKunyeTopluArac", JSON.stringify(data.created));
+          sessionStorage.setItem("otoHafizaTopluArac", JSON.stringify(data.created));
         } catch {
           // sessionStorage kullanılamıyorsa sessizce yok say.
         }

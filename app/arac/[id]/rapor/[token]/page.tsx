@@ -7,7 +7,7 @@ import Logo from "@/components/Logo";
 import { WarningIcon } from "@/components/icons";
 
 export const metadata = {
-  title: "Araç Satış Raporu | Oto Künye",
+  title: "Araç Satış Raporu | OtoHafıza",
 };
 
 // Bayinin panelden bilinçli olarak oluşturup paylaştığı, girişsiz erişilebilen tam
@@ -107,7 +107,7 @@ export default async function VehicleReportPage({
           Bu, aracın sahibi/yetkili servisi tarafından oluşturulmuş özel bir paylaşım
           bağlantısıdır.{" "}
           <Link href="/" className="underline">
-            Oto Künye
+            OtoHafıza
           </Link>{" "}
           ile otomatik oluşturulmuştur.
         </p>
