@@ -6,6 +6,8 @@ import { checkKmConsistency, computeMaintenanceScore } from "@/lib/maintenance";
 import ScoreBadge from "@/components/ScoreBadge";
 import Logo from "@/components/Logo";
 import { LockIcon, WarningIcon } from "@/components/icons";
+import WhatsappOptOutToggle from "@/components/WhatsappOptOutToggle";
+import DataRequestForm from "@/components/DataRequestForm";
 
 export default async function PublicVehiclePage({ params }: { params: { id: string } }) {
   const vehicle = await getVehicleById(params.id);
@@ -176,6 +178,11 @@ export default async function PublicVehiclePage({ params }: { params: { id: stri
             Yetkili girişi yapıp yeni kayıt ekleyin →
           </Link>
         </div>
+
+        {vehicle.ownerPhone && (
+          <WhatsappOptOutToggle vehicleId={vehicle.id} initialOptOut={!!vehicle.whatsappOptOut} />
+        )}
+        <DataRequestForm vehicleId={vehicle.id} />
 
         <p className="mt-8 text-center text-xs text-slate-400">
           Bu sayfa <Link href="/" className="underline">OtoHafıza</Link> ile otomatik oluşturulmuştur.

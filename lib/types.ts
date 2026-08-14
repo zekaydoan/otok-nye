@@ -83,6 +83,11 @@ export interface Vehicle {
   // karşılaştırarak hesaplanır.
   lastKnownKm?: number;
   lastKnownKmUpdatedAt?: string; // ISO
+  // Araç sahibi genel araç sayfasından kendi isteğiyle otomatik WhatsApp bakım
+  // hatırlatmalarından çıkarsa true olur (bkz. lib/whatsappReminder.ts
+  // vehicleHasReminderConsent, app/api/vehicles/[id]/whatsapp-optout) — KVKK
+  // m.11 kapsamında ilgili kişinin işlemeye itiraz etme hakkının bir uygulaması.
+  whatsappOptOut?: boolean;
   createdByShopId: string;
   createdAt: string;
 }
@@ -224,6 +229,12 @@ export interface StickerOrder {
   trackingCarrier?: string;
   trackingNumber?: string;
   adminNote?: string;
+  // İade takibi — gerçek bir otomatik iyzico iade API çağrısı YAPMAZ (bkz.
+  // app/api/admin/siparisler/[id]/route.ts yorumu); admin parayı bankadan/iyzico
+  // panelinden elle iade ettikten sonra burada kayıt düşer, tekrar aynı siparişe
+  // bakan başka bir admin "iade edildi mi?" diye tahmin etmek zorunda kalmasın.
+  refundedAt?: string; // ISO
+  refundAmountTry?: number;
   // Etikette basılı görünecek isim/telefon — genelde bayi adı/telefonuyla aynıdır
   // ama sipariş formunda değiştirilebilir (ör. belirli bir ustanın adı/telefonu).
   labelName?: string;
@@ -267,5 +278,37 @@ export interface Suggestion {
   authorName?: string; // gönderen bir çalışan hesabıysa adı (bkz. StaffAccount)
   message: string;
   status: SuggestionStatus;
+  createdAt: string;
+}
+
+// ---------- KVKK Self-Servis Veri Talebi ----------
+// Araç sahibinin (hesabı olmadığı için) genel araç sayfasından, bayi/desteğe
+// yazmadan doğrudan KVKK m.11 kapsamındaki ilgili kişi haklarını (bilgi edinme,
+// silme) talep edebilmesi için — bkz. app/api/vehicles/[id]/veri-talebi,
+// app/admin/veri-talepleri. Talep otomatik silinmiyor/işlenmiyor; admin elle
+// değerlendirip (aracı silme, bayiyle iletişime geçme vb.) durumu günceller.
+export type DataRequestType = "bilgi" | "silme";
+
+export const DATA_REQUEST_TYPE_LABELS: Record<DataRequestType, string> = {
+  bilgi: "Verilerim hakkında bilgi istiyorum",
+  silme: "Verilerimin silinmesini istiyorum",
+};
+
+export type DataRequestStatus = "yeni" | "islemde" | "tamamlandi";
+
+export const DATA_REQUEST_STATUS_LABELS: Record<DataRequestStatus, string> = {
+  yeni: "Yeni",
+  islemde: "İşlemde",
+  tamamlandi: "Tamamlandı",
+};
+
+export interface DataRequest {
+  id: string;
+  vehicleId: string;
+  plateDisplay: string;
+  type: DataRequestType;
+  contactInfo: string; // talep sahibinin dönüş için bıraktığı e-posta/telefon
+  message?: string;
+  status: DataRequestStatus;
   createdAt: string;
 }

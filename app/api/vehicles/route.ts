@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: `${PLAN_LIMITS[shop.plan].label} planında en fazla ${limit} araç kaydedebilirsiniz. Daha fazla araç eklemek için planınızı yükseltin.`,
+          code: "plan_limit",
         },
         { status: 403 }
       );

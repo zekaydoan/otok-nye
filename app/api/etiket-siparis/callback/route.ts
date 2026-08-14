@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStickerOrderIdByToken, updateStickerOrder } from "@/lib/blobStore";
+import { notifyAdmins } from "@/lib/email";
 import { retrieveCheckoutForm } from "@/lib/iyzico";
 
 function getSiteUrl(req: NextRequest): string {
@@ -34,13 +35,24 @@ export async function POST(req: NextRequest) {
 
   try {
     if (retrieveResult.status === "success" && retrieveResult.paymentStatus === "SUCCESS") {
-      await updateStickerOrder(orderId, (order) => ({
+      const paidOrder = await updateStickerOrder(orderId, (order) => ({
         ...order,
         status: "odendi",
         paymentToken: token as string,
         paymentId: retrieveResult.paymentId,
         updatedAt: new Date().toISOString(),
       }));
+      // Admin'e siparişin gerçekten ödendiğinde haber verilir — henüz ödeme
+      // yapılmamış/başarısız denemelerde bildirim atılmaz, aksi hâlde her
+      // yarım kalan ödeme denemesinde admin'i gereksiz yere uyarmış oluruz.
+      await notifyAdmins(
+        `Yeni etiket siparişi ödendi — ${paidOrder.shopName}`,
+        `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
+          <p><strong>${paidOrder.shopName}</strong>, ${paidOrder.quantity} adet etiket için
+          ${paidOrder.totalPriceTry.toLocaleString("tr-TR")}₺ ödedi.</p>
+          <p><a href="https://yagbakim-defteri.netlify.app/admin/siparisler">Admin panelinden görüntüle</a></p>
+        </div>`
+      );
     } else {
       await updateStickerOrder(orderId, (order) => ({
         ...order,

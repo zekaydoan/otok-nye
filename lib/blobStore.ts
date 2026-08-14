@@ -3,6 +3,8 @@ import { randomUUID } from "crypto";
 import { PLAN_LIMITS } from "./types";
 import type {
   Appointment,
+  DataRequest,
+  DataRequestStatus,
   OilRecord,
   Plan,
   Shop,
@@ -65,6 +67,10 @@ const suggestionsByShopStore = () => getStore("suggestions_by_shop");
 // trafikte birkaç görüntüleme kaybolabilir; bu, kaba bir trend göstergesi için
 // yeterlidir ama kesin bir sayaç değildir (bkz. lib/rateLimit.ts aynı not).
 const siteAnalyticsStore = () => getStore("site_analytics");
+// KVKK self-servis veri talepleri (bkz. lib/types.ts DataRequest) — bayi
+// bazında değil, doğrudan admin tarafından tek listede değerlendirildiği için
+// suggestions'ın aksine ayrı bir shopId indeksine gerek yok.
+const dataRequestsStore = () => getStore("data_requests");
 // Bir bayinin bir plana ne zaman "başladığının" kaydı — hem yeni kayıtta
 // (varsayılan free plan) hem de app/api/shop/plan'de plan değiştirildiğinde
 // yazılır. Admin panelindeki "Plan Dağılımı" tablosunun günlük/aylık/yıllık
@@ -294,6 +300,17 @@ export async function updateVehicleKm(vehicleId: string, km: number): Promise<Ve
     lastKnownKm: km,
     lastKnownKmUpdatedAt: new Date().toISOString(),
   };
+  await vehiclesStore().setJSON(vehicleId, updated);
+  return updated;
+}
+
+// Araç sahibinin genel araç sayfasından kendi isteğiyle otomatik WhatsApp
+// hatırlatmalarını açıp kapatabilmesi için — bkz. lib/whatsappReminder.ts
+// vehicleHasReminderConsent, app/api/vehicles/[id]/whatsapp-optout.
+export async function setVehicleWhatsappOptOut(vehicleId: string, optOut: boolean): Promise<Vehicle> {
+  const vehicle = await getVehicleById(vehicleId, { consistency: "strong" });
+  if (!vehicle) throw new Error("Araç bulunamadı.");
+  const updated: Vehicle = { ...vehicle, whatsappOptOut: optOut };
   await vehiclesStore().setJSON(vehicleId, updated);
   return updated;
 }
@@ -1006,4 +1023,33 @@ export async function getStickerOrderStats(): Promise<StickerOrderStats> {
     totalRevenueTry: paidOrders.reduce((sum, o) => sum + o.totalPriceTry, 0),
     byCity: Array.from(cityMap.values()).sort((a, b) => b.revenueTry - a.revenueTry),
   };
+}
+
+// ---------- KVKK Self-Servis Veri Talebi ----------
+
+export async function createDataRequest(request: DataRequest): Promise<void> {
+  await dataRequestsStore().setJSON(request.id, request);
+}
+
+export async function getDataRequestById(id: string): Promise<DataRequest | null> {
+  return (await dataRequestsStore().get(id, { type: "json" })) as DataRequest | null;
+}
+
+export async function listAllDataRequests(): Promise<DataRequest[]> {
+  const { blobs } = await dataRequestsStore().list();
+  const requests = await Promise.all(blobs.map((b) => getDataRequestById(b.key)));
+  return requests
+    .filter((r): r is DataRequest => !!r)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+export async function updateDataRequestStatus(
+  id: string,
+  status: DataRequestStatus
+): Promise<DataRequest> {
+  const existing = await getDataRequestById(id);
+  if (!existing) throw new Error("Talep bulunamadı.");
+  const updated: DataRequest = { ...existing, status };
+  await dataRequestsStore().setJSON(id, updated);
+  return updated;
 }

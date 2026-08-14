@@ -20,6 +20,7 @@ export default function NewVehiclePage() {
   const [ownerConsent, setOwnerConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [existingVehicleId, setExistingVehicleId] = useState<string | null>(null);
+  const [isPlanLimitError, setIsPlanLimitError] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const modelSuggestions = useMemo(() => {
@@ -39,6 +40,7 @@ export default function NewVehiclePage() {
     e.preventDefault();
     setError(null);
     setExistingVehicleId(null);
+    setIsPlanLimitError(false);
 
     const plateCheck = validatePlate(form.plate);
     if (!plateCheck.valid) {
@@ -61,6 +63,7 @@ export default function NewVehiclePage() {
       if (!res.ok) {
         setError(data.error || "Bir hata oluştu.");
         if (data.vehicleId) setExistingVehicleId(data.vehicleId);
+        setIsPlanLimitError(data.code === "plan_limit");
         return;
       }
       // Netlify Blobs'un .list() metodu strong consistency desteklemediğinden,
@@ -200,20 +203,30 @@ export default function NewVehiclePage() {
         </label>
 
         {error && (
-          <p className="text-sm text-red-600">
-            {error}
-            {existingVehicleId && (
-              <>
-                {" "}
-                <Link
-                  href={`/dashboard/araclar/${existingVehicleId}`}
-                  className="font-semibold underline"
-                >
-                  Mevcut kayda git →
-                </Link>
-              </>
+          <div>
+            <p className="text-sm text-red-600">
+              {error}
+              {existingVehicleId && (
+                <>
+                  {" "}
+                  <Link
+                    href={`/dashboard/araclar/${existingVehicleId}`}
+                    className="font-semibold underline"
+                  >
+                    Mevcut kayda git →
+                  </Link>
+                </>
+              )}
+            </p>
+            {isPlanLimitError && (
+              <Link
+                href="/dashboard/plan"
+                className="mt-2 inline-block rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+              >
+                Planımı Yükselt →
+              </Link>
             )}
-          </p>
+          </div>
         )}
 
         <button

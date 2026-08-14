@@ -13,6 +13,10 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
   const [status, setStatus] = useState<StickerOrderStatus>(order.status);
   const [trackingCarrier, setTrackingCarrier] = useState(order.trackingCarrier || "");
   const [trackingNumber, setTrackingNumber] = useState(order.trackingNumber || "");
+  const [refunded, setRefunded] = useState(!!order.refundedAt);
+  const [refundAmountTry, setRefundAmountTry] = useState(
+    order.refundAmountTry ?? order.totalPriceTry
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +27,13 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
       const res = await fetch(`/api/admin/siparisler/${order.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, trackingCarrier, trackingNumber }),
+        body: JSON.stringify({
+          status,
+          trackingCarrier,
+          trackingNumber,
+          refunded,
+          refundAmountTry: refunded ? refundAmountTry : undefined,
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -65,11 +75,16 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
             Etiket QR listesini görüntüle ({order.quantity})
           </Link>
         </div>
-        <span
-          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${stickerOrderStatusBadgeClass(order.status)}`}
-        >
-          {STICKER_ORDER_STATUS_LABELS[order.status]}
-        </span>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${stickerOrderStatusBadgeClass(order.status)}`}>
+            {STICKER_ORDER_STATUS_LABELS[order.status]}
+          </span>
+          {order.refundedAt && (
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+              ↩ {order.refundAmountTry?.toFixed(2)}₺ iade edildi
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:items-end md:grid-cols-4">
@@ -111,6 +126,33 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
           {saving ? "Kaydediliyor..." : "Güncelle"}
         </button>
       </div>
+
+      {status === "iptal" && (
+        <div className="mt-3 flex flex-wrap items-end gap-3 rounded-lg bg-slate-50 p-3">
+          <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+            <input
+              type="checkbox"
+              checked={refunded}
+              onChange={(e) => setRefunded(e.target.checked)}
+            />
+            Ödeme bankadan/iyzico panelinden elle iade edildi
+          </label>
+          {refunded && (
+            <div>
+              <label className="block text-xs font-medium text-slate-600">İade Tutarı (₺)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={refundAmountTry}
+                onChange={(e) => setRefundAmountTry(Number(e.target.value))}
+                className="mt-1 w-28 rounded-lg border border-slate-300 px-2 py-1 text-sm focus:border-brand-500 focus:outline-none"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
     </div>
   );

@@ -87,6 +87,11 @@ export default function VehicleListSection({
           <StatCard
             label={`${planLabel} Plan Kullanımı`}
             value={maxVehicles === Infinity ? "Sınırsız" : `${vehicles.length}/${maxVehicles}`}
+            tone={
+              maxVehicles !== Infinity && maxVehicles > 0 && vehicles.length / maxVehicles >= 0.8
+                ? "warning"
+                : "default"
+            }
             icon={
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 20V10M12 20V4M20 20v-7" />
@@ -95,6 +100,23 @@ export default function VehicleListSection({
           />
         )}
       </div>
+
+      {/* Plan limiti yaklaşınca (>= %80) ya da dolunca proaktif bir yükseltme
+          çağrısı — eskiden yalnızca limit dolduğunda araç ekleme formunda düz bir
+          hata metni çıkıyordu, gelir fırsatını kaçıran sessiz bir an oluşturuyordu. */}
+      {maxVehicles !== null && maxVehicles !== Infinity && maxVehicles > 0 && vehicles.length / maxVehicles >= 0.8 && (
+        <Link
+          href="/dashboard/plan"
+          className="mt-3 flex items-center justify-between rounded-xl bg-amber-50 px-4 py-3 text-sm ring-1 ring-amber-100 hover:bg-amber-100"
+        >
+          <span className="font-medium text-amber-800">
+            {vehicles.length >= maxVehicles
+              ? `${planLabel} plan limitinize ulaştınız (${vehicles.length}/${maxVehicles}).`
+              : `${planLabel} plan limitinize yaklaşıyorsunuz (${vehicles.length}/${maxVehicles}).`}
+          </span>
+          <span className="font-semibold text-amber-700">Planı Yükselt →</span>
+        </Link>
+      )}
 
       {children}
 

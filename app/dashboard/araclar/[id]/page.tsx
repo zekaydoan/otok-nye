@@ -36,7 +36,8 @@ export default async function VehicleDetailPage({
       ? reminderStatusLabel(
           await getReminderLogEntry(vehicle.id),
           reminderCycleKey(latestRecord),
-          isWhatsAppAutoConfigured()
+          isWhatsAppAutoConfigured(),
+          vehicle.whatsappOptOut
         )
       : null;
 

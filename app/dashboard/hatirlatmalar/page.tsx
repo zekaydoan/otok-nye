@@ -43,7 +43,8 @@ export default async function RemindersPage() {
         reminderStatus: reminderStatusLabel(
           await getReminderLogEntry(u.vehicle.id),
           reminderCycleKey(u.record),
-          autoConfigured
+          autoConfigured,
+          u.vehicle.whatsappOptOut
         ),
       }))
   );

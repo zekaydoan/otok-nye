@@ -42,6 +42,23 @@ async function sendEmail(to: string, subject: string, html: string): Promise<Ema
   }
 }
 
+// Admin'e yeni bir etiket siparişi, öneri ya da KVKK veri talebi geldiğinde
+// bildirim göndermek için — daha önce admin bu olayları yalnızca paneli elle
+// kontrol ederek öğrenebiliyordu (bkz. app/api/etiket-siparis/route.ts,
+// app/api/oneriler/route.ts, app/api/vehicles/[id]/veri-talebi/route.ts).
+// ADMIN_EMAILS, lib/adminAuth.ts'teki ile aynı ortam değişkeni — burada ayrıca
+// import edilmeden okunuyor (lib/adminAuth.ts oturum/Shop'a bağımlı, e-posta
+// bildirimi için session gerekmez).
+export async function notifyAdmins(subject: string, html: string): Promise<void> {
+  const adminEmails = (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
+  if (adminEmails.length === 0) return;
+
+  await Promise.all(adminEmails.map((email) => sendEmail(email, subject, html)));
+}
+
 export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<EmailResult> {
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">

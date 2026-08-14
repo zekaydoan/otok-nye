@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getCurrentSession } from "@/lib/auth";
 import { createSuggestion, getShopById, getStaffById, listSuggestionsForShop } from "@/lib/blobStore";
+import { notifyAdmins } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rateLimit";
 import type { Suggestion } from "@/lib/types";
 
@@ -71,6 +72,15 @@ export async function POST(req: NextRequest) {
     createdAt: new Date().toISOString(),
   };
   await createSuggestion(suggestion);
+
+  await notifyAdmins(
+    `Yeni öneri — ${shop.name}`,
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
+      <p><strong>${shop.name}</strong>${authorName ? ` (${authorName})` : ""} bir öneri gönderdi:</p>
+      <p style="white-space:pre-wrap;">${trimmed}</p>
+      <p><a href="https://yagbakim-defteri.netlify.app/admin/oneriler">Admin panelinden görüntüle</a></p>
+    </div>`
+  );
 
   return NextResponse.json({ suggestion });
 }

@@ -122,8 +122,8 @@ const audiences = [
     desc: "Kağıt defter yerine telefonunuzdan tek dokunuşla kayıt girin, hiçbir müşteriyi hatırlatmayı unutmayın.",
   },
   {
-    title: "Çok şubeli yetkili servis",
-    desc: "Her şube kendi ekibiyle giriş yapar, tüm araç geçmişi merkezi olarak tek panelde birleşir.",
+    title: "Birden çok ustası olan servis",
+    desc: "Ekibinizdeki her usta kendi hesabıyla giriş yapar, tüm araç geçmişi tek ve ortak bir panelde birleşir.",
   },
   {
     title: "Oto galeri / ikinci el satış",

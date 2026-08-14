@@ -51,7 +51,8 @@ export default async function DashboardPage() {
         ? reminderStatusLabel(
             await getReminderLogEntry(u.vehicle.id),
             reminderCycleKey(u.record),
-            autoConfigured
+            autoConfigured,
+            u.vehicle.whatsappOptOut
           )
         : null,
     }))
@@ -100,12 +101,14 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <Link
-        href="/dashboard/araclar/toplu-ekle"
-        className="mt-2 block text-right text-xs font-medium text-brand-600 hover:underline"
-      >
-        Toplu Ekle (CSV) →
-      </Link>
+      <div className="mt-2 flex items-center justify-end gap-3 text-xs font-medium">
+        <a href="/api/shop/export" className="text-brand-600 hover:underline">
+          Verimi İndir (CSV) ↓
+        </a>
+        <Link href="/dashboard/araclar/toplu-ekle" className="text-brand-600 hover:underline">
+          Toplu Ekle (CSV) →
+        </Link>
+      </div>
 
       <Link
         href="/dashboard/etiket-siparis"

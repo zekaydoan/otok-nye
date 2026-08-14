@@ -184,8 +184,17 @@ export interface ReminderStatusDisplay {
 export function reminderStatusLabel(
   entry: ReminderLogEntry | null,
   cycleKey: string,
-  autoConfigured: boolean
+  autoConfigured: boolean,
+  optedOut = false
 ): ReminderStatusDisplay {
+  // Araç sahibi kendi isteğiyle hatırlatmaları kapattıysa (bkz. Vehicle.whatsappOptOut,
+  // app/api/vehicles/[id]/whatsapp-optout) bayinin bunu görmesi önemli — aksi hâlde
+  // "neden hiç gönderilmedi?" diye şaşırabilir. Daha önce gönderilmiş bir hatırlatma
+  // varsa (entry) o geçmiş kaydı yine de gösteriyoruz, sadece BUNDAN SONRA gönderilmeyeceğini
+  // ayrıca belirtiyoruz.
+  if (optedOut && !(entry && entry.cycleKey === cycleKey)) {
+    return { text: "🔕 Müşteri hatırlatmaları kapattı", className: "bg-slate-100 text-slate-500" };
+  }
   if (entry && entry.cycleKey === cycleKey) {
     const when = new Date(entry.sentAt).toLocaleString("tr-TR", {
       day: "2-digit",
@@ -209,10 +218,11 @@ export function reminderStatusLabel(
 }
 
 export function vehicleHasReminderConsent(vehicle: Vehicle): boolean {
-  // Şu an için: telefon numarası girilmişse (bakım kaydı/araç ekleme formundaki
-  // KVKK onay kutusu zaten "bakım hatırlatması için kullanılabileceği" ibaresini
-  // kapsıyor — bkz. app/dashboard/araclar/yeni/page.tsx) hatırlatma gönderilebilir
-  // kabul ediyoruz. İleride bayi bazlı bir "otomatik hatırlatmayı kapat" ayarı
-  // eklenirse bu fonksiyon ona bakacak şekilde genişletilebilir.
-  return Boolean(vehicle.ownerPhone && vehicle.ownerPhone.trim().length > 0);
+  // Telefon numarası girilmişse (bakım kaydı/araç ekleme formundaki KVKK onay
+  // kutusu zaten "bakım hatırlatması için kullanılabileceği" ibaresini kapsıyor
+  // — bkz. app/dashboard/araclar/yeni/page.tsx) hatırlatma gönderilebilir kabul
+  // ediyoruz — ancak araç sahibi genel araç sayfasından kendi isteğiyle
+  // whatsappOptOut=true yapmadığı sürece (bkz. app/api/vehicles/[id]/whatsapp-optout,
+  // KVKK m.11 "işlemeye itiraz etme" hakkı).
+  return Boolean(vehicle.ownerPhone && vehicle.ownerPhone.trim().length > 0) && !vehicle.whatsappOptOut;
 }
