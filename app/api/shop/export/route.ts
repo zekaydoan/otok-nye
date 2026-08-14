@@ -38,7 +38,7 @@ export async function GET() {
   ];
 
   const rows = await Promise.all(
-    vehicles.map(async ({ vehicle }) => {
+    vehicles.map(async (vehicle) => {
       const records = await listOilRecordsForVehicle(vehicle.id);
       const latest = records[0];
       return [
