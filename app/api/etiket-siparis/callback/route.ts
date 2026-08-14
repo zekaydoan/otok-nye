@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStickerOrderIdByToken, updateStickerOrder } from "@/lib/blobStore";
-import { notifyAdmins } from "@/lib/email";
+import { escapeHtml, notifyAdmins } from "@/lib/email";
 import { retrieveCheckoutForm } from "@/lib/iyzico";
 
 function getSiteUrl(req: NextRequest): string {
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       await notifyAdmins(
         `Yeni etiket siparişi ödendi — ${paidOrder.shopName}`,
         `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
-          <p><strong>${paidOrder.shopName}</strong>, ${paidOrder.quantity} adet etiket için
+          <p><strong>${escapeHtml(paidOrder.shopName)}</strong>, ${paidOrder.quantity} adet etiket için
           ${paidOrder.totalPriceTry.toLocaleString("tr-TR")}₺ ödedi.</p>
           <p><a href="https://yagbakim-defteri.netlify.app/admin/siparisler">Admin panelinden görüntüle</a></p>
         </div>`

@@ -10,7 +10,13 @@ import { listOilRecordsForVehicle, listVehiclesByShop } from "@/lib/blobStore";
 // sayısı × kayıt sayısı kadar satır gerektirir, ilk sürüm için kapsam dışı
 // bırakıldı).
 function csvEscape(value: string | number | undefined | null): string {
-  const str = value === undefined || value === null ? "" : String(value);
+  let str = value === undefined || value === null ? "" : String(value);
+  // CSV/Formül enjeksiyonu önlemi: hücre =, +, -, @ ile başlıyorsa Excel/Google
+  // Sheets bunu formül olarak çalıştırabilir (ör. sahip adı alanına "=CMD|...").
+  // Başına tek tırnak ekleyerek metin olarak kalmasını sağlıyoruz.
+  if (/^[=+\-@]/.test(str)) {
+    str = `'${str}`;
+  }
   if (/[",\n;]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`;
   }

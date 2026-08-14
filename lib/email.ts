@@ -10,6 +10,20 @@ export interface EmailResult {
   reason?: string;
 }
 
+// notifyAdmins'e geçilen HTML şablonlarına kullanıcı/bayi girdisi (contactInfo,
+// message, shop adı vb.) ham haliyle gömülüyordu — bir saldırgan bu alanlara
+// HTML/script içeriği yazarak admin'in e-posta istemcisinde render edilmesini
+// deneyebilirdi. Bu yardımcı, kullanıcı kaynaklı her metni e-postaya eklemeden
+// önce escape etmek için kullanılır.
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function sendEmail(to: string, subject: string, html: string): Promise<EmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM || "OtoHafıza <bildirim@otohafiza.example>";

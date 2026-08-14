@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createDataRequest, getVehicleById } from "@/lib/blobStore";
-import { notifyAdmins } from "@/lib/email";
+import { escapeHtml, notifyAdmins } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import type { DataRequest, DataRequestType } from "@/lib/types";
 import { DATA_REQUEST_TYPE_LABELS } from "@/lib/types";
@@ -56,10 +56,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   await notifyAdmins(
     `Yeni KVKK veri talebi — ${vehicle.plateDisplay}`,
     `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
-      <p><strong>${DATA_REQUEST_TYPE_LABELS[type]}</strong></p>
-      <p>Araç: ${vehicle.plateDisplay}</p>
-      <p>İletişim: ${request.contactInfo}</p>
-      ${request.message ? `<p>Not: ${request.message}</p>` : ""}
+      <p><strong>${escapeHtml(DATA_REQUEST_TYPE_LABELS[type])}</strong></p>
+      <p>Araç: ${escapeHtml(vehicle.plateDisplay)}</p>
+      <p>İletişim: ${escapeHtml(request.contactInfo)}</p>
+      ${request.message ? `<p>Not: ${escapeHtml(request.message)}</p>` : ""}
       <p><a href="https://yagbakim-defteri.netlify.app/admin/veri-talepleri">Admin panelinden görüntüle</a></p>
     </div>`
   );
