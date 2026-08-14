@@ -7,26 +7,46 @@ import ScrollToTop from "@/components/ScrollToTop";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
-const SITE_URL = process.env.URL || "https://yagbakim-defteri.netlify.app";
+// otohafiza.com yayına alınmadan önce SITE_URL, Netlify'ın ücretsiz
+// yagbakim-defteri.netlify.app alt alan adına düşüyordu — arama motorlarının
+// canonical/OG etiketlerinde her zaman asıl marka alan adını görmesi için
+// varsayılan artık otohafiza.com'a çekildi (process.env.URL, Netlify'da her
+// zaman o anki birincil alan adını verir, bu fallback yalnızca yerel geliştirme
+// ya da URL değişkeni tanımsızken devreye girer).
+const SITE_URL = process.env.URL || "https://otohafiza.com";
+const TITLE = "OtoHafıza | QR Kodlu Dijital Yağ Bakım Defteri";
+const DESCRIPTION =
+  "Araca yapıştırılan QR kod ile yağ bakım geçmişini otomatik kaydedin ve gösterin. Oto tamirciler, yetkili servisler ve galeriler için ücretsiz başlanabilen dijital bakım takip sistemi.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "OtoHafıza | Aracının Dijital Hafızası",
-  description:
-    "Araca yapıştırılan QR kod ile yağ bakım geçmişini otomatik kaydedin ve gösterin. Tamirciler, oto servisler ve galeriler için SaaS.",
+  title: { default: TITLE, template: "%s | OtoHafıza" },
+  description: DESCRIPTION,
+  keywords: [
+    "yağ bakım defteri",
+    "QR kod araç bakım takibi",
+    "dijital servis fişi",
+    "oto tamirci yazılımı",
+    "araç bakım hatırlatma",
+    "oto servis programı",
+    "yağ değişim takip sistemi",
+  ],
+  authors: [{ name: "Sarper Dijital", url: "https://www.sarperdijital.com" }],
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
   manifest: "/manifest.json",
   openGraph: {
-    title: "OtoHafıza | Aracının Dijital Hafızası",
-    description:
-      "Araca yapıştırılan QR kod ile yağ bakım geçmişini otomatik kaydedin ve gösterin.",
+    title: TITLE,
+    description: DESCRIPTION,
+    url: SITE_URL,
+    siteName: "OtoHafıza",
     locale: "tr_TR",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "OtoHafıza | Aracının Dijital Hafızası",
-    description:
-      "Araca yapıştırılan QR kod ile yağ bakım geçmişini otomatik kaydedin ve gösterin.",
+    title: TITLE,
+    description: DESCRIPTION,
   },
   icons: {
     icon: [
@@ -50,10 +70,33 @@ export const viewport: Viewport = {
   themeColor: "#1d4ed8",
 };
 
+// Organization + WebSite yapılandırılmış verisi (JSON-LD) — Google'ın marka
+// adını arama sonuçlarında ve "hakkında" panelinde doğru tanıması için her
+// sayfada sabit olarak eklenir. Sayfaya özgü yapılandırılmış veriler (SoftwareApplication,
+// FAQPage vb.) ilgili sayfanın kendi dosyasında ayrıca eklenir (bkz. app/page.tsx).
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "OtoHafıza",
+  url: SITE_URL,
+  logo: `${SITE_URL}/icon-512.png`,
+  description: DESCRIPTION,
+  founder: {
+    "@type": "Organization",
+    name: "Sarper Dijital",
+    url: "https://www.sarperdijital.com",
+  },
+  sameAs: ["https://www.sarperdijital.com"],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr" className={inter.variable}>
       <body className="font-sans">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <AdPixels />
         <PageviewTracker />
         {children}

@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
       <p><strong>${escapeHtml(shop.name)}</strong>${authorName ? ` (${escapeHtml(authorName)})` : ""} bir öneri gönderdi:</p>
       <p style="white-space:pre-wrap;">${escapeHtml(trimmed)}</p>
-      <p><a href="https://yagbakim-defteri.netlify.app/admin/oneriler">Admin panelinden görüntüle</a></p>
+      <p><a href="https://otohafiza.com/admin/oneriler">Admin panelinden görüntüle</a></p>
     </div>`
   );
 

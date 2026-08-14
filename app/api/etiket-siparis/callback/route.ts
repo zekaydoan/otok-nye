@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
           <p><strong>${escapeHtml(paidOrder.shopName)}</strong>, ${paidOrder.quantity} adet etiket için
           ${paidOrder.totalPriceTry.toLocaleString("tr-TR")}₺ ödedi.</p>
-          <p><a href="https://yagbakim-defteri.netlify.app/admin/siparisler">Admin panelinden görüntüle</a></p>
+          <p><a href="https://otohafiza.com/admin/siparisler">Admin panelinden görüntüle</a></p>
         </div>`
       );
     } else {

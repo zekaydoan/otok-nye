@@ -11,7 +11,7 @@ import StickerTokenGrid from "@/components/StickerTokenGrid";
 // bunun yerine gelen isteğin gerçek host header'ından üretiyoruz.
 function getPermanentSiteUrl(): string {
   const host = headers().get("host");
-  if (!host) return process.env.URL || "https://yagbakim-defteri.netlify.app";
+  if (!host) return process.env.URL || "https://otohafiza.com";
   const protocol = host.startsWith("localhost") ? "http" : "https";
   return `${protocol}://${host}`;
 }

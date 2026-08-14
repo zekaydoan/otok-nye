@@ -60,7 +60,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       <p>Araç: ${escapeHtml(vehicle.plateDisplay)}</p>
       <p>İletişim: ${escapeHtml(request.contactInfo)}</p>
       ${request.message ? `<p>Not: ${escapeHtml(request.message)}</p>` : ""}
-      <p><a href="https://yagbakim-defteri.netlify.app/admin/veri-talepleri">Admin panelinden görüntüle</a></p>
+      <p><a href="https://otohafiza.com/admin/veri-talepleri">Admin panelinden görüntüle</a></p>
     </div>`
   );
 

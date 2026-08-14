@@ -162,9 +162,47 @@ const faqs = [
   },
 ];
 
+// SSS bölümündeki soru/cevapları Google'ın "sık sorulan sorular" zengin
+// sonucunda (rich result) gösterebilmesi için FAQPage yapılandırılmış verisi.
+// SoftwareApplication ise arama sonuçlarında fiyat/ücretsiz plan bilgisini
+// göstermeye yardımcı olur — her ikisi de yalnızca ana sayfada (bu içeriğin
+// asıl bulunduğu yerde) render edilir, tekrarlanan sayfalarda değil.
+const softwareApplicationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "OtoHafıza",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  description:
+    "Araca yapıştırılan QR kod ile yağ bakım geçmişini otomatik kaydeden ve gösteren, oto tamirciler ve servisler için dijital bakım takip sistemi.",
+  offers: [
+    { "@type": "Offer", name: "Ücretsiz", price: "0", priceCurrency: "TRY" },
+    { "@type": "Offer", name: "Pro", price: "499", priceCurrency: "TRY" },
+    { "@type": "Offer", name: "İşletme", price: "999", priceCurrency: "TRY" },
+  ],
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
 export default function HomePage() {
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <Link href="/" className="text-xl">
