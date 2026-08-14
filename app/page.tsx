@@ -237,7 +237,7 @@ export default function HomePage() {
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:items-center lg:py-24">
           <div className="animate-fade-in-up text-center lg:text-left">
             <span className="inline-block rounded-full bg-accent-500/10 px-4 py-1 text-sm font-semibold text-accent-600">
-              Araç bakım işletmeleri için QR&apos;lı dijital yağ bakım defteri
+              Aracının dijital hafızası
             </span>
             <h1 className="mx-auto mt-6 max-w-xl text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl lg:mx-0">
               Araca yapıştırın, her bakımda okutun, geçmiş kendiliğinden biriksin.
@@ -676,7 +676,7 @@ export default function HomePage() {
 
       <footer className="border-t bg-white py-8 text-center text-sm text-slate-500">
         <p>
-          © {new Date().getFullYear()} OtoHafıza — Araç bakım işletmeleri için QR&apos;lı dijital bakım defteri.
+          © {new Date().getFullYear()} OtoHafıza — Aracının dijital hafızası.
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           <Link href="/kvkk" className="underline">
