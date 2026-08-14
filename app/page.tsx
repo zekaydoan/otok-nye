@@ -695,8 +695,29 @@ export default function HomePage() {
           <PaymentBadges />
         </div>
         <p className="mx-auto mt-4 max-w-2xl text-xs text-slate-400">
-          Oto Künye; Sarper Dijital, SARPER DİJİTAL TEKNOLOJİLER VE KİRALAMA A.Ş
-          tarafından tasarlanmış ve yönetilmektedir. Patent ve Tasarım hakları saklıdır.
+          Oto Künye;{" "}
+          <a
+            href="https://www.sarperdijital.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-slate-500"
+          >
+            Sarper Dijital
+          </a>
+          , SARPER DİJİTAL TEKNOLOJİLER VE KİRALAMA A.Ş tarafından tasarlanmış ve
+          yönetilmektedir. Patent ve Tasarım hakları saklıdır.
+        </p>
+        <p className="mx-auto mt-2 max-w-2xl text-xs text-slate-400">
+          Siz de işletmeniz için böyle bir dijital çözüm mü istiyorsunuz?{" "}
+          <a
+            href="https://www.sarperdijital.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand-600 underline hover:text-brand-700"
+          >
+            www.sarperdijital.com
+          </a>{" "}
+          üzerinden bize ulaşabilirsiniz.
         </p>
       </footer>
     </main>
