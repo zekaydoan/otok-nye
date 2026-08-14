@@ -216,6 +216,15 @@ export function QrIcon(props: IconProps) {
   );
 }
 
+// Sayfayı en yukarı kaydırma butonu için (bkz. components/ScrollToTop.tsx).
+export function ArrowUpIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10 16V4M4.5 9.5 10 4l5.5 5.5" />
+    </svg>
+  );
+}
+
 // Öneri/geri bildirim ekranı (bkz. app/dashboard/oneriler) için — dashboard
 // başlığındaki nav bağlantısında ve boş durum kartında kullanılır.
 export function LightbulbIcon(props: IconProps) {
