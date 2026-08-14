@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import AdPixels from "@/components/AdPixels";
+import PageviewTracker from "@/components/PageviewTracker";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
@@ -50,7 +52,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr" className={inter.variable}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <AdPixels />
+        <PageviewTracker />
+        {children}
+      </body>
     </html>
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthSidePanel from "@/components/AuthSidePanel";
 import Logo from "@/components/Logo";
+import { trackConversionEvent } from "@/components/AdPixels";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function SignupPage() {
         setError(data.error || "Bir hata oluştu.");
         return;
       }
+      trackConversionEvent("sign_up");
       router.push("/dashboard");
       router.refresh();
     } catch {

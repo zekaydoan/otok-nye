@@ -3,6 +3,7 @@ import { getCurrentShopId } from "@/lib/auth";
 import { getStickerOrderById } from "@/lib/blobStore";
 import Logo from "@/components/Logo";
 import { CheckCircleIcon, WarningIcon } from "@/components/icons";
+import PurchaseConversionPing from "@/components/PurchaseConversionPing";
 
 export default async function StickerOrderResultPage({
   searchParams,
@@ -29,6 +30,7 @@ export default async function StickerOrderResultPage({
       </div>
       {success && (
         <div className="mt-6 rounded-xl bg-green-50 p-8 ring-1 ring-green-100">
+          <PurchaseConversionPing orderId={visibleOrder.id} value={visibleOrder.totalPriceTry} />
           <CheckCircleIcon className="mx-auto h-10 w-10 text-green-600" />
           <h1 className="mt-3 text-xl font-bold text-slate-900">Ödemeniz alındı</h1>
           <p className="mt-2 text-sm text-slate-600">

@@ -260,6 +260,47 @@ bunun yerine Visa/Mastercard için yaygın kullanılan sade SVG temsilleri elle
 3. `components/PaymentBadges.tsx` içindeki elle çizilmiş SVG'leri gerçek
    dosyalara (`<img src="/odeme/...">`) işaret edecek şekilde güncelleyin.
 
+## Admin İstatistik Paneli ve Reklam Ölçümü
+
+`/admin/istatistikler` (yalnızca `ADMIN_EMAILS`'te tanımlı hesaplara açık, bkz.
+`lib/adminAuth.ts`) günlük site ziyareti, plan bazında abone dağılımı + tahmini
+MRR, etiket mağazası ciro/sipariş sayısı ve şehir bazında satış kırılımını
+gösterir.
+
+**Ziyaret sayacı nasıl çalışır?** `components/PageviewTracker.tsx`, her sayfa
+yüklendiğinde `/api/analytics/pageview` uç noktasına kimliksiz bir istek atar;
+`lib/blobStore.ts`'teki `incrementDailyPageview` yalnızca günün toplam sayısını
+bir artırır — IP, çerez veya başka bir kişisel tanımlayıcı saklanmaz. Aynı
+sekmede sayfalar arası gezinirken tekrar saymamak için `sessionStorage`'a bir
+bayrak bırakılır (kalıcı değildir, sekme kapanınca silinir). Netlify Blobs
+atomik artırma desteklemediği için (bkz. `lib/rateLimit.ts`'teki aynı not) çok
+yoğun eşzamanlı trafikte sayaç birkaç görüntülemeyi kaçırabilir — kaba bir
+trend göstergesi için yeterlidir, kesin bir analitik motoru değildir. Trafik
+büyüdükçe Plausible/Google Analytics gibi özel bir araca geçilmesi önerilir.
+
+**Google Analytics 4 / Google Ads ve Meta Pixel entegrasyonu** —
+`components/AdPixels.tsx`, diğer entegrasyonlardaki (`lib/email.ts`,
+`lib/whatsappReminder.ts`) "dormant" desenin aynısını izler: ortam değişkeni
+tanımlı olmadığı sürece hiçbir script yüklenmez.
+
+1. Google Analytics hesabı açıp bir "veri akışı" (data stream) oluşturun,
+   "G-" ile başlayan Ölçüm Kimliğini `NEXT_PUBLIC_GA_MEASUREMENT_ID` olarak
+   tanımlayın. Aynı etiket Google Ads dönüşüm ölçümü için de kullanılabilir
+   (Google Ads hesabını Analytics'e bağlayarak).
+2. Meta Business Manager'da bir Pixel oluşturup kimliğini
+   `NEXT_PUBLIC_META_PIXEL_ID` olarak tanımlayın.
+3. Bu iki değişken tanımlandığında: sayfa görüntülemeleri otomatik, kayıt
+   tamamlandığında `sign_up`/`CompleteRegistration`, etiket siparişi
+   ödendiğinde `purchase`/`Purchase` (tutarla birlikte) dönüşüm olayı
+   otomatik gönderilir (bkz. `app/kayit/page.tsx`,
+   `components/PurchaseConversionPing.tsx`).
+4. `/admin/istatistikler` sayfasındaki "Reklam Ölçümü Bağlantı Durumu"
+   bölümünden hangi pikselin aktif olduğunu görebilirsiniz.
+
+Bu iki ortam değişkeni bilinçli olarak `NEXT_PUBLIC_` önekiyle tanımlanır —
+GA/Meta Pixel kimlikleri sır değildir, her sitenin sayfa kaynağında zaten
+herkese açık şekilde görünür.
+
 ## Canlıya Alma Öncesi Bu Turda Eklenenler
 
 - **Şifre sıfırlama akışı** (`/sifremi-unuttum`, `/sifre-sifirla`) — Resend REST

@@ -21,6 +21,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </span>
             </Link>
             <div className="flex items-center gap-2 sm:gap-3">
+              <Link href="/admin/istatistikler" className="text-sm font-medium text-slate-500 hover:text-slate-700">
+                İstatistikler
+              </Link>
               <Link href="/admin/oneriler" className="text-sm font-medium text-slate-500 hover:text-slate-700">
                 Öneriler
               </Link>

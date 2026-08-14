@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/auth";
-import { updateShopFields } from "@/lib/blobStore";
+import { recordPlanStart, updateShopFields } from "@/lib/blobStore";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
@@ -26,6 +26,8 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Kaydedilemedi, lütfen tekrar deneyin." }, { status: 409 });
   }
+
+  await recordPlanStart(shopId, plan);
 
   return NextResponse.json({ ok: true });
 }

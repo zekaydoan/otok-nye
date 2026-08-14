@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { createShop, getShopByEmail, getStaffByEmail } from "@/lib/blobStore";
+import { createShop, getShopByEmail, getStaffByEmail, recordPlanStart } from "@/lib/blobStore";
 import { createSessionToken, hashPassword, setSessionCookie } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import type { Shop } from "@/lib/types";
@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
   };
 
   await createShop(shop);
+  await recordPlanStart(shop.id, shop.plan);
   const token = await createSessionToken({ shopId: shop.id, role: "sahibi" });
   setSessionCookie(token);
 

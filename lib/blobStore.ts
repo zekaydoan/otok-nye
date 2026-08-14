@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import type {
   Appointment,
   OilRecord,
+  Plan,
   Shop,
   StaffAccount,
   StickerOrder,
@@ -57,6 +58,22 @@ const staffByEmailStore = () => getStore("staff_by_email");
 // taramayla listeleyebilmesi için ayrı bir shopId->id indeksi kullanılır.
 const suggestionsStore = () => getStore("suggestions");
 const suggestionsByShopStore = () => getStore("suggestions_by_shop");
+// Admin istatistik paneli için günlük sayfa görüntüleme sayaçları. Anahtar:
+// YYYY-MM-DD, değer: { count }. rateLimit.ts'teki gibi "best-effort" bir
+// artırma — Netlify Blobs atomik increment desteklemediği için çok yoğun eşzamanlı
+// trafikte birkaç görüntüleme kaybolabilir; bu, kaba bir trend göstergesi için
+// yeterlidir ama kesin bir sayaç değildir (bkz. lib/rateLimit.ts aynı not).
+const siteAnalyticsStore = () => getStore("site_analytics");
+// Bir bayinin bir plana ne zaman "başladığının" kaydı — hem yeni kayıtta
+// (varsayılan free plan) hem de app/api/shop/plan'de plan değiştirildiğinde
+// yazılır. Admin panelindeki "Plan Dağılımı" tablosunun günlük/aylık/yıllık
+// kırılımı buradan hesaplanır (bkz. getPlanStartStats). Anahtar:
+// `${createdAt}_${shopId}` — zaman sıralı olduğu için ileride tarih aralığı
+// bazlı taramaya da uygun. NOT: bu olay günlüğü bu özellik yayına alındığı
+// andan itibaren tutulmaya başlar; öncesindeki geçmiş plan başlangıçları bu
+// sayaçlara dahil değildir (yalnızca Shop.plan'in güncel anlık görüntüsü bu
+// dönemi kapsar, bkz. getShopCountsByPlan).
+const planEventsStore = () => getStore("plan_events");
 
 export function normalizePlate(plate: string): string {
   return plate.toUpperCase().replace(/[^A-Z0-9ÇĞİÖŞÜ]/g, "");
@@ -778,4 +795,160 @@ export async function updateSuggestionStatus(
   const updated: Suggestion = { ...existing, status };
   await suggestionsStore().setJSON(id, updated);
   return updated;
+}
+
+// ---------- Admin İstatistik Paneli ----------
+
+// Bir sayfa görüntülemesini bugünün tarihine ekler. Kimlik/IP saklanmaz — yalnızca
+// günlük toplam sayaç tutulur (gizlilik dostu, kişisel veri değil). Client tarafı
+// bkz. components/PageviewTracker.tsx, uç nokta bkz. app/api/analytics/pageview.
+export async function incrementDailyPageview(dateISO: string): Promise<void> {
+  const existing = (await siteAnalyticsStore().get(dateISO, { type: "json" })) as {
+    count: number;
+  } | null;
+  await siteAnalyticsStore().setJSON(dateISO, { count: (existing?.count ?? 0) + 1 });
+}
+
+export interface DailyPageviewStat {
+  date: string; // YYYY-MM-DD
+  count: number;
+}
+
+// Son `days` günün (bugün dahil) günlük sayfa görüntüleme sayılarını, en eskiden en
+// yeniye sıralı döner — hiç görüntülenmemiş günler 0 olarak gelir.
+export async function getDailyPageviews(days: number): Promise<DailyPageviewStat[]> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const results: DailyPageviewStat[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateISO = d.toISOString().slice(0, 10);
+    const entry = (await siteAnalyticsStore().get(dateISO, { type: "json" })) as {
+      count: number;
+    } | null;
+    results.push({ date: dateISO, count: entry?.count ?? 0 });
+  }
+  return results;
+}
+
+// Tüm bayileri döner — admin istatistik paneli dışında kullanılmamalı (tek tek
+// bayi sorguları için getShopById/getShopByEmail kullanın). Hacim büyüdükçe
+// (bkz. kapasite-analizi.md) sayfalama gerekebilir — listAllStickerOrders/
+// listAllSuggestions'daki aynı not burada da geçerli.
+export async function listAllShops(): Promise<Shop[]> {
+  const { blobs } = await shopsStore().list();
+  const shops = await Promise.all(blobs.map((b) => getShopById(b.key)));
+  return shops.filter((s): s is Shop => !!s);
+}
+
+// Plan başına aktif bayi sayısını döner (free dahil tüm planlar). Bu, GÜNCEL bir
+// anlık görüntüdür (her bayi yalnızca şu an bulunduğu planda sayılır); zaman
+// bazlı "kaç kişi başlattı" kırılımı için bkz. getPlanStartStats.
+export async function getShopCountsByPlan(): Promise<Record<Plan, number>> {
+  const shops = await listAllShops();
+  const counts: Record<Plan, number> = { free: 0, pro: 0, business: 0, business_yillik: 0 };
+  for (const shop of shops) {
+    counts[shop.plan] = (counts[shop.plan] ?? 0) + 1;
+  }
+  return counts;
+}
+
+interface PlanEvent {
+  shopId: string;
+  plan: Plan;
+  createdAt: string; // ISO
+}
+
+// Bir bayinin bir plana "başladığını" kaydeder — yeni kayıtta (free) ve
+// app/api/shop/plan'de plan değiştirildiğinde çağrılır. Aynı bayi aynı plana
+// tekrar geçerse (ör. iptal edip yeniden aynı plana dönerse) bu yeni bir ayrı
+// olay olarak sayılır — amaç "kaç kez başlandığı", "kaç farklı bayinin o an o
+// planda olduğu" değil.
+export async function recordPlanStart(shopId: string, plan: Plan): Promise<void> {
+  const createdAt = new Date().toISOString();
+  const key = `${createdAt}_${shopId}`;
+  const event: PlanEvent = { shopId, plan, createdAt };
+  await planEventsStore().setJSON(key, event);
+}
+
+export interface PlanStartStats {
+  today: Record<Plan, number>;
+  thisMonth: Record<Plan, number>;
+  thisYear: Record<Plan, number>;
+}
+
+function emptyPlanCounts(): Record<Plan, number> {
+  return { free: 0, pro: 0, business: 0, business_yillik: 0 };
+}
+
+// Plan başlangıç olaylarını bugün/bu ay/bu yıl pencerelerine göre sayar. Hacim
+// büyüdükçe (bkz. kapasite-analizi.md) tam taramanın yerini periyodik
+// önceden-hesaplanmış özetler almalı — diğer "listAll*" fonksiyonlarındaki not
+// burada da geçerli.
+export async function getPlanStartStats(): Promise<PlanStartStats> {
+  const { blobs } = await planEventsStore().list();
+  const events = await Promise.all(
+    blobs.map((b) => planEventsStore().get(b.key, { type: "json" }) as Promise<PlanEvent | null>)
+  );
+
+  const now = new Date();
+  const todayISO = now.toISOString().slice(0, 10);
+  const monthPrefix = todayISO.slice(0, 7); // YYYY-MM
+  const yearPrefix = todayISO.slice(0, 4); // YYYY
+
+  const stats: PlanStartStats = {
+    today: emptyPlanCounts(),
+    thisMonth: emptyPlanCounts(),
+    thisYear: emptyPlanCounts(),
+  };
+
+  for (const event of events) {
+    if (!event) continue;
+    const dateISO = event.createdAt.slice(0, 10);
+    if (dateISO === todayISO) stats.today[event.plan] = (stats.today[event.plan] ?? 0) + 1;
+    if (dateISO.startsWith(monthPrefix)) stats.thisMonth[event.plan] = (stats.thisMonth[event.plan] ?? 0) + 1;
+    if (dateISO.startsWith(yearPrefix)) stats.thisYear[event.plan] = (stats.thisYear[event.plan] ?? 0) + 1;
+  }
+
+  return stats;
+}
+
+export interface CityOrderStat {
+  city: string;
+  orderCount: number;
+  revenueTry: number;
+}
+
+export interface StickerOrderStats {
+  totalOrders: number;
+  paidOrders: number; // ödemesi onaylanmış (odendi/hazirlaniyor/kargoda/teslim_edildi)
+  totalRevenueTry: number;
+  byCity: CityOrderStat[]; // ciroya göre azalan sırada
+}
+
+const PAID_STATUSES = new Set(["odendi", "hazirlaniyor", "kargoda", "teslim_edildi"]);
+
+// Etiket mağazası için toplam sipariş/ciro ve şehir bazında kırılım hesaplar.
+// "Ödenmiş" sayılan durumlar: odendi, hazirlaniyor, kargoda, teslim_edildi —
+// bunların hepsi ödeme onayından SONRA gelen aşamalardır (bkz. StickerOrderStatus).
+export async function getStickerOrderStats(): Promise<StickerOrderStats> {
+  const orders = await listAllStickerOrders();
+  const paidOrders = orders.filter((o) => PAID_STATUSES.has(o.status));
+
+  const cityMap = new Map<string, CityOrderStat>();
+  for (const order of paidOrders) {
+    const city = order.shippingAddress?.city?.trim() || "Belirtilmemiş";
+    const entry = cityMap.get(city) ?? { city, orderCount: 0, revenueTry: 0 };
+    entry.orderCount += 1;
+    entry.revenueTry += order.totalPriceTry;
+    cityMap.set(city, entry);
+  }
+
+  return {
+    totalOrders: orders.length,
+    paidOrders: paidOrders.length,
+    totalRevenueTry: paidOrders.reduce((sum, o) => sum + o.totalPriceTry, 0),
+    byCity: Array.from(cityMap.values()).sort((a, b) => b.revenueTry - a.revenueTry),
+  };
 }
