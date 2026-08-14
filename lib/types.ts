@@ -5,6 +5,28 @@ export interface FavoriteOil {
   model: string;
 }
 
+// 81 il, alfabetik — kayıt formundaki "Şehir" seçimi ve admin istatistik
+// panelindeki şehir bazlı kırılımlar (bkz. lib/blobStore.ts getPlanRevenueStats)
+// için sabit bir liste. Serbest metin yerine sabit liste kullanılmasının nedeni:
+// etiket siparişi kargo adresindeki serbest metin şehir alanı (bkz.
+// StickerOrderAddress) "istanbul"/"İstanbul"/"ISTANBUL" gibi yazım farklarıyla
+// şehir bazlı toplamları parçalayabiliyor — bayi şehri için bu sorunu en baştan
+// önlemek üzere sabit bir liste tercih edildi.
+export const TR_PROVINCES = [
+  "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Amasya", "Ankara", "Antalya",
+  "Artvin", "Aydın", "Balıkesir", "Bilecik", "Bingöl", "Bitlis", "Bolu",
+  "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli", "Diyarbakır",
+  "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep",
+  "Giresun", "Gümüşhane", "Hakkari", "Hatay", "Isparta", "Mersin", "İstanbul",
+  "İzmir", "Kars", "Kastamonu", "Kayseri", "Kırklareli", "Kırşehir", "Kocaeli",
+  "Konya", "Kütahya", "Malatya", "Manisa", "Kahramanmaraş", "Mardin", "Muğla",
+  "Muş", "Nevşehir", "Niğde", "Ordu", "Rize", "Sakarya", "Samsun", "Siirt",
+  "Sinop", "Sivas", "Tekirdağ", "Tokat", "Trabzon", "Tunceli", "Şanlıurfa",
+  "Uşak", "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman",
+  "Kırıkkale", "Batman", "Şırnak", "Bartın", "Ardahan", "Iğdır", "Yalova",
+  "Karabük", "Kilis", "Osmaniye", "Düzce",
+] as const;
+
 export interface Shop {
   id: string;
   name: string; // Firma / tamirci adı
@@ -12,6 +34,7 @@ export interface Shop {
   passwordHash: string;
   phone: string;
   plan: Plan;
+  city?: string; // TR_PROVINCES'ten biri — şehir bazlı reklam hedefleme raporu için
   favoriteOils?: FavoriteOil[]; // bakım formunda tek tıkla seçim için
   createdAt: string;
 }

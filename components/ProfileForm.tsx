@@ -3,18 +3,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
+import { TR_PROVINCES } from "@/lib/types";
 
 export default function ProfileForm({
   defaultName,
   defaultPhone,
+  defaultCity,
 }: {
   defaultName: string;
   defaultPhone: string;
+  defaultCity?: string;
 }) {
   const router = useRouter();
   const { showToast } = useToast();
   const [name, setName] = useState(defaultName);
   const [phone, setPhone] = useState(defaultPhone);
+  const [city, setCity] = useState(defaultCity || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +30,7 @@ export default function ProfileForm({
       const res = await fetch("/api/shop/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone }),
+        body: JSON.stringify({ name, phone, city }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -61,6 +65,25 @@ export default function ProfileForm({
           onChange={(e) => setPhone(e.target.value)}
           className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-700">Şehir</label>
+        <select
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+        >
+          <option value="">Belirtilmemiş</option>
+          {TR_PROVINCES.map((il) => (
+            <option key={il} value={il}>
+              {il}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-slate-400">
+          Şehir bilgisi yalnızca iç raporlama için kullanılır, herkese açık sayfalarda gösterilmez.
+        </p>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

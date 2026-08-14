@@ -6,10 +6,11 @@ import Link from "next/link";
 import AuthSidePanel from "@/components/AuthSidePanel";
 import Logo from "@/components/Logo";
 import { trackConversionEvent } from "@/components/AdPixels";
+import { TR_PROVINCES } from "@/lib/types";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", password: "" });
   const [consent, setConsent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -129,6 +130,24 @@ export default function SignupPage() {
                   placeholder="0555 000 00 00"
                 />
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Şehir</label>
+              <select
+                required
+                value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+              >
+                <option value="" disabled>
+                  Seçin...
+                </option>
+                {TR_PROVINCES.map((il) => (
+                  <option key={il} value={il}>
+                    {il}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">Şifre</label>

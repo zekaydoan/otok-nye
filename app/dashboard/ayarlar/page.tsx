@@ -34,7 +34,7 @@ export default async function SettingsPage() {
               E-posta: {shop.email} — e-posta değişikliği için destek ile iletişime geçin.
             </div>
             <div className="mt-4">
-              <ProfileForm defaultName={shop.name} defaultPhone={shop.phone} />
+              <ProfileForm defaultName={shop.name} defaultPhone={shop.phone} defaultCity={shop.city} />
             </div>
           </div>
 

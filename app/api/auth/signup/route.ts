@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { createShop, getShopByEmail, getStaffByEmail, recordPlanStart } from "@/lib/blobStore";
 import { createSessionToken, hashPassword, setSessionCookie } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import type { Shop } from "@/lib/types";
+import { TR_PROVINCES, type Shop } from "@/lib/types";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_NAME_LEN = 150;
@@ -21,15 +21,21 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, email, phone, password } = body as {
+  const { name, email, phone, password, city } = body as {
     name?: string;
     email?: string;
     phone?: string;
     password?: string;
+    city?: string;
   };
 
-  if (!name || !email || !phone || !password) {
+  if (!name || !email || !phone || !password || !city) {
     return NextResponse.json({ error: "Tüm alanları doldurun." }, { status: 400 });
+  }
+  // Serbest metin yerine sabit il listesiyle eşleşmeli — bkz. lib/types.ts
+  // TR_PROVINCES yorumu (şehir bazlı raporlarda yazım farkı sorunu olmasın diye).
+  if (!(TR_PROVINCES as readonly string[]).includes(city)) {
+    return NextResponse.json({ error: "Geçerli bir şehir seçin." }, { status: 400 });
   }
   if (name.length > MAX_NAME_LEN || phone.length > MAX_PHONE_LEN) {
     return NextResponse.json({ error: "Girilen bilgiler çok uzun." }, { status: 400 });
@@ -59,6 +65,7 @@ export async function POST(req: NextRequest) {
     phone: phone.trim(),
     passwordHash: await hashPassword(password),
     plan: "free",
+    city,
     createdAt: new Date().toISOString(),
   };
 

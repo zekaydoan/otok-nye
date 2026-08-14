@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import {
   getDailyPageviews,
+  getPlanRevenueStats,
   getPlanStartStats,
   getShopCountsByPlan,
   getStickerOrderStats,
@@ -24,10 +25,11 @@ export default async function AdminStatsPage() {
   const adminShopId = await getCurrentAdminShopId();
   if (!adminShopId) notFound();
 
-  const [pageviews, planCounts, planStartStats, orderStats, shops] = await Promise.all([
+  const [pageviews, planCounts, planStartStats, planRevenue, orderStats, shops] = await Promise.all([
     getDailyPageviews(14),
     getShopCountsByPlan(),
     getPlanStartStats(),
+    getPlanRevenueStats(),
     getStickerOrderStats(),
     listAllShops(),
   ]);
@@ -35,17 +37,6 @@ export default async function AdminStatsPage() {
   const todayViews = pageviews[pageviews.length - 1]?.count ?? 0;
   const last14DaysViews = pageviews.reduce((sum, d) => sum + d.count, 0);
   const maxViews = Math.max(1, ...pageviews.map((d) => d.count));
-
-  const parsePrice = (price: string) => Number(price.replace(/[^\d]/g, "")) || 0;
-  const estimatedMrr = (Object.entries(planCounts) as [Plan, number][]).reduce(
-    (sum, [plan, count]) => {
-      if (plan === "free" || count === 0) return sum;
-      const { price, period } = PLAN_LIMITS[plan];
-      const monthly = period === "/yıl" ? parsePrice(price) / 12 : parsePrice(price);
-      return sum + monthly * count;
-    },
-    0
-  );
 
   const paidShopCount = shops.filter((s) => s.plan !== "free").length;
   const last30Days = new Date();
@@ -67,10 +58,11 @@ export default async function AdminStatsPage() {
       </p>
 
       {/* Özet kartları */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard label="Bugünkü Ziyaret" value={todayViews.toString()} />
         <StatCard label="Toplam Bayi" value={shops.length.toString()} sub={`${newShopsLast30Days} yeni (30 gün)`} />
-        <StatCard label="Ücretli Abone" value={paidShopCount.toString()} sub={`Tahmini MRR ${fmtTry(estimatedMrr)}`} />
+        <StatCard label="Ücretli Abone" value={paidShopCount.toString()} />
+        <StatCard label="Plan Cirosu" value={fmtTry(planRevenue.estimatedMonthlyTry)} sub="Tahmini, aylık" />
         <StatCard label="Etiket Cirosu" value={fmtTry(orderStats.totalRevenueTry)} sub={`${orderStats.paidOrders} ödenmiş sipariş`} />
       </div>
 
@@ -96,58 +88,61 @@ export default async function AdminStatsPage() {
         </div>
       </section>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        {/* Plan dağılımı */}
-        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-          <div className="flex items-center gap-2">
-            <UsersIcon className="h-5 w-5 text-brand-600" />
-            <h2 className="font-bold text-slate-900">Plan Dağılımı</h2>
-          </div>
-          <p className="mt-1 text-xs text-slate-400">
-            Bugün/Bu Ay/Bu Yıl sütunları, o dönemde hangi plana kaç bayinin başladığını
-            gösterir (kayıt veya plan değişikliği anı). Toplam sütunu, bayilerin şu an
-            bulunduğu plana göre güncel anlık görüntüdür.
-          </p>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-slate-400">
-                  <th className="pb-2 font-medium">Plan</th>
-                  <th className="pb-2 font-medium text-right">Bugün</th>
-                  <th className="pb-2 font-medium text-right">Bu Ay</th>
-                  <th className="pb-2 font-medium text-right">Bu Yıl</th>
-                  <th className="pb-2 font-medium text-right">Toplam</th>
+      {/* Plan dağılımı */}
+      <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <div className="flex items-center gap-2">
+          <UsersIcon className="h-5 w-5 text-brand-600" />
+          <h2 className="font-bold text-slate-900">Plan Dağılımı</h2>
+        </div>
+        <p className="mt-1 text-xs text-slate-400">
+          Bugün/Bu Ay/Bu Yıl sütunları, o dönemde hangi plana kaç bayinin başladığını
+          gösterir (kayıt veya plan değişikliği anı). Toplam sütunu, bayilerin şu an
+          bulunduğu plana göre güncel anlık görüntüdür.
+        </p>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-slate-400">
+                <th className="pb-2 font-medium">Plan</th>
+                <th className="pb-2 font-medium text-right">Bugün</th>
+                <th className="pb-2 font-medium text-right">Bu Ay</th>
+                <th className="pb-2 font-medium text-right">Bu Yıl</th>
+                <th className="pb-2 font-medium text-right">Toplam</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(Object.keys(PLAN_LIMITS) as Plan[]).map((plan) => (
+                <tr key={plan} className="border-t border-slate-100">
+                  <td className="py-2 text-slate-600">{PLAN_LIMITS[plan].label}</td>
+                  <td className="py-2 text-right font-semibold text-slate-900">
+                    {planStartStats.today[plan] ?? 0}
+                  </td>
+                  <td className="py-2 text-right font-semibold text-slate-900">
+                    {planStartStats.thisMonth[plan] ?? 0}
+                  </td>
+                  <td className="py-2 text-right font-semibold text-slate-900">
+                    {planStartStats.thisYear[plan] ?? 0}
+                  </td>
+                  <td className="py-2 text-right font-semibold text-slate-900">
+                    {planCounts[plan] ?? 0}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {(Object.keys(PLAN_LIMITS) as Plan[]).map((plan) => (
-                  <tr key={plan} className="border-t border-slate-100">
-                    <td className="py-2 text-slate-600">{PLAN_LIMITS[plan].label}</td>
-                    <td className="py-2 text-right font-semibold text-slate-900">
-                      {planStartStats.today[plan] ?? 0}
-                    </td>
-                    <td className="py-2 text-right font-semibold text-slate-900">
-                      {planStartStats.thisMonth[plan] ?? 0}
-                    </td>
-                    <td className="py-2 text-right font-semibold text-slate-900">
-                      {planStartStats.thisYear[plan] ?? 0}
-                    </td>
-                    <td className="py-2 text-right font-semibold text-slate-900">
-                      {planCounts[plan] ?? 0}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-        {/* Şehir bazında satış */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        {/* Şehre göre etiket satışı */}
         <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-center gap-2">
             <PackageIcon className="h-5 w-5 text-brand-600" />
             <h2 className="font-bold text-slate-900">Şehre Göre Etiket Satışı</h2>
           </div>
+          <p className="mt-1 text-xs text-slate-400">
+            Etiket kargo adresindeki şehre göre, gerçekleşmiş ciro.
+          </p>
           <div className="mt-4 space-y-2">
             {orderStats.byCity.length === 0 && (
               <p className="text-sm text-slate-400">Henüz ödenmiş sipariş yok.</p>
@@ -157,6 +152,32 @@ export default async function AdminStatsPage() {
                 <span className="text-slate-600">{c.city}</span>
                 <span className="font-semibold text-slate-900">
                   {c.orderCount} sipariş · {fmtTry(c.revenueTry)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Şehre göre plan satışı */}
+        <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+          <div className="flex items-center gap-2">
+            <UsersIcon className="h-5 w-5 text-brand-600" />
+            <h2 className="font-bold text-slate-900">Şehre Göre Plan Satışı</h2>
+          </div>
+          <p className="mt-1 text-xs text-slate-400">
+            Bayinin Ayarlar'da seçtiği şehre göre, tahmini aylık ciro (henüz şehrini
+            girmemiş bayiler "Belirtilmemiş" altında toplanır). Bu şehirlere reklam
+            ağırlığı vermek işe yarayabilir.
+          </p>
+          <div className="mt-4 space-y-2">
+            {planRevenue.byCity.length === 0 && (
+              <p className="text-sm text-slate-400">Henüz ücretli abone yok.</p>
+            )}
+            {planRevenue.byCity.slice(0, 8).map((c) => (
+              <div key={c.city} className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">{c.city}</span>
+                <span className="font-semibold text-slate-900">
+                  {c.shopCount} bayi · {fmtTry(c.estimatedMonthlyTry)}/ay
                 </span>
               </div>
             ))}

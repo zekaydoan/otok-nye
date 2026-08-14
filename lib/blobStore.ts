@@ -1,5 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
+import { PLAN_LIMITS } from "./types";
 import type {
   Appointment,
   OilRecord,
@@ -912,6 +913,60 @@ export async function getPlanStartStats(): Promise<PlanStartStats> {
   }
 
   return stats;
+}
+
+function parseTryPrice(price: string): number {
+  return Number(price.replace(/[^\d]/g, "")) || 0;
+}
+
+// Bir planın aylığa normalize edilmiş fiyatı — "business_yillik" gibi yıllık
+// planlar 12'ye bölünür ki İşletme (aylık) ile İşletme (Yıllık) aynı birimde
+// (aylık ₺) toplanabilsin. free için her zaman 0.
+function monthlyPlanValueTry(plan: Plan): number {
+  if (plan === "free") return 0;
+  const { price, period } = PLAN_LIMITS[plan];
+  const raw = parseTryPrice(price);
+  return period === "/yıl" ? raw / 12 : raw;
+}
+
+export interface CityPlanStat {
+  city: string;
+  shopCount: number;
+  estimatedMonthlyTry: number;
+}
+
+export interface PlanRevenueStats {
+  estimatedMonthlyTry: number; // toplam tahmini aylık tekrarlayan gelir (MRR)
+  byCity: CityPlanStat[]; // tahmini aylık gelire göre azalan sırada
+}
+
+// Etiket mağazası cirosundan (gerçek, tahsil edilmiş ödeme) farklı olarak bu
+// rakam bir TAHMİNdİR — planların ilan fiyatı × o plandaki bayi sayısı üzerinden
+// hesaplanır, çünkü abonelikler için henüz gerçek bir tekrarlayan ödeme tahsilatı
+// yok (bkz. README "Ödeme / Abonelik Notu" ve BEKLEMEDE task #125). Şehir
+// kırılımı, bayinin Shop.city alanına (kayıt formunda seçilir, bkz.
+// TR_PROVINCES) dayanır — bu alanı doldurmamış eski bayiler "Belirtilmemiş"
+// altında toplanır.
+export async function getPlanRevenueStats(): Promise<PlanRevenueStats> {
+  const shops = await listAllShops();
+  const cityMap = new Map<string, CityPlanStat>();
+  let total = 0;
+
+  for (const shop of shops) {
+    const monthly = monthlyPlanValueTry(shop.plan);
+    if (monthly <= 0) continue;
+    total += monthly;
+    const city = shop.city?.trim() || "Belirtilmemiş";
+    const entry = cityMap.get(city) ?? { city, shopCount: 0, estimatedMonthlyTry: 0 };
+    entry.shopCount += 1;
+    entry.estimatedMonthlyTry += monthly;
+    cityMap.set(city, entry);
+  }
+
+  return {
+    estimatedMonthlyTry: total,
+    byCity: Array.from(cityMap.values()).sort((a, b) => b.estimatedMonthlyTry - a.estimatedMonthlyTry),
+  };
 }
 
 export interface CityOrderStat {
