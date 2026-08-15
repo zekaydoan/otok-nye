@@ -5,6 +5,7 @@ import type {
   Announcement,
   AnnouncementAudience,
   Appointment,
+  BillingInfo,
   DataRequest,
   DataRequestStatus,
   OilRecord,
