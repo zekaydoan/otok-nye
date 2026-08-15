@@ -36,6 +36,12 @@ export interface Shop {
   plan: Plan;
   city?: string; // TR_PROVINCES'ten biri — şehir bazlı reklam hedefleme raporu için
   favoriteOils?: FavoriteOil[]; // bakım formunda tek tıkla seçim için
+  // Bayi panelinde header'daki Duyurular rozetinin sayısını hesaplamak için: bu
+  // tarihten sonra oluşturulmuş (ve bayinin hedef kitlesine giren) duyurular
+  // "yeni" sayılır (bkz. blobStore.countUnseenAnnouncements,
+  // blobStore.markAnnouncementsSeen). Alan tanımsızsa hesap oluşturulduğundan
+  // beri hiç duyuru görülmemiş kabul edilir.
+  lastSeenAnnouncementAt?: string; // ISO
   createdAt: string;
 }
 
@@ -278,6 +284,28 @@ export interface Suggestion {
   authorName?: string; // gönderen bir çalışan hesabıysa adı (bkz. StaffAccount)
   message: string;
   status: SuggestionStatus;
+  createdAt: string;
+}
+
+// ---------- Duyuru (indirim/kampanya/yeni özellik bildirimi) ----------
+// Admin panelinden bayilere/ustalara e-posta dışında, doğrudan panel içinde
+// gösterilen duyuru — indirim kampanyaları, yeni özellik tanıtımları vb. için.
+// "all" tüm bayilere gider; "paid" yalnızca ücretli (free dışı) plandaki
+// bayilere, "free" yalnızca ücretsiz plandaki bayilere gider — plan bazlı
+// kampanya hedeflemesi için (bkz. blobStore.listAnnouncementsForShop).
+export type AnnouncementAudience = "all" | "paid" | "free";
+
+export const ANNOUNCEMENT_AUDIENCE_LABELS: Record<AnnouncementAudience, string> = {
+  all: "Tüm Bayiler",
+  paid: "Ücretli Plandakiler",
+  free: "Ücretsiz Plandakiler",
+};
+
+export interface Announcement {
+  id: string;
+  title: string;
+  message: string;
+  audience: AnnouncementAudience;
   createdAt: string;
 }
 

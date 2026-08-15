@@ -2,6 +2,8 @@ import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
 import { PLAN_LIMITS } from "./types";
 import type {
+  Announcement,
+  AnnouncementAudience,
   Appointment,
   DataRequest,
   DataRequestStatus,
@@ -83,6 +85,16 @@ const dataRequestsStore = () => getStore("data_requests");
 // sayaçlara dahil değildir (yalnızca Shop.plan'in güncel anlık görüntüsü bu
 // dönemi kapsar, bkz. getShopCountsByPlan).
 const planEventsStore = () => getStore("plan_events");
+// Admin panelinden bayilere gönderilen duyurular (indirim/kampanya/yeni özellik
+// bildirimleri) — Suggestion'ın tam tersi yönde ama aynı desende: tek bir düz
+// store, admin-yazar/bayi-okuyucu, hacim düşük olduğu için ayrı bir indekse
+// gerek yok (bkz. listAllAnnouncements). Bir bayinin "görüldü" durumu ayrı bir
+// store yerine doğrudan Shop.lastSeenAnnouncementAt üzerinde tutulur — her
+// duyuru için her bayi başına ayrı bir "okundu" kaydı tutmak yerine tek bir
+// zaman damgası yeterli (WhatsappAppointment'taki seenByShop'tan farklı olarak
+// burada "toplu okundu" mantığı işe yarıyor, çünkü duyurular sırayla okunmuyor,
+// panele her girişte hepsi birden görülmüş sayılıyor).
+const announcementsStore = () => getStore("announcements");
 
 export function normalizePlate(plate: string): string {
   return plate.toUpperCase().replace(/[^A-Z0-9ÇĞİÖŞÜ]/g, "");
@@ -815,6 +827,60 @@ export async function updateSuggestionStatus(
   const updated: Suggestion = { ...existing, status };
   await suggestionsStore().setJSON(id, updated);
   return updated;
+}
+
+// ---------- Duyuru (indirim/kampanya/yeni özellik bildirimi) ----------
+export async function createAnnouncement(announcement: Announcement): Promise<void> {
+  await announcementsStore().setJSON(announcement.id, announcement);
+}
+
+export async function getAnnouncementById(id: string): Promise<Announcement | null> {
+  return (await announcementsStore().get(id, { type: "json" })) as Announcement | null;
+}
+
+// Admin duyuru geçmişi için — hacim büyüdükçe (bkz. kapasite-analizi.md)
+// sayfalama eklenmesi gerekebilir, listAllSuggestions'daki aynı not burada da
+// geçerli.
+export async function listAllAnnouncements(): Promise<Announcement[]> {
+  const { blobs } = await announcementsStore().list();
+  const announcements = await Promise.all(blobs.map((b) => getAnnouncementById(b.key)));
+  return announcements
+    .filter((a): a is Announcement => !!a)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+function announcementMatchesShop(audience: AnnouncementAudience, shop: Shop): boolean {
+  if (audience === "all") return true;
+  const isPaid = shop.plan !== "free";
+  return audience === "paid" ? isPaid : !isPaid;
+}
+
+// Bir bayinin panelinde görmesi gereken duyuruları (kendi plan hedef kitlesine
+// giren tüm duyurular) en yeniden en eskiye döner — bkz.
+// app/dashboard/duyurular.
+export async function listAnnouncementsForShop(shop: Shop): Promise<Announcement[]> {
+  const all = await listAllAnnouncements();
+  return all.filter((a) => announcementMatchesShop(a.audience, shop));
+}
+
+// Bayinin panelinde henüz "görmediği" (lastSeenAnnouncementAt'ten sonra
+// oluşturulmuş, hedef kitlesine giren) duyuru sayısı — header'daki Duyurular
+// rozeti için (bkz. app/dashboard/layout.tsx). Alan hiç ayarlanmamışsa (hesap
+// hiç Duyurular sayfasını ziyaret etmemiş) tüm eşleşen duyurular "yeni" sayılır.
+export async function countUnseenAnnouncements(shop: Shop): Promise<number> {
+  const matching = await listAnnouncementsForShop(shop);
+  if (!shop.lastSeenAnnouncementAt) return matching.length;
+  return matching.filter((a) => a.createdAt > shop.lastSeenAnnouncementAt!).length;
+}
+
+// Bayi Duyurular sayfasını ziyaret ettiğinde çağrılır — bkz.
+// app/dashboard/randevular/page.tsx'teki markWhatsappAppointmentsSeen ile aynı
+// "sayfa ziyaretinde işaretle" deseni.
+export async function markAnnouncementsSeen(shopId: string): Promise<void> {
+  await updateShopFields(shopId, (shop) => ({
+    ...shop,
+    lastSeenAnnouncementAt: new Date().toISOString(),
+  }));
 }
 
 // ---------- Admin İstatistik Paneli ----------

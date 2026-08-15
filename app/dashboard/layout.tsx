@@ -2,12 +2,17 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
-import { countUnseenWhatsappAppointments, getShopById, getStaffById } from "@/lib/blobStore";
+import {
+  countUnseenAnnouncements,
+  countUnseenWhatsappAppointments,
+  getShopById,
+  getStaffById,
+} from "@/lib/blobStore";
 import { PLAN_LIMITS } from "@/lib/types";
 import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
 import { ToastProvider } from "@/components/Toast";
-import { CalendarIcon, ChartBarIcon, LightbulbIcon, SettingsIcon } from "@/components/icons";
+import { BellIcon, CalendarIcon, ChartBarIcon, LightbulbIcon, SettingsIcon } from "@/components/icons";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getCurrentSession();
@@ -25,6 +30,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // bayinin henüz görmediği randevu sayısı — Randevular ikonunda kırmızı rozet
   // olarak gösterilir (bkz. lib/blobStore.countUnseenWhatsappAppointments).
   const unseenWhatsappAppointments = await countUnseenWhatsappAppointments(session.shopId);
+  // Admin panelinden yayınlanan, bu bayinin hedef kitlesine giren ve henüz
+  // Duyurular sayfası ziyaret edilerek "görülmemiş" duyuru sayısı — Duyurular
+  // ikonunda kırmızı rozet olarak gösterilir (bkz. lib/blobStore.countUnseenAnnouncements).
+  const unseenAnnouncements = await countUnseenAnnouncements(shop);
   // ADMIN_EMAILS ile eşleşen tek hesaba (site yöneticisine) özel görünen bir
   // giriş noktası — daha önce /admin/istatistikler'e ulaşmanın tek yolu adres
   // çubuğuna elle yazmaktı, oturum kapalıyken de düz bir 404 dönüyordu ve
@@ -69,6 +78,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 {unseenWhatsappAppointments > 0 && (
                   <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
                     {unseenWhatsappAppointments}
+                  </span>
+                )}
+              </Link>
+              <Link
+                href="/dashboard/duyurular"
+                className="relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                aria-label={
+                  unseenAnnouncements > 0 ? `Duyurular (${unseenAnnouncements} yeni)` : "Duyurular"
+                }
+                title={unseenAnnouncements > 0 ? `${unseenAnnouncements} yeni duyuru` : "Duyurular"}
+              >
+                <BellIcon className="h-[18px] w-[18px]" />
+                {unseenAnnouncements > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                    {unseenAnnouncements}
                   </span>
                 )}
               </Link>

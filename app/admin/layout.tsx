@@ -27,6 +27,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link href="/admin/istatistikler" className="text-sm font-medium text-slate-500 hover:text-slate-700">
                 İstatistikler
               </Link>
+              <Link href="/admin/duyurular" className="text-sm font-medium text-slate-500 hover:text-slate-700">
+                Duyurular
+              </Link>
               <Link href="/admin/oneriler" className="text-sm font-medium text-slate-500 hover:text-slate-700">
                 Öneriler
               </Link>
