@@ -294,11 +294,14 @@ export default function HomePage() {
           src="https://images.unsplash.com/photo-1643700973089-baa86a1ab9ee?auto=format&fit=crop&w=1600&q=75"
           alt=""
           aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover brightness-125"
         />
+        {/* Kullanıcı geri bildirimiyle örtü daha da açıldı — fotoğraf artık
+            belirgin şekilde görünüyor, sadece metin okunabilirliği için hafif
+            bir mavi ton bindiriliyor. */}
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-br from-brand-500/80 via-brand-600/70 to-brand-700/80"
+          className="absolute inset-0 bg-gradient-to-br from-brand-400/55 via-brand-500/45 to-brand-600/55"
         />
         {/* Derinlik için bulanık renkli lekeler */}
         <div
@@ -377,8 +380,12 @@ export default function HomePage() {
               etrafında yüzen, camsı (glassmorphism) bilgi kartları. Araç teması
               artık gösterişli bir çizim yerine net bir "araç etiket kartı" ile
               temsil ediliyor — daha sade ama daha "premium" hissettiriyor. */}
-          <div className="relative flex justify-center py-10 lg:justify-self-center lg:py-6">
-            <div className="relative w-full max-w-xs sm:max-w-sm">
+          <div className="relative flex justify-center py-14 lg:justify-self-center lg:py-10">
+            {/* Kartların telefonun üstüne binmemesi için sahne, telefondan
+                belirgin şekilde daha geniş tutuluyor — kartlar telefonun
+                dışına, boşluğa yerleşiyor (bkz. kullanıcı geri bildirimi:
+                "ikonlar birbirinin üstüne binmiş"). */}
+            <div className="relative w-full max-w-sm sm:max-w-md">
               {/* Sahne parlaması — kartların arkasında yumuşak bir "spot ışığı" */}
               <div
                 aria-hidden
@@ -386,7 +393,7 @@ export default function HomePage() {
               />
 
               {/* Telefon — ortada, gerçek uygulama arayüzüne benzeyen ekran içeriğiyle */}
-              <div className="relative z-20 mx-auto w-56 -rotate-3 rounded-[2rem] border-4 border-slate-800 bg-slate-900 p-2 shadow-2xl ring-1 ring-white/10 transition-transform hover:rotate-0 sm:w-64">
+              <div className="relative z-20 mx-auto w-48 -rotate-3 rounded-[2rem] border-4 border-slate-800 bg-slate-900 p-2 shadow-2xl ring-1 ring-white/10 transition-transform hover:rotate-0 sm:w-56">
                 <div className="overflow-hidden rounded-[1.4rem] bg-white">
                   <div className="flex items-center gap-1.5 bg-brand-700 px-4 py-2">
                     <span className="flex h-4 w-4 items-center justify-center rounded bg-white/20 text-white">
@@ -437,9 +444,10 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Yüzen cam kart 1 — QR okutuldu, telefonun sol üstünde */}
+              {/* Yüzen cam kart 1 — QR okutuldu, telefonun sol üstünde, boşlukta
+                  (telefonun kendisine binmeyecek kadar dışarıda) */}
               <div
-                className="animate-float-badge absolute -left-3 top-2 z-30 -rotate-6 rounded-2xl border border-white/25 bg-white/10 p-2.5 shadow-2xl backdrop-blur-md sm:-left-6 sm:top-6"
+                className="animate-float-badge absolute -left-6 top-4 z-30 -rotate-6 rounded-2xl border border-white/15 bg-slate-900/70 p-2.5 shadow-2xl backdrop-blur-md sm:-left-10 sm:top-6"
                 style={{ animationDelay: "-1s" }}
               >
                 <div className="rounded-lg bg-white p-2 shadow-inner">
@@ -461,9 +469,10 @@ export default function HomePage() {
               </div>
 
               {/* Yüzen cam kart 2 — araç etiket kartı, doğrudan "bu araca ait"
-                  temasını taşıyan net bir görsel öğe */}
+                  temasını taşıyan net bir görsel öğe, telefonun sol altında,
+                  QR kartından yeterince uzakta */}
               <div
-                className="animate-float-badge absolute -left-2 bottom-8 z-30 flex w-36 rotate-3 items-center gap-2 rounded-2xl border border-white/25 bg-white/10 p-2.5 shadow-2xl backdrop-blur-md sm:-left-8 sm:bottom-12 sm:w-40"
+                className="animate-float-badge absolute -left-10 bottom-6 z-30 flex w-36 rotate-3 items-center gap-2 rounded-2xl border border-white/15 bg-slate-900/70 p-2.5 shadow-2xl backdrop-blur-md sm:-left-16 sm:bottom-10 sm:w-40"
                 style={{ animationDelay: "-2.1s" }}
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-brand-700 shadow">
@@ -476,9 +485,9 @@ export default function HomePage() {
               </div>
 
               {/* Yüzen cam kart 3 — bildirim rozeti, referans görseldeki sağ üst
-                  rozetle aynı fikir */}
+                  rozetle aynı fikir, telefonun sağında, boşlukta */}
               <div
-                className="animate-float-badge absolute -right-2 -top-2 z-30 flex w-32 rotate-3 flex-col items-center gap-1 rounded-2xl border border-white/25 bg-white/10 p-3 text-center shadow-2xl backdrop-blur-md sm:-right-6 sm:top-2 sm:w-36"
+                className="animate-float-badge absolute -right-6 top-0 z-30 flex w-32 rotate-3 flex-col items-center gap-1 rounded-2xl border border-white/15 bg-slate-900/70 p-3 text-center shadow-2xl backdrop-blur-md sm:-right-10 sm:top-2 sm:w-36"
                 style={{ animationDelay: "-0.4s" }}
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-white shadow-lg shadow-accent-500/40">
