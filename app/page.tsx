@@ -232,7 +232,7 @@ export default function HomePage() {
       <header className="relative border-b bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <Link href="/" className="text-xl">
-            <Logo withText />
+            <Logo withText size="lg" />
           </Link>
           <nav className="flex items-center gap-2 text-sm font-medium text-slate-600 sm:gap-4">
             <Link href="#ozellikler" className="hidden hover:text-brand-700 sm:inline">
