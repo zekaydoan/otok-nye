@@ -480,7 +480,7 @@ export default function HomePage() {
               {/* Yüzen cam kart 1 — QR okutuldu, telefonun sol üstünde, boşlukta
                   (telefonun kendisine binmeyecek kadar dışarıda) */}
               <div
-                className="animate-float-badge absolute -left-6 top-4 z-30 -rotate-6 rounded-2xl border border-white/15 bg-slate-900/70 p-2.5 shadow-2xl backdrop-blur-md sm:-left-10 sm:top-6"
+                className="animate-float-badge absolute -left-2 top-4 z-30 -rotate-6 rounded-2xl border border-white/15 bg-slate-900/70 p-2.5 shadow-2xl backdrop-blur-md sm:-left-10 sm:top-6"
                 style={{ animationDelay: "-1s" }}
               >
                 <div className="rounded-lg bg-white p-2 shadow-inner">
@@ -505,7 +505,7 @@ export default function HomePage() {
                   temasını taşıyan net bir görsel öğe, telefonun sol altında,
                   QR kartından yeterince uzakta */}
               <div
-                className="animate-float-badge absolute -left-10 bottom-6 z-30 flex w-36 rotate-3 items-center gap-2 rounded-2xl border border-white/15 bg-slate-900/70 p-2.5 shadow-2xl backdrop-blur-md sm:-left-16 sm:bottom-10 sm:w-40"
+                className="animate-float-badge absolute -left-4 bottom-6 z-30 flex w-32 rotate-3 items-center gap-2 rounded-2xl border border-white/15 bg-slate-900/70 p-2.5 shadow-2xl backdrop-blur-md sm:-left-16 sm:bottom-10 sm:w-40"
                 style={{ animationDelay: "-2.1s" }}
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-brand-700 shadow">
@@ -520,7 +520,7 @@ export default function HomePage() {
               {/* Yüzen cam kart 3 — bildirim rozeti, referans görseldeki sağ üst
                   rozetle aynı fikir, telefonun sağında, boşlukta */}
               <div
-                className="animate-float-badge absolute -right-6 top-0 z-30 flex w-32 rotate-3 flex-col items-center gap-1 rounded-2xl border border-white/15 bg-slate-900/70 p-3 text-center shadow-2xl backdrop-blur-md sm:-right-10 sm:top-2 sm:w-36"
+                className="animate-float-badge absolute -right-2 top-0 z-30 flex w-28 rotate-3 flex-col items-center gap-1 rounded-2xl border border-white/15 bg-slate-900/70 p-3 text-center shadow-2xl backdrop-blur-md sm:-right-10 sm:top-2 sm:w-36"
                 style={{ animationDelay: "-0.4s" }}
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-white shadow-lg shadow-accent-500/40">
