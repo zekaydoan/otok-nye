@@ -91,6 +91,18 @@ const organizationJsonLd = {
   sameAs: ["https://www.sarperdijital.com"],
 };
 
+// WebSite yapılandırılmış verisi — Organization'dan ayrı, Google'ın "bu site
+// hangi marka adına ait ve kanonik URL'si ne" ilişkisini netleştirmesi için.
+// Uydurma bir arama kutusu (potentialAction/SearchAction) eklenmedi çünkü
+// sitede gerçek bir site-içi arama özelliği yok.
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "OtoHafıza",
+  url: SITE_URL,
+  inLanguage: "tr-TR",
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr" className={inter.variable}>
@@ -98,6 +110,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <AdPixels />
         <PageviewTracker />

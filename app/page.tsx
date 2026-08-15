@@ -618,6 +618,10 @@ export default function HomePage() {
               src="/images/otohafiza-demo.gif"
               alt="OtoHafıza panelinde bir aracın bakım geçmişini görüntüleme ve QR etiket oluşturma ekran kaydı"
               className="w-full"
+              width={1512}
+              height={801}
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>
