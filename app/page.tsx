@@ -239,7 +239,7 @@ export default function HomePage() {
       <div className="bg-brand-700 py-2.5 text-white">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-1 px-4 text-sm sm:flex-row sm:justify-start sm:gap-2 sm:px-6">
           <span className="shrink-0 font-semibold text-brand-100">Öne Çıkanlar:</span>
-          <div className="relative h-5 w-full max-w-[15rem] overflow-hidden sm:w-72">
+          <div className="relative h-5 w-full max-w-sm overflow-hidden sm:max-w-md">
             {tickerItems.map((item, i) => (
               <div
                 key={item.text}
