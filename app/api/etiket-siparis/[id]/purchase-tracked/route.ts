@@ -25,28 +25,37 @@ import { updateStickerOrder } from "@/lib/blobStore";
 // riski, ileride Conversions API eklendiğinde aynı event_id (`purchase_<id>`)
 // ile app/api/etiket-siparis/callback/route.ts'ten sunucu tarafından ayrıca
 // gönderilerek telafi edilebilir (Meta iki kaynağı otomatik tekilleştirir).
+type PurchaseTrackOutcome = "tracked" | "already" | "not_paid" | "forbidden";
+
 export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
   const shopId = await getCurrentShopId();
   if (!shopId) return NextResponse.json({ error: "Giriş yapmalısınız." }, { status: 401 });
 
-  let outcome: "tracked" | "already" | "not_paid" | "forbidden" = "not_paid";
+  // NOT: outcome, updateStickerOrder'a verilen callback (closure) içinde
+  // güncelleniyor. Bunu düz bir `let` değişkeniyle yapmak TypeScript'in
+  // `await` sonrası kontrol akışı analizinde değişkeni closure'dan önceki
+  // (ilk) değerine dondurmasına yol açıyor — derleme zamanında "forbidden"
+  // hiç ulaşılamaz görünüyor ve build TypeScript hatasıyla başarısız oluyor.
+  // Bunun yerine bir nesne alanına yazmak bu narrowing sorununu ortadan
+  // kaldırıyor (alan her zaman bildirilen birleşim tipiyle okunur).
+  const state: { outcome: PurchaseTrackOutcome } = { outcome: "not_paid" };
   let value = 0;
 
   try {
     const updated = await updateStickerOrder(params.id, (order) => {
       if (order.shopId !== shopId) {
-        outcome = "forbidden";
+        state.outcome = "forbidden";
         return order;
       }
       if (order.status !== "odendi") {
-        outcome = "not_paid";
+        state.outcome = "not_paid";
         return order;
       }
       if (order.metaPurchaseTrackedAt) {
-        outcome = "already";
+        state.outcome = "already";
         return order;
       }
-      outcome = "tracked";
+      state.outcome = "tracked";
       return { ...order, metaPurchaseTrackedAt: new Date().toISOString() };
     });
     value = updated.totalPriceTry;
@@ -54,13 +63,13 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "Sipariş bulunamadı." }, { status: 404 });
   }
 
-  if (outcome === "forbidden") {
+  if (state.outcome === "forbidden") {
     return NextResponse.json({ error: "Yetkisiz." }, { status: 403 });
   }
-  if (outcome === "tracked") {
+  if (state.outcome === "tracked") {
     return NextResponse.json({ shouldTrack: true, value });
   }
   // "already" (bu sipariş için daha önce gönderilmiş) veya "not_paid" (henüz
   // ödeme onaylanmamış) — iki durumda da istemci Purchase göndermemeli.
-  return NextResponse.json({ shouldTrack: false, alreadyTracked: outcome === "already" });
+  return NextResponse.json({ shouldTrack: false, alreadyTracked: state.outcome === "already" });
 }
