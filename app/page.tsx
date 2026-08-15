@@ -515,7 +515,7 @@ export default function HomePage() {
                 </p>
                 <div className="mt-3 rounded-2xl rounded-tl-none bg-green-50 p-3 text-sm text-slate-700 ring-1 ring-green-100">
                   <p>
-                    Merhaba Ahmet, Zeki Servis bakım takibi hatırlatması:{" "}
+                    Merhaba Ahmet, Yılmaz Oto Servis bakım takibi hatırlatması:{" "}
                     <strong>34 ABC 123</strong> plakalı aracınızın bakım zamanı geldi.
                   </p>
                   <div className="mt-3 flex flex-col gap-2">

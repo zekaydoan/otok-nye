@@ -115,7 +115,7 @@ export default function StickerOrderForm({
               required
               value={labelName}
               onChange={(e) => setLabelName(e.target.value)}
-              placeholder="Zeki Servis"
+              placeholder="Yılmaz Servis"
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
             />
           </div>

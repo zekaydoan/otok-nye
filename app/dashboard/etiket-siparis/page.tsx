@@ -67,7 +67,7 @@ export default async function StickerOrderPage() {
               </div>
             </div>
             <div className="mt-2 text-center">
-              <p className="text-[9px] font-bold text-slate-800">{shop?.name || "Zeki Servis"}</p>
+              <p className="text-[9px] font-bold text-slate-800">{shop?.name || "Yılmaz Servis"}</p>
               <p className="text-[8px] text-slate-500">{shop?.phone || "05XX XXX XX XX"}</p>
             </div>
             <p className="mt-1.5 text-[8px] text-slate-400">Su geçirmez · UV korumalı</p>

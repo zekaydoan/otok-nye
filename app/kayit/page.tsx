@@ -76,7 +76,7 @@ export default function SignupPage() {
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 focus:border-brand-500 focus:outline-none"
-                  placeholder="Örn. Aydoğan Oto Servis"
+                  placeholder="Örn. Yılmaz Oto Servis"
                 />
               </div>
             </div>
