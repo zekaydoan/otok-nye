@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { listBlogPosts } from "@/lib/blogPosts";
 
 const SITE_URL = process.env.URL || "https://otohafiza.com";
 
@@ -9,9 +10,18 @@ const SITE_URL = process.env.URL || "https://otohafiza.com";
 // dışlanmamıştır ama burada da yer almaz) bilinçli olarak dışarıda bırakılır.
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
+  const blogEntries: MetadataRoute.Sitemap = listBlogPosts().map((post) => ({
+    url: `${SITE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.updatedAt || post.publishedAt),
+    changeFrequency: "yearly",
+    priority: 0.6,
+  }));
+
   return [
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${SITE_URL}/kayit`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
+    ...blogEntries,
     { url: `${SITE_URL}/giris`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/kvkk`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
     {

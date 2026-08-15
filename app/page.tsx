@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PLAN_LIMITS } from "@/lib/types";
+import { listBlogPosts } from "@/lib/blogPosts";
 import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
 import FaqAccordion from "@/components/FaqAccordion";
@@ -194,6 +195,8 @@ const faqJsonLd = {
 };
 
 export default function HomePage() {
+  const latestPosts = listBlogPosts().slice(0, 3);
+
   return (
     <main className="min-h-screen">
       <script
@@ -218,6 +221,9 @@ export default function HomePage() {
             </Link>
             <Link href="#iletisim" className="hidden hover:text-brand-700 sm:inline">
               İletişim
+            </Link>
+            <Link href="/blog" className="hidden hover:text-brand-700 sm:inline">
+              Blog
             </Link>
             <Link href="/giris" className="hover:text-brand-700">
               Giriş Yap
@@ -607,6 +613,33 @@ export default function HomePage() {
         <FaqAccordion items={faqs} />
       </section>
 
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <h2 className="text-center text-2xl font-bold text-slate-900">Blog&apos;dan Öne Çıkanlar</h2>
+        <p className="mx-auto mt-2 max-w-xl text-center text-slate-500">
+          Araç bakımı ve oto servis işletmeciliği üzerine rehberler.
+        </p>
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          {latestPosts.map((post) => (
+            <Link
+              key={post.slug}
+              href={`/blog/${post.slug}`}
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm ring-1 ring-slate-100 transition hover:border-brand-300 hover:shadow-md"
+            >
+              <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                {post.category}
+              </span>
+              <h3 className="mt-3 font-semibold text-slate-900">{post.title}</h3>
+              <p className="mt-2 text-sm text-slate-500">{post.excerpt}</p>
+            </Link>
+          ))}
+        </div>
+        <div className="mt-8 text-center">
+          <Link href="/blog" className="text-sm font-semibold text-brand-700 hover:underline">
+            Tüm yazıları görüntüle →
+          </Link>
+        </div>
+      </section>
+
       <section id="fiyatlandirma" className="bg-slate-900 py-16 text-white">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-center text-2xl font-bold">Fiyatlandırma</h2>
@@ -739,6 +772,10 @@ export default function HomePage() {
           © {new Date().getFullYear()} OtoHafıza — Aracının dijital hafızası.
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+          <Link href="/blog" className="underline">
+            Blog
+          </Link>
+          <span className="text-slate-300">·</span>
           <Link href="/kvkk" className="underline">
             KVKK Aydınlatma Metni
           </Link>
