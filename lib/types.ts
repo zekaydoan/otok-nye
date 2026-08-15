@@ -277,6 +277,14 @@ export interface StickerOrder {
   // ama sipariş formunda değiştirilebilir (ör. belirli bir ustanın adı/telefonu).
   labelName?: string;
   labelPhone?: string;
+  // Bu sipariş için tarayıcıda Meta Pixel "Purchase" eventinin gönderildiği an
+  // (ISO). Ödeme durumundan (status) BİLEREK ayrı tutulur — status ödemenin
+  // kendisini, bu alan ise "conversion event'i gönderdik mi" bilgisini temsil
+  // eder. Sonuç sayfası her açıldığında/yenilendiğinde bu alan idempotent bir
+  // uç nokta (app/api/etiket-siparis/[id]/purchase-tracked) üzerinden optimistic
+  // locking ile set edilir, böylece aynı sipariş için Purchase birden fazla kez
+  // gönderilmez (bkz. components/PurchaseConversionPing.tsx).
+  metaPurchaseTrackedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

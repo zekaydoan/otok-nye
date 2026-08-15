@@ -42,6 +42,22 @@ export async function POST(req: NextRequest) {
         paymentId: retrieveResult.paymentId,
         updatedAt: new Date().toISOString(),
       }));
+      // Muhasebe/ölçüm tutarlılığı için: iyzico'nun doğruladığı gerçek tahsilat
+      // (paidPrice) ile bizim sipariş üzerinde hesapladığımız tutarı (totalPriceTry)
+      // karşılaştır ve uyuşmazlık varsa logla. Bu, Meta Pixel Purchase eventinin
+      // hangi tutarla gönderileceğini ETKİLEMEZ (o her zaman totalPriceTry'yi
+      // kullanır, bkz. purchase-tracked uç noktası) — ödeme zaten iyzico
+      // tarafından SUCCESS olarak doğrulandı, burada akışı durdurmuyoruz, sadece
+      // sonradan incelenebilmesi için bir uyarı bırakıyoruz.
+      if (
+        typeof retrieveResult.paidPrice === "number" &&
+        Math.abs(retrieveResult.paidPrice - paidOrder.totalPriceTry) > 0.01
+      ) {
+        console.warn(
+          `[etiket-siparis] Tutar uyuşmazlığı — sipariş ${orderId}: totalPriceTry=${paidOrder.totalPriceTry}, iyzico paidPrice=${retrieveResult.paidPrice}`
+        );
+      }
+
       // Admin'e siparişin gerçekten ödendiğinde haber verilir — henüz ödeme
       // yapılmamış/başarısız denemelerde bildirim atılmaz, aksi hâlde her
       // yarım kalan ödeme denemesinde admin'i gereksiz yere uyarmış oluruz.

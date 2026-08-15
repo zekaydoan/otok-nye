@@ -188,5 +188,9 @@ export async function POST(req: NextRequest) {
 
   await linkStickerOrderToken(initResult.token, orderId);
 
-  return NextResponse.json({ paymentPageUrl: initResult.paymentPageUrl });
+  // orderId ve totalPriceTry, istemcinin iyzico'ya yönlendirmeden hemen önce
+  // Meta Pixel InitiateCheckout olayını doğru (backend'in hesapladığı, kullanıcı
+  // tarafından değiştirilemeyen) tutarla gönderebilmesi için eklendi — bkz.
+  // components/StickerOrderForm.tsx. Mevcut alan (paymentPageUrl) korunuyor.
+  return NextResponse.json({ paymentPageUrl: initResult.paymentPageUrl, orderId, totalPriceTry });
 }

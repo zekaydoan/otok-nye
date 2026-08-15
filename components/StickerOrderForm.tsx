@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PaymentBadges from "@/components/PaymentBadges";
+import { trackInitiateCheckout } from "@/components/AdPixels";
 
 export default function StickerOrderForm({
   unitPriceTry,
@@ -62,6 +63,14 @@ export default function StickerOrderForm({
         }
         setError(data.error || "Sipariş oluşturulamadı, lütfen tekrar deneyin.");
         return;
+      }
+      // Kullanıcı gerçekten iyzico'nun ödeme sayfasına gönderiliyor — backend
+      // checkout session'ı başarıyla açtı ve bize güvenilir sipariş tutarını
+      // verdi, bu yüzden InitiateCheckout tam burada, yönlendirmeden hemen
+      // önce tetikleniyor (validasyon hatasında veya session açılamazsa bu
+      // satıra hiç ulaşılmaz — yukarıdaki !res.ok bloğu zaten return etmişti).
+      if (data.orderId && typeof data.totalPriceTry === "number") {
+        trackInitiateCheckout({ orderId: data.orderId, value: data.totalPriceTry });
       }
       // Ödeme sayfasına yönlendir — kart bilgileri iyzico'nun barındırdığı sayfada
       // girilir, bu sunucudan hiç geçmez.

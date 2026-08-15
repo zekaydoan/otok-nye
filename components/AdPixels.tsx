@@ -50,13 +50,15 @@ export default function AdPixels() {
   );
 }
 
-// Kayıt tamamlandığında veya bir etiket siparişi ödendiğinde çağrılır — GA4 ve
-// Meta Pixel yüklüyse ilgili dönüşüm olayını gönderir, yüklü değilse (ortam
-// değişkenleri tanımsızsa) sessizce hiçbir şey yapmaz.
-export function trackConversionEvent(
-  event: "sign_up" | "purchase",
-  params?: { value?: number; currency?: string }
-) {
+// Kayıt tamamlandığında çağrılır — GA4 ve Meta Pixel yüklüyse ilgili dönüşüm
+// olayını gönderir, yüklü değilse (ortam değişkenleri tanımsızsa) sessizce
+// hiçbir şey yapmaz.
+// NOT: Bu fonksiyon eskiden "purchase" olayını da destekliyordu; o dal
+// kaldırıldı — etiket siparişi Purchase'ı artık tamamen ayrı, event_id
+// destekli ve tekrar-gönderimi engelleyen trackPurchase() üzerinden
+// yönetiliyor (bkz. aşağısı + components/PurchaseConversionPing.tsx). İki
+// yoldan aynı anda Purchase gitmesin diye eski dal buradan silindi.
+export function trackConversionEvent(event: "sign_up", params?: { value?: number; currency?: string }) {
   if (typeof window === "undefined") return;
 
   const w = window as unknown as {
@@ -67,13 +69,46 @@ export function trackConversionEvent(
   if (typeof w.gtag === "function") {
     w.gtag("event", event, params);
   }
-  if (typeof w.fbq === "function") {
-    if (event === "sign_up") {
-      w.fbq("track", "CompleteRegistration");
-    } else if (event === "purchase") {
-      w.fbq("track", "Purchase", { value: params?.value, currency: params?.currency || "TRY" });
-    }
+  if (typeof w.fbq === "function" && event === "sign_up") {
+    w.fbq("track", "CompleteRegistration");
   }
+}
+
+// Etiket siparişi ödeme sayfasına (iyzico) yönlendirilmeden HEMEN önce — yalnızca
+// backend checkout session'ı gerçekten başarıyla açtığında çağrılır (bkz.
+// components/StickerOrderForm.tsx). value, backend'in /api/etiket-siparis
+// yanıtından gelen totalPriceTry'dir; kullanıcı tarafından manipüle edilebilecek
+// bir tutar burada asla kullanılmaz. event_id (`checkout_<orderId>`) ileride
+// Conversions API eklenirse aynı sipariş için sunucu tarafından da kullanılabilir.
+export function trackInitiateCheckout({ orderId, value }: { orderId: string; value: number }) {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as { fbq?: (...args: unknown[]) => void };
+  if (typeof w.fbq !== "function") return;
+  w.fbq("track", "InitiateCheckout", { value, currency: "TRY" }, { eventID: `checkout_${orderId}` });
+}
+
+// Etiket siparişi ödemesi SUNUCU TARAFINDA doğrulandıktan sonra — bu fonksiyon
+// yalnızca app/api/etiket-siparis/[id]/purchase-tracked uç noktası
+// "shouldTrack: true" dediğinde (yani bu sipariş için Purchase daha önce
+// gönderilmemişse) çağrılmalıdır, bkz. components/PurchaseConversionPing.tsx.
+// event_id (`purchase_<orderId>`) deterministik: ileride Conversions API aynı
+// ID ile aynı sipariş için sunucu tarafından da event gönderirse Meta,
+// browser+server eventlerini otomatik olarak tek dönüşüm sayar (event dedup).
+// orderId, sistemin ürettiği rastgele bir kimliktir — plaka/isim/telefon gibi
+// kişisel bir veri değildir.
+export function trackPurchase({
+  orderId,
+  value,
+  currency = "TRY",
+}: {
+  orderId: string;
+  value: number;
+  currency?: string;
+}) {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as { fbq?: (...args: unknown[]) => void };
+  if (typeof w.fbq !== "function") return;
+  w.fbq("track", "Purchase", { value, currency }, { eventID: `purchase_${orderId}` });
 }
 
 // Yeni kayıt olan bir bayinin PANELE İLK ARACINI başarıyla eklediği an için —
