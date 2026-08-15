@@ -298,6 +298,16 @@ export default function HomePage() {
           aria-hidden
           className="pointer-events-none absolute -right-24 bottom-0 h-[28rem] w-[28rem] rounded-full bg-accent-500/20 blur-3xl"
         />
+        {/* İnce nokta dokusu — Stripe/Linear tarzı "gradient mesh" hero'larda
+            standart olan doku katmanı, zemine derinlik katar. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.15]"
+          style={{
+            backgroundImage: "radial-gradient(rgba(255,255,255,0.7) 1px, transparent 1px)",
+            backgroundSize: "26px 26px",
+          }}
+        />
 
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center">
           <div className="animate-fade-in-up text-center lg:text-left">
@@ -349,65 +359,22 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Sağ taraf: parlayan bir QR etiketinden telefona uzanan bir tarama
-              ışını ve gerçek uygulama arayüzüne benzeyen bir telefon mockup'ı —
-              referans görseldeki ana sahneyi somutlaştırıyor. */}
-          <div className="relative flex justify-center py-6 lg:justify-self-center lg:py-0">
+          {/* Sağ taraf: Stripe/Linear tarzı "gradient mesh + cam kartlar"
+              kompozisyonu — araştırmaya göre 2026'da SaaS hero'larında en çok
+              işe yarayan desen bu: ortada ürünün kendisi (telefon mockup'ı),
+              etrafında yüzen, camsı (glassmorphism) bilgi kartları. Araç teması
+              artık gösterişli bir çizim yerine net bir "araç etiket kartı" ile
+              temsil ediliyor — daha sade ama daha "premium" hissettiriyor. */}
+          <div className="relative flex justify-center py-10 lg:justify-self-center lg:py-6">
             <div className="relative w-full max-w-xs sm:max-w-sm">
-              {/* Araç görseli — QR etiketinin gerçekten "araca yapıştırıldığını"
-                  gösteren, sahnenin zemini gibi duran basit ama net bir araba
-                  silueti. Açık zemine karşı beyaz/gri tonda, iyi kontrastlı. */}
-              <svg
-                viewBox="0 0 340 190"
-                className="pointer-events-none absolute inset-x-[-10%] bottom-[-6%] z-0 w-[120%] text-white drop-shadow-2xl"
-                aria-hidden
-              >
-                <ellipse cx="170" cy="176" rx="140" ry="10" className="fill-black/15" />
-                <path
-                  d="M20 132 Q20 92 66 90 L92 90 Q106 56 146 54 L198 54 Q236 56 250 90 L272 90 Q320 92 320 124 L320 140 L20 140 Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M104 90 Q116 66 148 64 L196 64 Q228 66 240 90 Z"
-                  className="fill-brand-800"
-                  opacity="0.85"
-                />
-                <path d="M20 130 L320 130" className="stroke-brand-200" strokeWidth="2" opacity="0.6" />
-                <circle cx="88" cy="140" r="20" className="fill-slate-900" />
-                <circle cx="88" cy="140" r="8" className="fill-slate-300" />
-                <circle cx="256" cy="140" r="20" className="fill-slate-900" />
-                <circle cx="256" cy="140" r="8" className="fill-slate-300" />
-                <rect x="292" y="100" width="16" height="9" rx="2.5" className="fill-accent-400" />
-              </svg>
-
-              {/* Parlayan QR etiketi — arabanın kaputuna yapıştırılmış gibi */}
-              <div className="absolute -left-2 top-6 z-10 sm:left-2 sm:top-10">
-                <div className="relative">
-                  <div className="absolute inset-0 -m-6 animate-pulse rounded-full bg-accent-400/40 blur-2xl" />
-                  <div className="relative rotate-[-8deg] rounded-xl border-2 border-white/80 bg-white p-2.5 shadow-2xl shadow-accent-500/30 sm:p-3">
-                    <div className="grid grid-cols-5 gap-[3px]">
-                      {[
-                        1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1,
-                        1,
-                      ].map((v, i) => (
-                        <span
-                          key={i}
-                          className={`h-1.5 w-1.5 sm:h-2 sm:w-2 ${v ? "bg-slate-900" : "bg-transparent"}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tarama ışını — QR'dan telefona uzanan, hafif titreşen degrade çizgi */}
+              {/* Sahne parlaması — kartların arkasında yumuşak bir "spot ışığı" */}
               <div
                 aria-hidden
-                className="absolute left-16 top-16 z-10 h-1 w-24 origin-left rotate-[20deg] animate-pulse rounded-full bg-gradient-to-r from-accent-400 via-accent-400/70 to-transparent blur-[1px] sm:left-24 sm:top-24 sm:w-32"
+                className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent-400/25 blur-3xl"
               />
 
-              {/* Telefon — gerçek uygulama arayüzüne benzeyen ekran içeriğiyle */}
-              <div className="relative z-20 ml-10 rotate-3 rounded-[2rem] border-4 border-slate-800 bg-slate-900 p-2 shadow-2xl transition-transform hover:rotate-0 sm:ml-16">
+              {/* Telefon — ortada, gerçek uygulama arayüzüne benzeyen ekran içeriğiyle */}
+              <div className="relative z-20 mx-auto w-56 -rotate-3 rounded-[2rem] border-4 border-slate-800 bg-slate-900 p-2 shadow-2xl ring-1 ring-white/10 transition-transform hover:rotate-0 sm:w-64">
                 <div className="overflow-hidden rounded-[1.4rem] bg-white">
                   <div className="flex items-center gap-1.5 bg-brand-700 px-4 py-2">
                     <span className="flex h-4 w-4 items-center justify-center rounded bg-white/20 text-white">
@@ -458,8 +425,50 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Bildirim balonu — referans görseldeki sağ üst rozetle aynı fikir */}
-              <div className="animate-float-badge absolute -right-1 -top-2 z-30 flex w-32 -rotate-3 flex-col items-center gap-1 rounded-2xl border border-accent-400/40 bg-slate-900/90 p-3 text-center shadow-2xl shadow-accent-500/20 backdrop-blur sm:-right-4 sm:top-0 sm:w-36">
+              {/* Yüzen cam kart 1 — QR okutuldu, telefonun sol üstünde */}
+              <div
+                className="animate-float-badge absolute -left-3 top-2 z-30 -rotate-6 rounded-2xl border border-white/25 bg-white/10 p-2.5 shadow-2xl backdrop-blur-md sm:-left-6 sm:top-6"
+                style={{ animationDelay: "-1s" }}
+              >
+                <div className="rounded-lg bg-white p-2 shadow-inner">
+                  <div className="grid grid-cols-5 gap-[3px]">
+                    {[
+                      1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1,
+                    ].map((v, i) => (
+                      <span
+                        key={i}
+                        className={`h-1.5 w-1.5 ${v ? "bg-slate-900" : "bg-transparent"}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-1.5 flex items-center justify-center gap-1 text-[10px] font-semibold text-white">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
+                  QR okutuldu
+                </div>
+              </div>
+
+              {/* Yüzen cam kart 2 — araç etiket kartı, doğrudan "bu araca ait"
+                  temasını taşıyan net bir görsel öğe */}
+              <div
+                className="animate-float-badge absolute -left-2 bottom-8 z-30 flex w-36 rotate-3 items-center gap-2 rounded-2xl border border-white/25 bg-white/10 p-2.5 shadow-2xl backdrop-blur-md sm:-left-8 sm:bottom-12 sm:w-40"
+                style={{ animationDelay: "-2.1s" }}
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-brand-700 shadow">
+                  <CarIcon className="h-5 w-5" />
+                </span>
+                <div className="text-left">
+                  <p className="text-[11px] font-bold text-white">34 ABC 123</p>
+                  <p className="text-[9px] text-slate-300">Araca tanımlı QR</p>
+                </div>
+              </div>
+
+              {/* Yüzen cam kart 3 — bildirim rozeti, referans görseldeki sağ üst
+                  rozetle aynı fikir */}
+              <div
+                className="animate-float-badge absolute -right-2 -top-2 z-30 flex w-32 rotate-3 flex-col items-center gap-1 rounded-2xl border border-white/25 bg-white/10 p-3 text-center shadow-2xl backdrop-blur-md sm:-right-6 sm:top-2 sm:w-36"
+                style={{ animationDelay: "-0.4s" }}
+              >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-white shadow-lg shadow-accent-500/40">
                   <BellIcon className="h-4 w-4" />
                 </span>
