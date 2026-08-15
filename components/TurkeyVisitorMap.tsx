@@ -1,30 +1,28 @@
-import { ablativeSuffix, TR_OUTLINE, TR_PROVINCE_COORDS } from "@/lib/geo";
+import { TR_PROVINCE_PATHS, TR_PROVINCE_CENTROIDS } from "@/lib/turkeyProvincePaths";
+import { ablativeSuffix } from "@/lib/geo";
+import { TR_PROVINCES } from "@/lib/types";
 
-// Bilinen il merkezi enlem/boylamlarını (ve kabaca bir Türkiye dış hattını,
-// bkz. lib/geo.ts TR_OUTLINE) aynı basit eşdikdörtgen izdüşümle bir SVG
-// tuvaline yerleştirip, dış hat içinde ziyaret sayısıyla orantılı baloncuklar
-// çiziyoruz. Dış hat idari sınırların birebir aynısı değil, dekoratif/kabaca
-// bir siluet — asıl veri baloncukların konumu/boyutu ve native <title>
-// tooltip'lerinde.
-const LAT_MIN = 35.8;
-const LAT_MAX = 42.3;
-const LON_MIN = 25.5;
-const LON_MAX = 44.9;
+// Gerçek il sınırlarına sahip bir Türkiye haritası — Shopify'ın canlı
+// ziyaretçi haritasındaki gibi, illere bölünmüş bir "choropleth" (bugünkü
+// ziyaret sayısına göre koyulaşan renk) harita. İl sınırı verisi bir kereye
+// mahsus dış bir kaynaktan (Highcharts harita verisi) çıkarılıp projelenmiş
+// SVG path'leri olarak lib/turkeyProvincePaths.ts'e yazıldı (bkz. o dosyanın
+// başındaki not) — burada yalnızca render edilir, ağır coğrafi hesaplama
+// çalışma zamanında yapılmaz.
+//
+// "Canlı" (real-time, şu an sitede olan) ziyaretçi sayısı DEĞİL — mevcut
+// altyapı yalnızca günlük toplam sayaç tutuyor (bkz. lib/blobStore.ts
+// incrementCityVisit), bu yüzden burada gösterilen "bugün toplam kaç
+// ziyaret" bilgisidir. Gerçek anlık/canlı sayaç için ayrı bir "son N dakika
+// aktif" mekanizması gerekir — bu, ayrı bir özellik olarak istenirse eklenir.
 const WIDTH = 760;
 const HEIGHT = 340;
-const PADDING = 24;
-
-function project(lat: number, lon: number): [number, number] {
-  const x = PADDING + ((lon - LON_MIN) / (LON_MAX - LON_MIN)) * (WIDTH - PADDING * 2);
-  const y = PADDING + ((LAT_MAX - lat) / (LAT_MAX - LAT_MIN)) * (HEIGHT - PADDING * 2);
-  return [x, y];
-}
 
 export default function TurkeyVisitorMap({ data }: { data: Record<string, number> }) {
-  const entries = Object.entries(data).filter(([, count]) => count > 0);
-  const maxCount = Math.max(1, ...entries.map(([, c]) => c));
+  const total = Object.values(data).reduce((sum, c) => sum + c, 0);
+  const maxCount = Math.max(1, ...Object.values(data));
 
-  if (entries.length === 0) {
+  if (total === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400">
         Bugün henüz şehir bazlı ziyaret verisi yok.
@@ -38,56 +36,56 @@ export default function TurkeyVisitorMap({ data }: { data: Record<string, number
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="mx-auto w-full max-w-3xl"
         role="img"
-        aria-label="Bugünkü ziyaretçilerin şehirlere göre dağılımını gösteren Türkiye haritası"
+        aria-label="Bugünkü ziyaretçilerin illere göre dağılımını gösteren Türkiye haritası"
       >
         <rect x={0} y={0} width={WIDTH} height={HEIGHT} rx={16} className="fill-slate-50" />
-        <polygon
-          points={TR_OUTLINE.map(([lat, lon]) => project(lat, lon).join(",")).join(" ")}
-          className="fill-brand-100/70 stroke-brand-300"
-          strokeWidth={1.5}
-          strokeLinejoin="round"
-        />
-        {entries.map(([province, count]) => {
-          const coords = TR_PROVINCE_COORDS[province as keyof typeof TR_PROVINCE_COORDS];
-          if (!coords) return null;
-          const [x, y] = project(coords[0], coords[1]);
-          const radius = 5 + Math.sqrt(count / maxCount) * 20;
+        {TR_PROVINCES.map((province) => {
+          const path = TR_PROVINCE_PATHS[province];
+          if (!path) return null;
+          const count = data[province] ?? 0;
+          // Ziyaret yoksa nötr gri, varsa sayıyla orantılı koyulaşan marka rengi —
+          // en az %15 opaklık kullanılır ki tek ziyaretli iller de görünür kalsın.
+          const intensity = count === 0 ? 0 : 0.15 + (count / maxCount) * 0.75;
           return (
-            <g key={province}>
-              <circle
-                cx={x}
-                cy={y}
-                r={radius}
-                className="fill-brand-500/70 stroke-brand-700"
-                strokeWidth={1}
-              >
-                <title>
-                  Bugün {province}
-                  {ablativeSuffix(province)} {count} ziyaretçi aldınız
-                </title>
-              </circle>
-              <text
-                x={x}
-                y={y + 3}
-                textAnchor="middle"
-                className="pointer-events-none select-none fill-white text-[9px] font-bold"
-              >
-                {count}
-              </text>
-              <text
-                x={x}
-                y={y + radius + 11}
-                textAnchor="middle"
-                className="pointer-events-none select-none fill-slate-500 text-[9px] font-medium"
-              >
-                {province}
-              </text>
-            </g>
+            <path
+              key={province}
+              d={path}
+              className={count === 0 ? "fill-slate-200" : undefined}
+              style={count > 0 ? { fill: `rgba(29, 78, 216, ${intensity})` } : undefined}
+              stroke="#fff"
+              strokeWidth={0.75}
+              strokeLinejoin="round"
+            >
+              <title>
+                {count > 0
+                  ? `Bugün ${province}${ablativeSuffix(province)} ${count} ziyaretçi aldınız`
+                  : `${province}: bugün ziyaret yok`}
+              </title>
+            </path>
+          );
+        })}
+        {TR_PROVINCES.map((province) => {
+          const count = data[province] ?? 0;
+          if (count === 0) return null;
+          const centroid = TR_PROVINCE_CENTROIDS[province];
+          if (!centroid) return null;
+          const [x, y] = centroid;
+          return (
+            <text
+              key={province}
+              x={x}
+              y={y}
+              textAnchor="middle"
+              className="pointer-events-none select-none fill-white text-[9px] font-bold"
+              style={{ paintOrder: "stroke", stroke: "#1d4ed8", strokeWidth: 2 }}
+            >
+              {count}
+            </text>
           );
         })}
       </svg>
       <p className="mt-1 text-center text-xs text-slate-400">
-        Konumlar IP tabanlı ve yaklaşıktır, il sınırları kesin değildir.
+        Konumlar IP tabanlı ve yaklaşıktır, il sınırları basitleştirilmiştir.
       </p>
     </div>
   );
