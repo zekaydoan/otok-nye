@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Mesafeli Satış Sözleşmesi | OtoHafıza",
+  title: "Mesafeli Satış Sözleşmesi",
 };
 
 export default function MesafeliSatisSozlesmesiPage() {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "KVKK Aydınlatma Metni | OtoHafıza",
+  title: "KVKK Aydınlatma Metni",
 };
 
 export default function KvkkPage() {

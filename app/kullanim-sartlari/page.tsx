@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Kullanım Şartları | OtoHafıza",
+  title: "Kullanım Şartları",
 };
 
 export default function TermsPage() {

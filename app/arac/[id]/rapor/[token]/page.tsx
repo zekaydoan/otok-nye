@@ -7,7 +7,7 @@ import Logo from "@/components/Logo";
 import { WarningIcon } from "@/components/icons";
 
 export const metadata = {
-  title: "Araç Satış Raporu | OtoHafıza",
+  title: "Araç Satış Raporu",
 };
 
 // Bayinin panelden bilinçli olarak oluşturup paylaştığı, girişsiz erişilebilen tam

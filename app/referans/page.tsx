@@ -2,7 +2,7 @@ import Link from "next/link";
 import { UsersIcon, GiftIcon } from "@/components/icons";
 
 export const metadata = {
-  title: "Referans Programı | OtoHafıza",
+  title: "Referans Programı",
   description:
     "Bir tamirci arkadaşınızı OtoHafıza'ya getirin, ödül kazanın — referans programımız çok yakında.",
 };
