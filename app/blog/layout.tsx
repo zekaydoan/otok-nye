@@ -8,7 +8,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <Link href="/" className="text-xl">
             <Logo withText />
           </Link>
