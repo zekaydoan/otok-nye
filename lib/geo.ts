@@ -90,6 +90,48 @@ export const TR_PROVINCE_COORDS: Record<(typeof TR_PROVINCES)[number], [number, 
   Düzce: [40.84, 31.16],
 };
 
+// Türkiye'nin çok basitleştirilmiş dış hattı (kıyı şeridi + kara sınırı,
+// enlem/boylam çiftleri, saat yönünde) — components/TurkeyVisitorMap.tsx'te
+// dekoratif bir siluet olarak çizilir. Gerçek sınırın birebir aynısı değil,
+// tanınabilir kabaca bir yaklaşımdır (ör. Ege kıyısındaki çok sayıda küçük
+// koy/yarımada tek tek çizilmedi) — amaç idari kesinlik değil, "bu Türkiye"
+// dedirtecek kadar doğru bir görsel çerçeve sağlamak.
+export const TR_OUTLINE: [number, number][] = [
+  [41.75, 26.6],
+  [41.4, 26.3],
+  [40.9, 26.2],
+  [39.5, 26.2],
+  [38.4, 26.3],
+  [37.8, 27.0],
+  [37.05, 27.4],
+  [36.65, 28.2],
+  [36.2, 29.6],
+  [36.1, 30.7],
+  [36.0, 32.0],
+  [36.2, 33.6],
+  [36.6, 34.9],
+  [36.2, 35.9],
+  [36.0, 36.2],
+  [36.6, 36.5],
+  [37.0, 38.0],
+  [37.1, 39.5],
+  [37.3, 42.0],
+  [37.2, 44.0],
+  [39.7, 44.8],
+  [40.0, 43.6],
+  [41.0, 43.5],
+  [41.5, 41.5],
+  [41.1, 39.7],
+  [41.3, 38.0],
+  [41.3, 36.3],
+  [42.0, 35.2],
+  [41.7, 33.8],
+  [41.6, 32.3],
+  [41.3, 31.6],
+  [41.1, 29.1],
+  [41.4, 28.0],
+];
+
 // Türkçe karakterleri sadeleştirip küçük harfe çevirir — hem IP coğrafi konum
 // servislerinin (MaxMind tabanlı, genelde ASCII/İngilizce il adı döndürür,
 // ör. "Istanbul", "Izmir", "Sanliurfa") hem TR_PROVINCES'teki Türkçe yazımın

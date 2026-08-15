@@ -1,11 +1,11 @@
-import { ablativeSuffix, TR_PROVINCE_COORDS } from "@/lib/geo";
+import { ablativeSuffix, TR_OUTLINE, TR_PROVINCE_COORDS } from "@/lib/geo";
 
-// Türkiye'nin gerçek kıyı şeridini piksel piksel çizmek yerine (elle
-// hazırlanan bir taslak kolayca yanlış/çarpık görünebilir), bilinen il
-// merkezi enlem/boylamlarını basit bir eşdikdörtgen izdüşümle bir SVG
-// tuvaline yerleştirip ziyaret sayısıyla orantılı baloncuklar çiziyoruz —
-// haritanın arka planı yalnızca yumuşak, dekoratif bir kart; asıl bilgi
-// baloncukların konumu/boyutu ve native <title> tooltip'lerinde.
+// Bilinen il merkezi enlem/boylamlarını (ve kabaca bir Türkiye dış hattını,
+// bkz. lib/geo.ts TR_OUTLINE) aynı basit eşdikdörtgen izdüşümle bir SVG
+// tuvaline yerleştirip, dış hat içinde ziyaret sayısıyla orantılı baloncuklar
+// çiziyoruz. Dış hat idari sınırların birebir aynısı değil, dekoratif/kabaca
+// bir siluet — asıl veri baloncukların konumu/boyutu ve native <title>
+// tooltip'lerinde.
 const LAT_MIN = 35.8;
 const LAT_MAX = 42.3;
 const LON_MIN = 25.5;
@@ -40,13 +40,12 @@ export default function TurkeyVisitorMap({ data }: { data: Record<string, number
         role="img"
         aria-label="Bugünkü ziyaretçilerin şehirlere göre dağılımını gösteren Türkiye haritası"
       >
-        <rect
-          x={0}
-          y={0}
-          width={WIDTH}
-          height={HEIGHT}
-          rx={16}
-          className="fill-slate-50"
+        <rect x={0} y={0} width={WIDTH} height={HEIGHT} rx={16} className="fill-slate-50" />
+        <polygon
+          points={TR_OUTLINE.map(([lat, lon]) => project(lat, lon).join(",")).join(" ")}
+          className="fill-brand-100/70 stroke-brand-300"
+          strokeWidth={1.5}
+          strokeLinejoin="round"
         />
         {entries.map(([province, count]) => {
           const coords = TR_PROVINCE_COORDS[province as keyof typeof TR_PROVINCE_COORDS];
