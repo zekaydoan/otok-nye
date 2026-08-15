@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth";
+import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { countUnseenWhatsappAppointments, getShopById, getStaffById } from "@/lib/blobStore";
 import { PLAN_LIMITS } from "@/lib/types";
 import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
 import { ToastProvider } from "@/components/Toast";
-import { CalendarIcon, LightbulbIcon, SettingsIcon } from "@/components/icons";
+import { CalendarIcon, ChartBarIcon, LightbulbIcon, SettingsIcon } from "@/components/icons";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getCurrentSession();
@@ -24,6 +25,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // bayinin henüz görmediği randevu sayısı — Randevular ikonunda kırmızı rozet
   // olarak gösterilir (bkz. lib/blobStore.countUnseenWhatsappAppointments).
   const unseenWhatsappAppointments = await countUnseenWhatsappAppointments(session.shopId);
+  // ADMIN_EMAILS ile eşleşen tek hesaba (site yöneticisine) özel görünen bir
+  // giriş noktası — daha önce /admin/istatistikler'e ulaşmanın tek yolu adres
+  // çubuğuna elle yazmaktı, oturum kapalıyken de düz bir 404 dönüyordu ve
+  // "buraya nasıl giriş yapılır" hiçbir yerde belirtilmiyordu. Bu link yalnızca
+  // giriş yapmış olan hesap admin ise render edilir; diğer bayiler için bu
+  // koddan bile admin panelinin var olduğu anlaşılmaz.
+  const isAdmin = Boolean(await getCurrentAdminShopId());
 
   return (
     <ToastProvider>
@@ -78,6 +86,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
               >
                 {PLAN_LIMITS[shop.plan].label} plan
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin/istatistikler"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Admin Paneli"
+                  title="Admin Paneli"
+                >
+                  <ChartBarIcon className="h-[18px] w-[18px]" />
+                </Link>
+              )}
               <Link
                 href="/dashboard/ayarlar"
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
