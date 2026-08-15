@@ -717,6 +717,10 @@ export default function HomePage() {
           © {new Date().getFullYear()} OtoHafıza — Aracının dijital hafızası.
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+          <a href="mailto:hello@otohafiza.com" className="underline">
+            hello@otohafiza.com
+          </a>
+          <span className="text-slate-300">·</span>
           <Link href="/kvkk" className="underline">
             KVKK Aydınlatma Metni
           </Link>
