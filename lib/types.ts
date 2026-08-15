@@ -285,6 +285,13 @@ export interface StickerOrder {
   // locking ile set edilir, böylece aynı sipariş için Purchase birden fazla kez
   // gönderilmez (bkz. components/PurchaseConversionPing.tsx).
   metaPurchaseTrackedAt?: string;
+  // Sipariş iptal edildiyse (status "iptal") kimin/ne zaman iptal ettiğini
+  // ayırt etmek için — admin sipariş listesinde "müşteri vazgeçti" ile
+  // "admin iptal etti" (ör. stok/üretim sorunu) durumlarını birbirinden
+  // ayırabilsin diye. Bkz. app/api/etiket-siparis/[id]/iptal/route.ts
+  // (bayi tarafı) ve app/api/admin/siparisler/[id]/route.ts (admin tarafı).
+  cancelledBy?: "bayi" | "admin";
+  cancelledAt?: string;
   createdAt: string;
   updatedAt: string;
 }

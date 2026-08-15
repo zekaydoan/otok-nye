@@ -37,3 +37,14 @@ export function stickerOrderTrackingIndex(status: StickerOrderStatus): number {
 export function isStickerOrderInTrackingFlow(status: StickerOrderStatus): boolean {
   return stickerOrderTrackingIndex(status) !== -1;
 }
+
+// Bayi, siparişini yalnızca fiziksel olarak kargoya verilmeden önce iptal
+// edebilir — "kargoda"/"teslim_edildi" durumunda artık bir ürün yolda/elinde
+// olduğundan bu, iptal değil iade/cayma hakkı sürecidir (bkz. Mesafeli Satış
+// Sözleşmesi, 14 günlük cayma hakkı — bu durumda müşteri bizimle iletişime
+// geçmeli, panelden tek tıkla "iptal" bu aşamada yanıltıcı olur). Zaten
+// iptal edilmiş veya ödemesi başarısız olmuş bir siparişte de gösterecek bir
+// "iptal et" işlemi yoktur.
+export function isStickerOrderCancelableByShop(status: StickerOrderStatus): boolean {
+  return status === "odeme_bekleniyor" || status === "odendi" || status === "hazirlaniyor";
+}

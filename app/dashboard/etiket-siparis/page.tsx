@@ -2,14 +2,8 @@ import Link from "next/link";
 import { getCurrentShopId } from "@/lib/auth";
 import { getShopById, getStickerUnitPriceTry, listStickerOrdersByShop } from "@/lib/blobStore";
 import { isBillingInfoComplete } from "@/lib/billing";
-import { STICKER_ORDER_STATUS_LABELS } from "@/lib/types";
-import {
-  STICKER_ORDER_TRACKING_STEPS,
-  isStickerOrderInTrackingFlow,
-  stickerOrderStatusBadgeClass,
-  stickerOrderTrackingIndex,
-} from "@/lib/stickerOrderUi";
 import StickerOrderForm from "@/components/StickerOrderForm";
+import StickerOrderList from "@/components/StickerOrderList";
 import { BrandMark, CheckIcon } from "@/components/icons";
 
 const BENEFITS = [
@@ -98,65 +92,7 @@ export default async function StickerOrderPage() {
       {orders.length > 0 && (
         <div className="mt-10">
           <h2 className="text-lg font-bold text-slate-900">Siparişlerim</h2>
-          <div className="mt-3 space-y-2">
-            {orders.map((order) => {
-              const inFlow = isStickerOrderInTrackingFlow(order.status);
-              const currentIdx = stickerOrderTrackingIndex(order.status);
-              return (
-                <div
-                  key={order.id}
-                  className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">
-                        {order.quantity} adet — {order.totalPriceTry.toFixed(2)}₺
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {new Date(order.createdAt).toLocaleDateString("tr-TR")}
-                        {order.trackingNumber ? ` · Takip No: ${order.trackingNumber}` : ""}
-                      </p>
-                    </div>
-                    {!inFlow && (
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${stickerOrderStatusBadgeClass(
-                          order.status
-                        )}`}
-                      >
-                        {STICKER_ORDER_STATUS_LABELS[order.status]}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Ödemesi onaylanmış siparişler için mini kargo takip göstergesi. */}
-                  {inFlow && (
-                    <div className="mt-3 flex items-center">
-                      {STICKER_ORDER_TRACKING_STEPS.map((step, i) => (
-                        <div key={step} className="flex items-center">
-                          <span
-                            className={`h-2.5 w-2.5 rounded-full ${
-                              i <= currentIdx ? "bg-brand-600" : "bg-slate-200"
-                            }`}
-                            title={STICKER_ORDER_STATUS_LABELS[step]}
-                          />
-                          {i < STICKER_ORDER_TRACKING_STEPS.length - 1 && (
-                            <span
-                              className={`h-px w-6 sm:w-10 ${
-                                i < currentIdx ? "bg-brand-600" : "bg-slate-200"
-                              }`}
-                            />
-                          )}
-                        </div>
-                      ))}
-                      <span className="ml-2 text-xs font-medium text-brand-700">
-                        {STICKER_ORDER_STATUS_LABELS[order.status]}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <StickerOrderList orders={orders} />
         </div>
       )}
     </div>

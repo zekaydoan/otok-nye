@@ -129,6 +129,15 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
 
       {status === "iptal" && (
         <div className="mt-3 flex flex-wrap items-end gap-3 rounded-lg bg-slate-50 p-3">
+          {order.cancelledBy === "bayi" && (
+            <p className="w-full text-xs text-slate-500">
+              Bayi tarafından panelden iptal edildi
+              {order.cancelledAt
+                ? ` — ${new Date(order.cancelledAt).toLocaleString("tr-TR")}`
+                : ""}
+              .
+            </p>
+          )}
           <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
             <input
               type="checkbox"
