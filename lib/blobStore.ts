@@ -67,6 +67,7 @@ const suggestionsByShopStore = () => getStore("suggestions_by_shop");
 // trafikte birkaç görüntüleme kaybolabilir; bu, kaba bir trend göstergesi için
 // yeterlidir ama kesin bir sayaç değildir (bkz. lib/rateLimit.ts aynı not).
 const siteAnalyticsStore = () => getStore("site_analytics");
+const cityVisitsStore = () => getStore("city_visits");
 // KVKK self-servis veri talepleri (bkz. lib/types.ts DataRequest) — bayi
 // bazında değil, doğrudan admin tarafından tek listede değerlendirildiği için
 // suggestions'ın aksine ayrı bir shopId indeksine gerek yok.
@@ -830,6 +831,32 @@ export async function incrementDailyPageview(dateISO: string): Promise<void> {
 export interface DailyPageviewStat {
   date: string; // YYYY-MM-DD
   count: number;
+}
+
+// Netlify'ın CDN'in eklediği x-nf-geo header'ından çıkarılan, TR_PROVINCES'e
+// eşleşen il adına göre günlük ziyaret sayacı — IP adresi hiçbir yerde
+// saklanmaz, yalnızca "bugün X ilinden kaç sayfa görüntüleme oldu" toplamı
+// tutulur (bkz. app/api/analytics/pageview/route.ts, lib/geo.ts). Tek bir blob
+// içinde { "İstanbul": 10, "Manisa": 5 } şeklinde günlük harita tutulur —
+// incrementDailyPageview ile aynı best-effort/non-atomic okuma-yazma deseni.
+export async function incrementCityVisit(dateISO: string, province: string): Promise<void> {
+  const key = `${dateISO}`;
+  const existing = (await cityVisitsStore().get(key, { type: "json" })) as Record<
+    string,
+    number
+  > | null;
+  const counts = existing ?? {};
+  counts[province] = (counts[province] ?? 0) + 1;
+  await cityVisitsStore().setJSON(key, counts);
+}
+
+// Belirli bir günün (varsayılan bugün) il bazlı ziyaret dağılımını döner.
+export async function getCityVisits(dateISO: string): Promise<Record<string, number>> {
+  const counts = (await cityVisitsStore().get(dateISO, { type: "json" })) as Record<
+    string,
+    number
+  > | null;
+  return counts ?? {};
 }
 
 // Son `days` günün (bugün dahil) günlük sayfa görüntüleme sayılarını, en eskiden en

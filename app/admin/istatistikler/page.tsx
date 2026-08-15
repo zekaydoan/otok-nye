@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import {
+  getCityVisits,
   getDailyPageviews,
   getPlanRevenueStats,
   getPlanStartStats,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/blobStore";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 import { ChartBarIcon, PackageIcon, UsersIcon } from "@/components/icons";
+import TurkeyVisitorMap from "@/components/TurkeyVisitorMap";
 
 // Yalnızca ADMIN_EMAILS ortam değişkeninde tanımlı hesaplara açık — bkz.
 // app/admin/siparisler/page.tsx ile aynı desen ve gerekçe.
@@ -25,14 +27,17 @@ export default async function AdminStatsPage() {
   const adminShopId = await getCurrentAdminShopId();
   if (!adminShopId) notFound();
 
-  const [pageviews, planCounts, planStartStats, planRevenue, orderStats, shops] = await Promise.all([
-    getDailyPageviews(14),
-    getShopCountsByPlan(),
-    getPlanStartStats(),
-    getPlanRevenueStats(),
-    getStickerOrderStats(),
-    listAllShops(),
-  ]);
+  const today = new Date().toISOString().slice(0, 10);
+  const [pageviews, planCounts, planStartStats, planRevenue, orderStats, shops, cityVisits] =
+    await Promise.all([
+      getDailyPageviews(14),
+      getShopCountsByPlan(),
+      getPlanStartStats(),
+      getPlanRevenueStats(),
+      getStickerOrderStats(),
+      listAllShops(),
+      getCityVisits(today),
+    ]);
 
   const todayViews = pageviews[pageviews.length - 1]?.count ?? 0;
   const last14DaysViews = pageviews.reduce((sum, d) => sum + d.count, 0);
@@ -85,6 +90,21 @@ export default async function AdminStatsPage() {
               <span className="text-[9px] text-slate-400">{d.date.slice(8, 10)}</span>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Bugünkü ziyaretçilerin şehir dağılımı */}
+      <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <div className="flex items-center gap-2">
+          <ChartBarIcon className="h-5 w-5 text-brand-600" />
+          <h2 className="font-bold text-slate-900">Bugün Hangi Şehirlerden Ziyaret Edildi</h2>
+        </div>
+        <p className="mt-1 text-xs text-slate-400">
+          Netlify'ın IP tabanlı (yaklaşık) coğrafi konum verisinden hesaplanır — kişi/IP
+          hiçbir yerde saklanmaz, yalnızca ilin bugünkü toplam sayacı tutulur.
+        </p>
+        <div className="mt-4">
+          <TurkeyVisitorMap data={cityVisits} />
         </div>
       </section>
 
