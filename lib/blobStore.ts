@@ -990,6 +990,34 @@ export async function getCityVisits(dateISO: string): Promise<Record<string, num
   return counts ?? {};
 }
 
+// getDailyPageviews ile aynı "son N günü tek tek oku, topla" deseni — ama tarih
+// bazlı toplam yerine il bazlı toplam biriktirir. Reklam hedeflemesi için "bu ay/
+// bu yıl en çok ziyaret hangi şehirden geldi" sorusuna cevap verir (bkz.
+// app/admin/istatistikler/page.tsx). Netlify Blobs'ta il başına ayrı anahtar
+// tutmadığımız için (günlük tek blob içinde harita) burada da günleri tek tek
+// gezip client tarafında topluyoruz — admin panelinde nadiren, düşük trafikle
+// çağrıldığı için performans sorun değil.
+export async function getCityVisitsRange(days: number): Promise<Record<string, number>> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const totals: Record<string, number> = {};
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateISO = d.toISOString().slice(0, 10);
+    const dayCounts = (await cityVisitsStore().get(dateISO, { type: "json" })) as Record<
+      string,
+      number
+    > | null;
+    if (dayCounts) {
+      for (const [city, count] of Object.entries(dayCounts)) {
+        totals[city] = (totals[city] ?? 0) + count;
+      }
+    }
+  }
+  return totals;
+}
+
 // ---------- Anlık (aktif) ziyaretçi sayacı ----------
 // "Şu an sitede kaç kişi var" — kalıcı bir ziyaret geçmişi değil, yalnızca
 // SON birkaç dakika içinde bir "nabız" (heartbeat) sinyali göndermiş anonim

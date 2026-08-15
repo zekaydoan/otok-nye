@@ -3,6 +3,7 @@ import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import {
   getActiveVisitorCount,
   getCityVisits,
+  getCityVisitsRange,
   getDailyPageviews,
   getPlanRevenueStats,
   getPlanStartStats,
@@ -29,7 +30,16 @@ export default async function AdminStatsPage() {
   const adminShopId = await getCurrentAdminShopId();
   if (!adminShopId) notFound();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  // Bu ay / bu yıl toplamları için getCityVisitsRange'e kaç gün geriye
+  // gidileceğini hesaplıyoruz: ayın kaçıncı günündeyiz (1 Ağustos'ta 1, 15
+  // Ağustos'ta 15...) ve yılın kaçıncı günündeyiz — böylece takvim ayı/yılı
+  // başlangıcından bugüne kadarki (ay/yıl-başı - bugün) aralık toplanır.
+  const dayOfMonth = now.getDate();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / 86400000) + 1;
+
   const [
     pageviews,
     planCounts,
@@ -38,6 +48,8 @@ export default async function AdminStatsPage() {
     orderStats,
     shops,
     cityVisits,
+    cityVisitsMonth,
+    cityVisitsYear,
     activeVisitors,
   ] = await Promise.all([
     getDailyPageviews(14),
@@ -47,8 +59,25 @@ export default async function AdminStatsPage() {
     getStickerOrderStats(),
     listAllShops(),
     getCityVisits(today),
+    getCityVisitsRange(dayOfMonth),
+    getCityVisitsRange(dayOfYear),
     getActiveVisitorCount(),
   ]);
+
+  // Bir şehir sayacı içinden en yüksek değere sahip olanı ("Belirtilmemiş"
+  // hariç, o coğrafi olarak anlamlı bir şehir değil) bulan küçük yardımcı —
+  // reklam hedeflemesi için "en çok ziyaret nereden geliyor" sorusuna cevap.
+  const topCity = (counts: Record<string, number>): { city: string; count: number } | null => {
+    let best: { city: string; count: number } | null = null;
+    for (const [city, count] of Object.entries(counts)) {
+      if (city === "Belirtilmemiş") continue;
+      if (!best || count > best.count) best = { city, count };
+    }
+    return best;
+  };
+  const topCityToday = topCity(cityVisits);
+  const topCityMonth = topCity(cityVisitsMonth);
+  const topCityYear = topCity(cityVisitsYear);
 
   const todayViews = pageviews[pageviews.length - 1]?.count ?? 0;
   const last14DaysViews = pageviews.reduce((sum, d) => sum + d.count, 0);
@@ -115,7 +144,19 @@ export default async function AdminStatsPage() {
           Netlify'ın IP tabanlı (yaklaşık) coğrafi konum verisinden hesaplanır — kişi/IP
           hiçbir yerde saklanmaz, yalnızca ilin bugünkü toplam sayacı tutulur.
         </p>
-        <div className="mt-4">
+
+        {/* En çok ziyaret alan şehir — bugün/bu ay/bu yıl. Bu üç sayı zaman
+            içinde biriken günlük il sayaçlarından hesaplanıyor (bkz.
+            getCityVisitsRange), yani reklam bütçesini hangi şehre yönlendirmenin
+            en mantıklı olduğunu görmek için kalıcı olarak saklanan veriyi
+            kullanıyor. */}
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <TopCityCard label="Bugün En Çok Ziyaret" topCity={topCityToday} />
+          <TopCityCard label="Bu Ay En Çok Ziyaret" topCity={topCityMonth} />
+          <TopCityCard label="Bu Yıl En Çok Ziyaret" topCity={topCityYear} />
+        </div>
+
+        <div className="mt-5">
           <TurkeyVisitorMap data={cityVisits} />
         </div>
       </section>
@@ -244,6 +285,30 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
       <p className="text-xs font-medium text-slate-500">{label}</p>
       <p className="mt-1 text-xl font-bold text-slate-900">{value}</p>
       {sub && <p className="mt-0.5 text-[11px] text-slate-400">{sub}</p>}
+    </div>
+  );
+}
+
+// Bugün/Bu Ay/Bu Yıl en çok ziyaret alan tek bir şehri gösteren küçük kart —
+// bkz. app/admin/istatistikler/page.tsx içindeki topCity() yardımcı fonksiyonu.
+function TopCityCard({
+  label,
+  topCity,
+}: {
+  label: string;
+  topCity: { city: string; count: number } | null;
+}) {
+  return (
+    <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
+      <p className="text-xs font-medium text-slate-500">{label}</p>
+      {topCity ? (
+        <>
+          <p className="mt-1 text-lg font-bold text-slate-900">{topCity.city}</p>
+          <p className="mt-0.5 text-[11px] text-slate-400">{topCity.count} ziyaret</p>
+        </>
+      ) : (
+        <p className="mt-1 text-sm text-slate-400">Henüz veri yok</p>
+      )}
     </div>
   );
 }
