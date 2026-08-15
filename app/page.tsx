@@ -564,6 +564,27 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section id="ozellikler" className="mx-auto max-w-6xl px-6 py-16">
+        <h2 className="text-center text-2xl font-bold text-slate-900">Neler sunuyoruz?</h2>
+        <p className="mx-auto mt-2 max-w-2xl text-center text-slate-600">
+          Tek bir panelden aracın tüm geçmişini, günlük iş listenizi ve ekibinizi yönetin.
+        </p>
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((f) => (
+            <div
+              key={f.title}
+              className="hover-lift rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-100 hover:shadow-md"
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                <f.icon className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-semibold text-slate-900">{f.title}</h3>
+              <p className="mt-2 text-sm text-slate-600">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="bg-slate-50 py-16">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-center text-2xl font-bold text-slate-900">Nasıl çalışır?</h2>
@@ -599,27 +620,6 @@ export default function HomePage() {
               className="w-full"
             />
           </div>
-        </div>
-      </section>
-
-      <section id="ozellikler" className="mx-auto max-w-6xl px-6 py-16">
-        <h2 className="text-center text-2xl font-bold text-slate-900">Neler sunuyoruz?</h2>
-        <p className="mx-auto mt-2 max-w-2xl text-center text-slate-600">
-          Tek bir panelden aracın tüm geçmişini, günlük iş listenizi ve ekibinizi yönetin.
-        </p>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
-            <div
-              key={f.title}
-              className="hover-lift rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-100 hover:shadow-md"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-600">
-                <f.icon className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-semibold text-slate-900">{f.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{f.desc}</p>
-            </div>
-          ))}
         </div>
       </section>
 
