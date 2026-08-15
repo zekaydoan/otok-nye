@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import PaymentBadges from "@/components/PaymentBadges";
 
 export default function StickerOrderForm({
@@ -13,6 +14,7 @@ export default function StickerOrderForm({
   defaultPhone?: string;
   defaultName?: string;
 }) {
+  const router = useRouter();
   const [quantity, setQuantity] = useState(50);
   const [labelName, setLabelName] = useState(defaultName || "");
   const [labelPhone, setLabelPhone] = useState(defaultPhone || "");
@@ -54,6 +56,10 @@ export default function StickerOrderForm({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (data.requiresBilling) {
+          router.push(`/dashboard/fatura-bilgileri?returnTo=${encodeURIComponent("/dashboard/etiket-siparis")}`);
+          return;
+        }
         setError(data.error || "Sipariş oluşturulamadı, lütfen tekrar deneyin.");
         return;
       }

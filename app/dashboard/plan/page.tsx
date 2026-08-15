@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { getCurrentSession } from "@/lib/auth";
 import { getShopById } from "@/lib/blobStore";
+import { isBillingInfoComplete } from "@/lib/billing";
 import PlanSelector from "@/components/PlanSelector";
 
 export default async function PlanPage() {
@@ -15,6 +17,20 @@ export default async function PlanPage() {
         sağlayıcı hesabınız (ör. iyzico/Stripe) tanımlandığında devreye alınabilir —
         şimdilik plan seçiminiz hesabınıza kaydedilir.
       </p>
+
+      {shop && isOwner && shop.plan === "free" && !isBillingInfoComplete(shop.billingInfo) && (
+        <div className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Ücretli bir plana geçmeden önce{" "}
+          <Link
+            href={`/dashboard/fatura-bilgileri?returnTo=${encodeURIComponent("/dashboard/plan")}`}
+            className="font-semibold underline"
+          >
+            fatura bilgilerinizi
+          </Link>{" "}
+          kaydetmeniz gerekecek — kestiğimiz her fatura için zorunlu.
+        </div>
+      )}
+
       {shop && isOwner && <PlanSelector currentPlan={shop.plan} />}
       {shop && !isOwner && (
         <div className="mt-6 rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-700">

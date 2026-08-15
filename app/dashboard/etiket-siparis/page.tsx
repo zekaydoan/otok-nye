@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { getCurrentShopId } from "@/lib/auth";
 import { getShopById, getStickerUnitPriceTry, listStickerOrdersByShop } from "@/lib/blobStore";
+import { isBillingInfoComplete } from "@/lib/billing";
 import { STICKER_ORDER_STATUS_LABELS } from "@/lib/types";
 import {
   STICKER_ORDER_TRACKING_STEPS,
@@ -75,7 +77,23 @@ export default async function StickerOrderPage() {
         </div>
       </div>
 
-      <StickerOrderForm unitPriceTry={unitPriceTry} defaultPhone={shop?.phone} defaultName={shop?.name} />
+      {shop && !isBillingInfoComplete(shop.billingInfo) ? (
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+          <p className="font-semibold">Önce fatura bilgilerinizi tamamlamanız gerekiyor.</p>
+          <p className="mt-1">
+            Etiket siparişiniz için e-fatura/e-arşiv kesebilmemiz adına Bireysel/Kurumsal
+            fatura bilgilerinizi bir kez kaydetmeniz yeterli.
+          </p>
+          <Link
+            href={`/dashboard/fatura-bilgileri?returnTo=${encodeURIComponent("/dashboard/etiket-siparis")}`}
+            className="mt-3 inline-block rounded-lg bg-amber-600 px-4 py-2 font-semibold text-white hover:bg-amber-700"
+          >
+            Fatura Bilgilerini Doldur
+          </Link>
+        </div>
+      ) : (
+        <StickerOrderForm unitPriceTry={unitPriceTry} defaultPhone={shop?.phone} defaultName={shop?.name} />
+      )}
 
       {orders.length > 0 && (
         <div className="mt-10">

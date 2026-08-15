@@ -22,6 +22,10 @@ export default function PlanSelector({ currentPlan }: { currentPlan: Plan }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
+        if (data.requiresBilling) {
+          router.push(`/dashboard/fatura-bilgileri?returnTo=${encodeURIComponent("/dashboard/plan")}`);
+          return;
+        }
         setError(data.error || "Plan değiştirilemedi, lütfen tekrar deneyin.");
         return;
       }

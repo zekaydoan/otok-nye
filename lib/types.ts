@@ -42,7 +42,39 @@ export interface Shop {
   // blobStore.markAnnouncementsSeen). Alan tanımsızsa hesap oluşturulduğundan
   // beri hiç duyuru görülmemiş kabul edilir.
   lastSeenAnnouncementAt?: string; // ISO
+  // Ücretli plan/etiket satın alımlarında kesilecek fatura için gerekli bilgiler
+  // (bkz. BillingInfo). Kayıt anında toplanmaz — yalnızca ilk ücretli satın alma
+  // girişiminde zorunlu tutulur (bkz. lib/billing.ts, app/dashboard/fatura-bilgileri).
+  billingInfo?: BillingInfo;
   createdAt: string;
+}
+
+// ---------- Fatura Bilgileri ----------
+// Her plan/etiket satın alımı için e-fatura/e-arşiv kesileceğinden, ilk ücretli
+// satın alma öncesinde bu bilgilerin eksiksiz toplanması zorunlu tutulur (bkz.
+// lib/billing.ts isBillingInfoComplete, app/api/shop/plan, app/api/etiket-siparis).
+// E-posta kasıtlı olarak zorunlu DEĞİL — pek çok küçük esnaf/usta için e-posta
+// takip edilmiyor, fatura zaten resmi adrese/GİB sistemine düşüyor.
+export type BillingType = "bireysel" | "kurumsal";
+
+export type EInvoiceType = "e-fatura" | "e-arsiv";
+
+export const E_INVOICE_TYPE_LABELS: Record<EInvoiceType, string> = {
+  "e-fatura": "E-Fatura mükellefiyim",
+  "e-arsiv": "E-Arşiv (mükellef değilim)",
+};
+
+export interface BillingInfo {
+  type: BillingType;
+  fullName?: string; // Bireysel'de zorunlu (Ad Soyad)
+  companyName?: string; // Kurumsal'da zorunlu (Firma Unvanı)
+  taxOffice: string; // Vergi Dairesi — her iki tipte de zorunlu
+  taxNumber: string; // Bireysel: T.C. Kimlik No (11 hane), Kurumsal: Vergi No (10 hane)
+  address: string; // her iki tipte de zorunlu
+  phone: string; // her iki tipte de zorunlu
+  eInvoiceType: EInvoiceType; // her iki tipte de zorunlu
+  email?: string; // bilinçli olarak isteğe bağlı
+  updatedAt: string; // ISO
 }
 
 export interface PublicShop {

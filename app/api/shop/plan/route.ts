@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/auth";
-import { recordPlanStart, updateShopFields } from "@/lib/blobStore";
+import { getShopById, recordPlanStart, updateShopFields } from "@/lib/blobStore";
+import { isBillingInfoComplete } from "@/lib/billing";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
@@ -16,6 +17,20 @@ export async function POST(req: NextRequest) {
   const { plan } = (await req.json()) as { plan?: Plan };
   if (!plan || !(plan in PLAN_LIMITS)) {
     return NextResponse.json({ error: "Geçersiz plan." }, { status: 400 });
+  }
+
+  // Ücretsiz olmayan her plan için fatura kesileceğinden (bkz. lib/billing.ts),
+  // fatura bilgileri eksikse ödeme/plan değişikliğine izin verilmez — istemci
+  // bu koddan yakalayıp /dashboard/fatura-bilgileri'ne yönlendirir (bkz.
+  // components/PlanSelector.tsx).
+  if (plan !== "free") {
+    const shop = await getShopById(shopId);
+    if (!shop || !isBillingInfoComplete(shop.billingInfo)) {
+      return NextResponse.json(
+        { error: "Devam etmeden önce fatura bilgilerinizi kaydetmeniz gerekiyor.", requiresBilling: true },
+        { status: 409 }
+      );
+    }
   }
 
   try {

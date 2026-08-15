@@ -146,6 +146,16 @@ export async function updateShopFields(
   throw new Error("Kayıt eşzamanlı olarak değiştirildi, lütfen tekrar deneyin.");
 }
 
+// Fatura bilgilerini kaydeder/günceller (bkz. lib/billing.ts, types.ts
+// BillingInfo) — updateShopFields'ın (yukarıda) ETag tabanlı iyimser kilitleme
+// deseniyle aynı, iki sekmeden art arda kaydetmede veri kaybını önler.
+export async function updateShopBillingInfo(
+  shopId: string,
+  billingInfo: BillingInfo
+): Promise<Shop> {
+  return updateShopFields(shopId, (shop) => ({ ...shop, billingInfo }));
+}
+
 // ---------- Şifre sıfırlama ----------
 interface PasswordResetRecord {
   shopId: string;

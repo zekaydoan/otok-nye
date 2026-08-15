@@ -9,6 +9,7 @@ import {
   linkStickerOrderToken,
 } from "@/lib/blobStore";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { isBillingInfoComplete } from "@/lib/billing";
 import { initializeCheckoutForm } from "@/lib/iyzico";
 import type { StickerOrder, StickerOrderAddress } from "@/lib/types";
 
@@ -40,6 +41,16 @@ export async function POST(req: NextRequest) {
 
   const shop = await getShopById(shopId);
   if (!shop) return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
+
+  // Her etiket siparişi için fatura kesileceğinden (bkz. lib/billing.ts),
+  // fatura bilgileri eksikse ödeme başlatılmaz — istemci bu koddan yakalayıp
+  // /dashboard/fatura-bilgileri'ne yönlendirir (bkz. components/StickerOrderForm.tsx).
+  if (!isBillingInfoComplete(shop.billingInfo)) {
+    return NextResponse.json(
+      { error: "Devam etmeden önce fatura bilgilerinizi kaydetmeniz gerekiyor.", requiresBilling: true },
+      { status: 409 }
+    );
+  }
 
   const body = await req.json();
   const {
