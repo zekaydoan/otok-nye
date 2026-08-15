@@ -4,6 +4,7 @@ import { listBlogPosts } from "@/lib/blogPosts";
 import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
 import FaqAccordion from "@/components/FaqAccordion";
+import MobileNavMenu from "@/components/MobileNavMenu";
 import {
   BellIcon,
   BrandMark,
@@ -228,7 +229,7 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <header className="border-b bg-white">
+      <header className="relative border-b bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <Link href="/" className="text-xl">
             <Logo withText />
@@ -255,6 +256,10 @@ export default function HomePage() {
             >
               Ücretsiz Başla
             </Link>
+            {/* Masaüstünde yukarıdaki linkler zaten görünür (sm:inline); bu
+                buton yalnızca mobilde (sm:hidden) render olur ve o linklere
+                giden bir açılır panel sağlar — bkz. MobileNavMenu.tsx. */}
+            <MobileNavMenu />
           </nav>
         </div>
       </header>

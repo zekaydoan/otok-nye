@@ -245,6 +245,24 @@ export function QrIcon(props: IconProps) {
   );
 }
 
+// Mobil header'daki hamburger menü butonu için (bkz. components/MobileNavMenu.tsx).
+export function MenuIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden {...props}>
+      <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+// Mobil menü açıkken hamburger ikonunun yerini alan kapatma çarpısı.
+export function CloseIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden {...props}>
+      <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
+
 // Sayfayı en yukarı kaydırma butonu için (bkz. components/ScrollToTop.tsx).
 export function ArrowUpIcon(props: IconProps) {
   return (
