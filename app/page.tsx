@@ -329,15 +329,16 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Başlıktaki "araca yapıştırın, okutun" sözünü tek bakışta somutlaştıran
-              illüstrasyon (bkz. components/QrScanIllustration.tsx) — önceki soyut
-              veri kartı yerine, metni okumadan da ne anlatıldığını anlatan bir
-              sahne. Üzerine binen iki küçük rozet, otomatik hatırlatma özelliğini
-              de aynı görsele ekliyor. */}
+          {/* Başlıktaki "araca yapıştırın, okutun" sözünü tek bakışta somutlaştıran,
+              hareketli/parlak bir illüstrasyon (bkz. components/QrScanIllustration.tsx)
+              — önceki sakin/soyut kart yerine, canlı renkli degrade bir arka plan
+              panelinde, nabız gibi atan bir tarama efektiyle çok daha dikkat çekici
+              bir "hero görseli" hissi hedefliyor. Üzerine binen iki küçük rozet,
+              otomatik hatırlatma özelliğini de aynı görsele ekliyor. */}
           <div className="relative flex justify-center lg:justify-self-center">
-            <div className="relative w-full max-w-sm">
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xl sm:p-6">
-                <QrScanIllustration className="w-full" />
+            <div className="relative w-full max-w-md">
+              <div className="rotate-2 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-slate-900 p-4 shadow-2xl shadow-brand-900/30 transition-transform hover:rotate-0 sm:p-6">
+                <QrScanIllustration className="w-full drop-shadow-xl" />
               </div>
 
               {/* Ana görselin üzerine hafifçe taşan iki küçük rozet — QR okutma anını
