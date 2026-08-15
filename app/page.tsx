@@ -247,7 +247,11 @@ export default function HomePage() {
             <Link href="/blog" className="hidden hover:text-brand-700 sm:inline">
               Blog
             </Link>
-            <Link href="/giris" className="hover:text-brand-700">
+            {/* Mobilde logo büyüdükten sonra "Giriş Yap" + buton + hamburger
+                tek satıra sığmayıp alt satıra taşıyordu — bu link mobilde
+                gizlenip hamburger menüye taşındı (bkz. MobileNavMenu.tsx),
+                masaüstünde (sm:inline) eskisi gibi görünmeye devam ediyor. */}
+            <Link href="/giris" className="hidden hover:text-brand-700 sm:inline">
               Giriş Yap
             </Link>
             <Link

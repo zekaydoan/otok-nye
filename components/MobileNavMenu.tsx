@@ -17,6 +17,10 @@ const links = [
   { href: "#fiyatlandirma", label: "Fiyatlandırma" },
   { href: "#iletisim", label: "İletişim" },
   { href: "/blog", label: "Blog" },
+  // Header'daki bağımsız "Giriş Yap" linki artık mobilde gizli (sm:inline) —
+  // logo büyüdükten sonra header'da yer kalmadığı için buraya taşındı,
+  // mobil kullanıcı girişe hâlâ buradan ulaşabiliyor.
+  { href: "/giris", label: "Giriş Yap" },
 ];
 
 export default function MobileNavMenu() {
