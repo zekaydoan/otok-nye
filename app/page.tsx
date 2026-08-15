@@ -281,25 +281,22 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Kullanıcının gösterdiği reklam görseline (koyu zemin, parlayan QR,
-          telefon ekran görüntüsü, tarama ışını, bildirim balonu, sol tarafta
-          özellik listesi) olabildiğince yakın, tamamen kod/CSS ile üretilmiş bir
-          "reklam afişi" hissi — gerçek bir fotoğraf değil (bu ortamda görsel
-          üretimi yok), ama aynı kompozisyonu ve enerjiyi hedefliyor. */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-brand-950 to-slate-900 py-14 sm:py-20 lg:py-28">
-        {/* Derinlik için bulanık renkli lekeler + motor bölmesini çağrıştıran
-            çok soluk bir araba silueti (fotoğraf değil, saf CSS/SVG doku). */}
+      {/* Kullanıcının gösterdiği reklam görseline (parlayan QR, telefon ekran
+          görüntüsü, tarama ışını, bildirim balonu, sol tarafta özellik listesi)
+          olabildiğince yakın, tamamen kod/CSS ile üretilmiş bir "reklam afişi"
+          hissi — gerçek bir fotoğraf değil (bu ortamda görsel üretimi yok), ama
+          aynı kompozisyonu ve enerjiyi hedefliyor. Zemin, ilk sürümdeki neredeyse
+          siyah tondan — kullanıcı geri bildirimiyle — daha açık, canlı bir marka
+          mavisine çevrildi. */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-14 sm:py-20 lg:py-28">
+        {/* Derinlik için bulanık renkli lekeler */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -left-24 top-0 h-96 w-96 rounded-full bg-brand-600/25 blur-3xl"
+          className="pointer-events-none absolute -left-24 top-0 h-96 w-96 rounded-full bg-white/10 blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-24 bottom-0 h-[28rem] w-[28rem] rounded-full bg-accent-500/15 blur-3xl"
-        />
-        <CarIcon
-          aria-hidden
-          className="pointer-events-none absolute -right-8 bottom-0 hidden h-64 w-64 text-white/[0.04] lg:block"
+          className="pointer-events-none absolute -right-24 bottom-0 h-[28rem] w-[28rem] rounded-full bg-accent-500/20 blur-3xl"
         />
 
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center">
@@ -357,8 +354,34 @@ export default function HomePage() {
               referans görseldeki ana sahneyi somutlaştırıyor. */}
           <div className="relative flex justify-center py-6 lg:justify-self-center lg:py-0">
             <div className="relative w-full max-w-xs sm:max-w-sm">
-              {/* Parlayan QR etiketi — telefonun arkasında, sol üstte */}
-              <div className="absolute -left-2 top-6 z-0 sm:left-2 sm:top-10">
+              {/* Araç görseli — QR etiketinin gerçekten "araca yapıştırıldığını"
+                  gösteren, sahnenin zemini gibi duran basit ama net bir araba
+                  silueti. Açık zemine karşı beyaz/gri tonda, iyi kontrastlı. */}
+              <svg
+                viewBox="0 0 340 190"
+                className="pointer-events-none absolute inset-x-[-10%] bottom-[-6%] z-0 w-[120%] text-white drop-shadow-2xl"
+                aria-hidden
+              >
+                <ellipse cx="170" cy="176" rx="140" ry="10" className="fill-black/15" />
+                <path
+                  d="M20 132 Q20 92 66 90 L92 90 Q106 56 146 54 L198 54 Q236 56 250 90 L272 90 Q320 92 320 124 L320 140 L20 140 Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M104 90 Q116 66 148 64 L196 64 Q228 66 240 90 Z"
+                  className="fill-brand-800"
+                  opacity="0.85"
+                />
+                <path d="M20 130 L320 130" className="stroke-brand-200" strokeWidth="2" opacity="0.6" />
+                <circle cx="88" cy="140" r="20" className="fill-slate-900" />
+                <circle cx="88" cy="140" r="8" className="fill-slate-300" />
+                <circle cx="256" cy="140" r="20" className="fill-slate-900" />
+                <circle cx="256" cy="140" r="8" className="fill-slate-300" />
+                <rect x="292" y="100" width="16" height="9" rx="2.5" className="fill-accent-400" />
+              </svg>
+
+              {/* Parlayan QR etiketi — arabanın kaputuna yapıştırılmış gibi */}
+              <div className="absolute -left-2 top-6 z-10 sm:left-2 sm:top-10">
                 <div className="relative">
                   <div className="absolute inset-0 -m-6 animate-pulse rounded-full bg-accent-400/40 blur-2xl" />
                   <div className="relative rotate-[-8deg] rounded-xl border-2 border-white/80 bg-white p-2.5 shadow-2xl shadow-accent-500/30 sm:p-3">
