@@ -157,6 +157,59 @@ export async function updateShopBillingInfo(
   return updateShopFields(shopId, (shop) => ({ ...shop, billingInfo }));
 }
 
+// Bir bayi hesabını, tüm bayiye-özel verileriyle birlikte kalıcı olarak siler.
+// Araçlar ve bakım kayıtları (Vehicle, OilRecord) KASITLI olarak silinmez —
+// bunlar bir bayinin değil, ARACIN verisidir: aynı araca başka bayiler de kayıt
+// eklemiş olabilir, araç sahibi de kendi genel araç sayfasından (QR) geçmişini
+// görmeye devam edebilmeli. Etiket siparişleri (StickerOrder/StickerToken) de
+// silinmez — gerçek para karşılığı verilmiş, muhasebe/vergi kaydı olarak
+// saklanması gereken mali belgelerdir (bkz. Fatura Bilgileri özelliği); sipariş
+// üzerinde zaten o anki bayi adının anlık görüntüsü (shopName) saklı, silinen
+// hesaba bağımlı değil.
+//
+// Abonelik iptali: sistemde henüz gerçek bir tekrarlayan ödeme/otomatik tahsilat
+// entegrasyonu yok (bkz. BEKLEMEDE task #125, README "Ödeme / Abonelik Notu") —
+// "abonelik" tek bir alanda, Shop.plan'de tutuluyor. Bu yüzden hesabı komple
+// silmek aboneliği de otomatik olarak iptal eder: Shop kaydı ortadan kalkınca
+// artık hiçbir istatistikte (getShopCountsByPlan, getPlanRevenueStats vb.)
+// aktif/ücretli bir plan olarak sayılmaz. İleride gerçek bir POS/otomatik
+// tahsilat sağlayıcısı bağlandığında, buraya sağlayıcının "aboneliği iptal et"
+// API çağrısı da eklenmelidir.
+export async function deleteShop(shopId: string): Promise<Shop | null> {
+  const shop = await getShopById(shopId);
+  if (!shop) return null;
+
+  // Çalışan hesapları (giriş bilgileri dahil)
+  const staff = await listStaffForShop(shopId);
+  await Promise.all(staff.map((s) => deleteStaffAccount(shopId, s.id)));
+
+  // Bu bayinin "Araçlarım" indeksi — araçların/bakım kayıtlarının kendisi değil,
+  // yalnızca bu bayinin hangi araçlarla ilgilendiğine dair indeks kaydı.
+  const { blobs: vehicleLinkBlobs } = await shopVehicleLinksStore().list({ prefix: `${shopId}/` });
+  await Promise.all(vehicleLinkBlobs.map((b) => shopVehicleLinksStore().delete(b.key)));
+
+  // Randevular (bu bayiye özel, paylaşımlı değil)
+  const appointments = await listAppointmentsForShop(shopId);
+  await Promise.all(appointments.map((a) => deleteAppointment(shopId, a.id)));
+
+  // Öneri/geri bildirimler
+  const suggestions = await listSuggestionsForShop(shopId);
+  await Promise.all(
+    suggestions.map(async (s) => {
+      await suggestionsStore().delete(s.id);
+      await suggestionsByShopStore().delete(`${shopId}/${s.id}`);
+    })
+  );
+
+  // Hesap kaydının kendisi ve e-posta indeksi en son silinir — yukarıdaki
+  // adımlardan biri hata verirse hesap hâlâ "var" görünür, yarım kalmış bir
+  // silme işlemiyle erişilemeyen bir hesap kalmaz.
+  await shopsByEmailStore().delete(shop.email.toLowerCase());
+  await shopsStore().delete(shopId);
+
+  return shop;
+}
+
 // ---------- Şifre sıfırlama ----------
 interface PasswordResetRecord {
   shopId: string;

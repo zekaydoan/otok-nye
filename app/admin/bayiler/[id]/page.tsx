@@ -4,6 +4,7 @@ import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { getShopById, listStickerOrdersByShop, listVehiclesByShop } from "@/lib/blobStore";
 import { E_INVOICE_TYPE_LABELS, PLAN_LIMITS, STICKER_ORDER_STATUS_LABELS } from "@/lib/types";
 import AdminPlanOverrideForm from "@/components/AdminPlanOverrideForm";
+import AdminDeleteShopButton from "@/components/AdminDeleteShopButton";
 
 export default async function AdminShopDetailPage({ params }: { params: { id: string } }) {
   const adminShopId = await getCurrentAdminShopId();
@@ -117,6 +118,10 @@ export default async function AdminShopDetailPage({ params }: { params: { id: st
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="mt-6">
+        <AdminDeleteShopButton shopId={shop.id} shopName={shop.name} />
       </section>
     </div>
   );
