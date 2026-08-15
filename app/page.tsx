@@ -932,7 +932,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="border-t bg-white py-8 text-center text-sm text-slate-500">
+      <footer className="border-t bg-white px-4 pb-20 pt-8 text-center text-sm text-slate-500">
         <p>
           © {new Date().getFullYear()} OtoHafıza — Aracının dijital hafızası.
         </p>
