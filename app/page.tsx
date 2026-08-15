@@ -11,6 +11,7 @@ import {
   CheckIcon,
   DocumentIcon,
   LightbulbIcon,
+  MailIcon,
   MicIcon,
   QrIcon,
   UploadIcon,
@@ -214,6 +215,9 @@ export default function HomePage() {
             </Link>
             <Link href="#fiyatlandirma" className="hidden hover:text-brand-700 sm:inline">
               Fiyatlandırma
+            </Link>
+            <Link href="#iletisim" className="hidden hover:text-brand-700 sm:inline">
+              İletişim
             </Link>
             <Link href="/giris" className="hover:text-brand-700">
               Giriş Yap
@@ -712,15 +716,29 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section id="iletisim" className="bg-slate-50 py-16">
+        <div className="mx-auto max-w-2xl px-6 text-center">
+          <h2 className="text-2xl font-bold text-slate-900">İletişim</h2>
+          <p className="mt-2 text-slate-600">
+            Sorularınız, önerileriniz veya iş birliği talepleriniz için bize ulaşın.
+          </p>
+          <div className="mt-6 inline-flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-sm ring-1 ring-slate-100">
+            <MailIcon className="h-5 w-5 shrink-0 text-brand-600" />
+            <a
+              href="mailto:hello@otohafiza.com"
+              className="text-base font-semibold text-slate-900 hover:text-brand-700"
+            >
+              hello@otohafiza.com
+            </a>
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t bg-white py-8 text-center text-sm text-slate-500">
         <p>
           © {new Date().getFullYear()} OtoHafıza — Aracının dijital hafızası.
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-          <a href="mailto:hello@otohafiza.com" className="underline">
-            hello@otohafiza.com
-          </a>
-          <span className="text-slate-300">·</span>
           <Link href="/kvkk" className="underline">
             KVKK Aydınlatma Metni
           </Link>

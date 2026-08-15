@@ -225,6 +225,17 @@ export function ArrowUpIcon(props: IconProps) {
   );
 }
 
+// Ana sayfadaki İletişim bölümü için (bkz. app/page.tsx) — ileride telefon
+// numarası eklendiğinde yanına PhoneIcon benzeri bir ikon daha eklenebilir.
+export function MailIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <rect x="2.5" y="4.5" width="15" height="11" rx="1.5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="m3 5.5 7 5.5 7-5.5" />
+    </svg>
+  );
+}
+
 // Öneri/geri bildirim ekranı (bkz. app/dashboard/oneriler) için — dashboard
 // başlığındaki nav bağlantısında ve boş durum kartında kullanılır.
 export function LightbulbIcon(props: IconProps) {
