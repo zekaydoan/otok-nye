@@ -253,7 +253,7 @@ export default function HomePage() {
                 mobilde hamburger menüye taşındı (bkz. MobileNavMenu.tsx),
                 masaüstünde ikisi de eskisi gibi yan yana görünmeye devam
                 ediyor. */}
-            <Link href="/giris" className="hover:text-brand-700">
+            <Link href="/giris" className="font-semibold text-accent-600 hover:text-accent-600/80">
               Giriş Yap
             </Link>
             <Link
