@@ -1,4 +1,4 @@
-import { TR_PROVINCE_COORDS } from "@/lib/geo";
+import { ablativeSuffix, TR_PROVINCE_COORDS } from "@/lib/geo";
 
 // Türkiye'nin gerçek kıyı şeridini piksel piksel çizmek yerine (elle
 // hazırlanan bir taslak kolayca yanlış/çarpık görünebilir), bilinen il
@@ -63,7 +63,8 @@ export default function TurkeyVisitorMap({ data }: { data: Record<string, number
                 strokeWidth={1}
               >
                 <title>
-                  {province}: {count} ziyaret
+                  Bugün {province}
+                  {ablativeSuffix(province)} {count} ziyaretçi aldınız
                 </title>
               </circle>
               <text

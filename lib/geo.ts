@@ -130,3 +130,19 @@ export function normalizeProvinceName(raw: string | undefined | null): string | 
   const folded = foldTurkish(raw);
   return FOLDED_PROVINCE_LOOKUP[folded] ?? PROVINCE_ALIASES[folded] ?? null;
 }
+
+// "İstanbul'dan" ama "Kayseri'den" — Türkçe -dan/-den (ayrılma hâli) eki, ilin
+// adındaki SON ünlü harfin ince (e, i, ö, ü) mi kalın (a, ı, o, u) mü olduğuna
+// göre değişir. Sabit bir ek ("Kayseri'dan" gibi) yanlış olurdu; bu yüzden her
+// il adı için sondan geriye doğru tarayıp doğru eki hesaplıyoruz (bkz.
+// components/TurkeyVisitorMap.tsx tooltip metni).
+export function ablativeSuffix(word: string): "'dan" | "'den" {
+  const frontVowels = new Set(["e", "i", "ö", "ü", "İ"]);
+  const backVowels = new Set(["a", "ı", "o", "u", "I"]);
+  for (let i = word.length - 1; i >= 0; i--) {
+    const ch = word[i];
+    if (frontVowels.has(ch)) return "'den";
+    if (backVowels.has(ch)) return "'dan";
+  }
+  return "'dan";
+}
