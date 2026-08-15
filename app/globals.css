@@ -159,8 +159,19 @@ textarea {
   }
 }
 
+/* Taban durum: animasyon her nedenle (tarayıcı desteklemiyor, Instagram/
+   TikTok gibi uygulama-içi tarayıcılarda kısıtlanmış/atlanmış olabiliyor,
+   prefers-reduced-motion vb.) çalışmazsa/atlanırsa bile yalnızca ilk öğe
+   görünsün, hepsi üst üste binmiş şekilde donup kalmasın diye opacity
+   varsayılan olarak burada (animasyonun kendisinden BAĞIMSIZ) tanımlanır.
+   Animasyon gerçekten çalıştığında keyframe'deki opacity değerleri bunun
+   üzerine yazar, normal akış bozulmaz. */
 .animate-ticker {
   animation: ticker-cycle 10s ease-in-out infinite;
+  opacity: 0;
+}
+.animate-ticker:first-child {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -169,9 +180,5 @@ textarea {
   }
   .animate-ticker {
     animation: none;
-    opacity: 0;
-  }
-  .animate-ticker:first-child {
-    opacity: 1;
   }
 }
