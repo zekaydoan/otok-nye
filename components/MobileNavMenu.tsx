@@ -17,10 +17,6 @@ const links = [
   { href: "#fiyatlandirma", label: "Fiyatlandırma" },
   { href: "#iletisim", label: "İletişim" },
   { href: "/blog", label: "Blog" },
-  // Header'daki bağımsız "Giriş Yap" linki artık mobilde gizli (sm:inline) —
-  // logo büyüdükten sonra header'da yer kalmadığı için buraya taşındı,
-  // mobil kullanıcı girişe hâlâ buradan ulaşabiliyor.
-  { href: "/giris", label: "Giriş Yap" },
 ];
 
 export default function MobileNavMenu() {
@@ -51,6 +47,16 @@ export default function MobileNavMenu() {
                 {link.label}
               </Link>
             ))}
+            {/* Header'da mobilde artık "Giriş Yap" öncelikli (düzenli
+                kullanan bayiler için) — "Ücretsiz Başla" CTA'sı buraya,
+                menünün en altına, öne çıkan bir buton olarak taşındı. */}
+            <Link
+              href="/kayit"
+              onClick={() => setOpen(false)}
+              className="mt-1 rounded-lg bg-brand-600 px-3 py-2.5 text-center font-semibold text-white hover:bg-brand-700"
+            >
+              Ücretsiz Başla
+            </Link>
           </nav>
         </div>
       )}

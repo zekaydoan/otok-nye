@@ -247,16 +247,18 @@ export default function HomePage() {
             <Link href="/blog" className="hidden hover:text-brand-700 sm:inline">
               Blog
             </Link>
-            {/* Mobilde logo büyüdükten sonra "Giriş Yap" + buton + hamburger
-                tek satıra sığmayıp alt satıra taşıyordu — bu link mobilde
-                gizlenip hamburger menüye taşındı (bkz. MobileNavMenu.tsx),
-                masaüstünde (sm:inline) eskisi gibi görünmeye devam ediyor. */}
-            <Link href="/giris" className="hidden hover:text-brand-700 sm:inline">
+            {/* Mobilde her ziyaretçi zaten müşteri olacağından (uygulamayı
+                düzenli kullanan bayiler) öncelik "Giriş Yap"ta — bu yüzden
+                mobilde her zaman logonun yanında görünür. "Ücretsiz Başla"
+                mobilde hamburger menüye taşındı (bkz. MobileNavMenu.tsx),
+                masaüstünde ikisi de eskisi gibi yan yana görünmeye devam
+                ediyor. */}
+            <Link href="/giris" className="hover:text-brand-700">
               Giriş Yap
             </Link>
             <Link
               href="/kayit"
-              className="rounded-lg bg-brand-600 px-3 py-2 text-white hover:bg-brand-700 sm:px-4"
+              className="hidden rounded-lg bg-brand-600 px-3 py-2 text-white hover:bg-brand-700 sm:inline-block sm:px-4"
             >
               Ücretsiz Başla
             </Link>
