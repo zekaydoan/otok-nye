@@ -284,14 +284,15 @@ export default function HomePage() {
       {/* Kullanıcı haklı olarak "hiç gerçek görsel yok" dedi — CSS/SVG ile
           üretilen sahnelerin verdiği "yapay" izlenimi çözmek için Unsplash'ten
           ücretsiz/lisanslı (Unsplash License, ticari kullanım serbest, atıf
-          gerektirmez) gerçek bir oto tamirci/yağ değişimi fotoğrafı eklendi —
-          tam da ürünün konusu. next.config.js'teki CSP img-src'ye bu tek domain
-          bilinçli olarak eklendi. Zemin üstteki geri bildirimle daha açık bir
-          mavi tona çekildi; fotoğraf üstte hafif bir degrade ile kararmadan,
-          okunabilirlik için sadece yeterince kontrast katacak kadar örtülüyor. */}
+          gerektirmez) gerçek bir motor bölmesi fotoğrafı eklendi — tam da
+          ürünün konusu. (Not: ilk denemede bir tamirci portresi kullanılmıştı
+          ama kadrajda dev bir yabancı yüz garip/rahatsız edici duruyordu —
+          insan içermeyen bu kadraja geçildi.) next.config.js'teki CSP
+          img-src'ye bu tek domain bilinçli olarak eklendi. Zemin üstteki geri
+          bildirimle daha açık bir mavi tona çekildi. */}
       <section className="relative overflow-hidden py-14 sm:py-20 lg:py-28">
         <img
-          src="https://images.unsplash.com/photo-1643700973089-baa86a1ab9ee?auto=format&fit=crop&w=1600&q=75"
+          src="https://images.unsplash.com/photo-1527383418406-f85a3b146499?auto=format&fit=crop&w=1600&q=75"
           alt=""
           aria-hidden
           className="absolute inset-0 h-full w-full object-cover brightness-125"
@@ -311,6 +312,12 @@ export default function HomePage() {
         <div
           aria-hidden
           className="pointer-events-none absolute -right-24 bottom-0 h-[28rem] w-[28rem] rounded-full bg-accent-500/20 blur-3xl"
+        />
+        {/* Fotoğrafın altındaki beyaz bölüme sert bir kenarla değil, yumuşak
+            bir geçişle birleşmesi için alt kenarda hafif bir karartma/kaynaşma. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-brand-700/40 to-transparent"
         />
         {/* İnce nokta dokusu — Stripe/Linear tarzı "gradient mesh" hero'larda
             standart olan doku katmanı, fotoğrafın üstünde hafif bir "dijital"
@@ -380,7 +387,12 @@ export default function HomePage() {
               etrafında yüzen, camsı (glassmorphism) bilgi kartları. Araç teması
               artık gösterişli bir çizim yerine net bir "araç etiket kartı" ile
               temsil ediliyor — daha sade ama daha "premium" hissettiriyor. */}
-          <div className="relative flex justify-center py-14 lg:justify-self-center lg:py-10">
+          {/* ÖNEMLİ: "lg:justify-self-center" burada BİLEREK kaldırıldı — grid
+              hücresinin tamamını doldurmak (stretch) yerine içeriğe sarılmasına
+              (fit-content) sebep oluyordu, bu da aşağıdaki "max-w-md" tuvalinin
+              hiç genişleyememesine ve üç yüzen kartın telefonun tam üstüne
+              binmesine yol açıyordu (canlı sitede DevTools ile doğrulandı). */}
+          <div className="relative flex justify-center py-14 lg:py-10">
             {/* Kartların telefonun üstüne binmemesi için sahne, telefondan
                 belirgin şekilde daha geniş tutuluyor — kartlar telefonun
                 dışına, boşluğa yerleşiyor (bkz. kullanıcı geri bildirimi:
