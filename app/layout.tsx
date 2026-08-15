@@ -37,6 +37,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
   manifest: "/manifest.json",
+  // Meta (Facebook) Business Manager domain doğrulaması — Next.js Metadata
+  // API'nin "other" alanı, bu etiketi sunucu tarafında ilk HTML çıktısının
+  // <head>'ine gömer (JS ile sonradan eklenmez). Meta Pixel'in kendisiyle
+  // (bkz. components/AdPixels.tsx) hiçbir ilgisi yok, tamamen ayrı bir
+  // doğrulama mekanizması.
+  other: {
+    "facebook-domain-verification": "o790r0fkvuxefa26car4is6218ls5s",
+  },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
