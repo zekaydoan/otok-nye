@@ -390,7 +390,7 @@ export default function HomePage() {
             <div className="mt-10 grid gap-4 sm:grid-cols-2">
               {heroFeatures.map((f) => (
                 <div key={f.title} className="flex items-start gap-3 text-left">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg shadow-brand-600/40">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-500 text-white shadow-lg shadow-accent-500/40">
                     <f.icon className="h-5 w-5" />
                   </div>
                   <div>
