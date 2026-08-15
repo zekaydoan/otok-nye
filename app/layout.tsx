@@ -88,7 +88,11 @@ const organizationJsonLd = {
     name: "Sarper Dijital",
     url: "https://www.sarperdijital.com",
   },
-  sameAs: ["https://www.sarperdijital.com"],
+  sameAs: [
+    "https://www.sarperdijital.com",
+    "https://www.instagram.com/hafizaoto",
+    "https://www.facebook.com/profile.php?id=61593171520080",
+  ],
 };
 
 // WebSite yapılandırılmış verisi — Organization'dan ayrı, Google'ın "bu site

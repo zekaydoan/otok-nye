@@ -16,6 +16,8 @@ import {
   CheckCircleIcon,
   CheckIcon,
   DocumentIcon,
+  FacebookIcon,
+  InstagramIcon,
   LightbulbIcon,
   MailIcon,
   MicIcon,
@@ -940,6 +942,27 @@ export default function HomePage() {
               className="text-base font-semibold text-slate-900 hover:text-brand-700"
             >
               hello@otohafiza.com
+            </a>
+          </div>
+
+          <div className="mt-5 flex items-center justify-center gap-3">
+            <a
+              href="https://www.instagram.com/hafizaoto"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="OtoHafıza Instagram"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-brand-600 shadow-sm ring-1 ring-slate-100 transition hover:bg-accent-500 hover:text-white"
+            >
+              <InstagramIcon className="h-5 w-5" />
+            </a>
+            <a
+              href="https://www.facebook.com/profile.php?id=61593171520080"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="OtoHafıza Facebook"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-brand-600 shadow-sm ring-1 ring-slate-100 transition hover:bg-accent-500 hover:text-white"
+            >
+              <FacebookIcon className="h-5 w-5" />
             </a>
           </div>
         </div>
