@@ -4,9 +4,12 @@ import { listBlogPosts } from "@/lib/blogPosts";
 import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
 import FaqAccordion from "@/components/FaqAccordion";
+import QrScanIllustration from "@/components/QrScanIllustration";
 import {
   BellIcon,
   CalendarIcon,
+  CameraIcon,
+  CarIcon,
   ChartBarIcon,
   CheckCircleIcon,
   CheckIcon,
@@ -15,6 +18,7 @@ import {
   MailIcon,
   MicIcon,
   QrIcon,
+  StickerIcon,
   UploadIcon,
   UsersIcon,
   XCircleIcon,
@@ -34,18 +38,22 @@ const tickerItems = [
 
 const steps = [
   {
+    icon: CarIcon,
     title: "1. Aracı kaydedin",
     desc: "Plaka, marka, model ve ilk yağ bakım bilgilerini panelden girin.",
   },
   {
+    icon: QrIcon,
     title: "2. QR etiketini yazdırın",
     desc: "Sistem otomatik olarak o araca özel QR kod ve firma bilgili etiket üretir.",
   },
   {
+    icon: StickerIcon,
     title: "3. Araca yapıştırın",
     desc: "Etiketi motor kaputu, yağ dolum kapağı gibi görünür bir yere yapıştırın.",
   },
   {
+    icon: CameraIcon,
     title: "4. Her bakımda okutun",
     desc: "Sonraki bakımlarda QR okutulur, geçmiş görülür, yeni kayıt saniyeler içinde eklenir.",
   },
@@ -321,42 +329,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Ürünü somutlaştıran kart mockup'ı — gerçek ekran görüntüsü yerine
-              sadeleştirilmiş bir temsil; QR okutulunca görünen özet karta benzer.
-              Artık mobilde de görünür (öncesinde yalnızca geniş ekranlarda vardı),
-              üzerine binen iki küçük rozet kartla sayfanın en üstüne biraz derinlik
-              ve hareket katıyor. */}
+          {/* Başlıktaki "araca yapıştırın, okutun" sözünü tek bakışta somutlaştıran
+              illüstrasyon (bkz. components/QrScanIllustration.tsx) — önceki soyut
+              veri kartı yerine, metni okumadan da ne anlatıldığını anlatan bir
+              sahne. Üzerine binen iki küçük rozet, otomatik hatırlatma özelliğini
+              de aynı görsele ekliyor. */}
           <div className="relative flex justify-center lg:justify-self-center">
             <div className="relative w-full max-w-sm">
-              <div className="rotate-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl transition-transform hover:rotate-0">
-                <div className="flex items-center justify-between border-b border-dashed border-slate-200 pb-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Araç</p>
-                    <p className="text-2xl font-extrabold text-slate-900">34 ABC 123</p>
-                  </div>
-                  <div className="grid grid-cols-3 gap-0.5 rounded-lg bg-slate-900 p-2">
-                    {Array.from({ length: 9 }).map((_, i) => (
-                      <span
-                        key={i}
-                        className={`h-1.5 w-1.5 rounded-sm ${[0, 2, 4, 6, 8].includes(i) ? "bg-white" : "bg-slate-600"}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <p className="mt-3 text-sm text-slate-600">Volkswagen Passat · 2019</p>
-                <div className="mt-4 rounded-xl bg-brand-50 p-3">
-                  <p className="text-xs font-semibold text-brand-700">Son Yağ Bakımı</p>
-                  <p className="mt-1 text-sm text-slate-700">
-                    12.08.2026 · Castrol Edge 5W-30 · <strong>4,5 kg</strong>
-                  </p>
-                </div>
-                <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-green-700">
-                  <CheckIcon className="h-4 w-4" />
-                  Düzenli Bakımlı
-                </div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xl sm:p-6">
+                <QrScanIllustration className="w-full" />
               </div>
 
-              {/* Ana kartın üzerine hafifçe taşan iki küçük rozet — QR okutma anını
+              {/* Ana görselin üzerine hafifçe taşan iki küçük rozet — QR okutma anını
                   ve otomatik hatırlatmayı görsel olarak somutlaştırıyor. Mobilde
                   taşma/yatay kaydırmaya yol açmaması için kart sınırlarına daha
                   yakın, geniş ekranlarda ise daha belirgin şekilde taşırılıyor. */}
@@ -429,7 +413,10 @@ export default function HomePage() {
                 key={s.title}
                 className="hover-lift rounded-xl border border-slate-200 bg-white p-5 hover:border-brand-200 hover:shadow-sm"
               >
-                <h3 className="font-semibold text-brand-700">{s.title}</h3>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                  <s.icon className="h-6 w-6" />
+                </div>
+                <h3 className="mt-4 font-semibold text-brand-700">{s.title}</h3>
                 <p className="mt-2 text-sm text-slate-600">{s.desc}</p>
               </div>
             ))}

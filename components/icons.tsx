@@ -128,6 +128,21 @@ export function PackageIcon(props: IconProps) {
   );
 }
 
+// "Nasıl çalışır?" adımlarındaki "araca yapıştırın" aşaması için — köşesi
+// kıvrılmış bir etiket/sticker glifi.
+export function StickerIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4.5 4.5h9.5L19.5 10v9.5h-15v-15Z"
+      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14 4.5V10h5.5" />
+    </svg>
+  );
+}
+
 export function SettingsIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
