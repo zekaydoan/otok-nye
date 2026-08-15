@@ -372,13 +372,13 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
               <Link
                 href="/kayit"
-                className="rounded-lg bg-white px-6 py-3 text-lg font-semibold text-brand-800 shadow-lg shadow-black/20 hover:bg-slate-100 active:scale-[0.98]"
+                className="rounded-lg bg-accent-500 px-6 py-3 text-lg font-semibold text-white shadow-lg shadow-accent-500/40 hover:bg-accent-600 active:scale-[0.98]"
               >
                 Ücretsiz Hesap Aç
               </Link>
               <Link
                 href="#ozellikler"
-                className="rounded-lg border border-white/25 bg-white/5 px-6 py-3 text-lg font-semibold text-white hover:bg-white/10 active:scale-[0.98]"
+                className="rounded-lg border border-accent-400/40 bg-accent-500/10 px-6 py-3 text-lg font-semibold text-white hover:bg-accent-500/20 active:scale-[0.98]"
               >
                 Özellikleri İncele
               </Link>
