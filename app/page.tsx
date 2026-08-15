@@ -295,14 +295,21 @@ export default function HomePage() {
           src="https://images.unsplash.com/photo-1527383418406-f85a3b146499?auto=format&fit=crop&w=1600&q=75"
           alt=""
           aria-hidden
-          className="absolute inset-0 h-full w-full object-cover brightness-125"
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        {/* Kullanıcı geri bildirimiyle örtü daha da açıldı — fotoğraf artık
-            belirgin şekilde görünüyor, sadece metin okunabilirliği için hafif
-            bir mavi ton bindiriliyor. */}
+        {/* Kullanıcı "hiçbir yazı okunmuyor" dedi — bir önceki örtü fotoğrafın
+            parlak krom kısımlarına karşı yetersizdi. Tek düz bir renk yerine
+            YÖNLÜ bir karartma kullanılıyor: metnin olduğu sol taraf neredeyse
+            opak koyu, ürün görselinin olduğu sağ taraf ise fotoğrafın görünür
+            kalması için daha açık — böylece hem "fotoğraf görünsün" hem de
+            "yazılar okunsun" isteği birlikte karşılanıyor. */}
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-br from-brand-400/55 via-brand-500/45 to-brand-600/55"
+          className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/60 to-brand-700/45"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-br from-brand-700/40 via-transparent to-brand-800/40"
         />
         {/* Derinlik için bulanık renkli lekeler */}
         <div
