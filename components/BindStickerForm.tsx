@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TR_BRANDS, TR_BRAND_MODELS, formatPlateForDisplay, validatePlate } from "@/lib/plates";
+import { trackFirstVehicleAdded } from "@/components/AdPixels";
 
 // Bayiye özel, plakasız basılmış bir etiket ilk kez okutulduğunda (bkz.
 // app/e/[token]) bu form üzerinden aracın bilgileri girilir ve etiket o araca
@@ -57,6 +58,7 @@ export default function BindStickerForm({ token }: { token: string }) {
         setError(data.error || "Bir hata oluştu.");
         return;
       }
+      if (data.isFirstVehicle) trackFirstVehicleAdded();
       router.push(`/dashboard/araclar/${data.vehicleId}`);
       router.refresh();
     } catch {

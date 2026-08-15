@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { TR_BRANDS, TR_BRAND_MODELS, formatPlateForDisplay, validatePlate } from "@/lib/plates";
+import { trackFirstVehicleAdded } from "@/components/AdPixels";
 
 export default function NewVehiclePage() {
   const router = useRouter();
@@ -66,6 +67,7 @@ export default function NewVehiclePage() {
         setIsPlanLimitError(data.code === "plan_limit");
         return;
       }
+      if (data.isFirstVehicle) trackFirstVehicleAdded();
       // Netlify Blobs'un .list() metodu strong consistency desteklemediğinden,
       // kullanıcı kısa süre içinde "Araçlarım" sayfasına dönerse sunucu az önce
       // eklenen aracı henüz göremeyebiliyor. Aracı burada sessionStorage'a yazıp,

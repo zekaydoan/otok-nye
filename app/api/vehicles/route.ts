@@ -66,21 +66,23 @@ export async function POST(req: NextRequest) {
 
   // Plan limitini kontrol et — panelde gösterilen "X / limit araç" sayacıyla aynı
   // listeye (listVehiclesByShop) göre hesaplanır, böylece kullanıcıyı şaşırtmaz.
+  // Aynı liste, bu bayinin ilk aracını mı eklediğini (isFirstVehicle) güvenilir
+  // biçimde belirlemek için de kullanılıyor — bkz. aşağıdaki yanıt ve
+  // app/dashboard/araclar/yeni/page.tsx (Meta Pixel "FirstVehicleAdded" olayı).
   const shop = await getShopById(shopId);
   if (!shop) return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
+  const currentVehicles = await listVehiclesByShop(shopId);
   const limit = PLAN_LIMITS[shop.plan].maxVehicles;
-  if (limit !== Infinity) {
-    const currentVehicles = await listVehiclesByShop(shopId);
-    if (currentVehicles.length >= limit) {
-      return NextResponse.json(
-        {
-          error: `${PLAN_LIMITS[shop.plan].label} planında en fazla ${limit} araç kaydedebilirsiniz. Daha fazla araç eklemek için planınızı yükseltin.`,
-          code: "plan_limit",
-        },
-        { status: 403 }
-      );
-    }
+  if (limit !== Infinity && currentVehicles.length >= limit) {
+    return NextResponse.json(
+      {
+        error: `${PLAN_LIMITS[shop.plan].label} planında en fazla ${limit} araç kaydedebilirsiniz. Daha fazla araç eklemek için planınızı yükseltin.`,
+        code: "plan_limit",
+      },
+      { status: 403 }
+    );
   }
+  const isFirstVehicle = currentVehicles.length === 0;
 
   const vehicle: Vehicle = {
     id: randomUUID(),
@@ -96,5 +98,5 @@ export async function POST(req: NextRequest) {
   };
 
   await createVehicle(vehicle);
-  return NextResponse.json({ vehicle });
+  return NextResponse.json({ vehicle, isFirstVehicle });
 }

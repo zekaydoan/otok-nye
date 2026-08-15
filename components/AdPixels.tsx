@@ -75,3 +75,20 @@ export function trackConversionEvent(
     }
   }
 }
+
+// Yeni kayıt olan bir bayinin PANELE İLK ARACINI başarıyla eklediği an için —
+// reklam kalitesini ölçmek amacıyla ayrı bir özel (custom) Meta Pixel olayı.
+// Meta'nın standart event setinde karşılığı olmadığından 'track' değil
+// 'trackCustom' kullanılır. Yalnızca ilgili API, bunun o bayinin gerçekten
+// ilk aracı olduğunu (isFirstVehicle: true) döndürdüğünde çağrılır — bkz.
+// app/dashboard/araclar/yeni/page.tsx ve components/BindStickerForm.tsx.
+// Plaka, marka, müşteri adı/telefonu gibi hiçbir kişisel/araç verisi olay
+// parametresi olarak gönderilmez. GA4'e kasıtlı olarak eklenmedi (yalnızca
+// Meta reklam ölçümü için istendi).
+export function trackFirstVehicleAdded() {
+  if (typeof window === "undefined") return;
+  const w = window as unknown as { fbq?: (...args: unknown[]) => void };
+  if (typeof w.fbq === "function") {
+    w.fbq("trackCustom", "FirstVehicleAdded");
+  }
+}

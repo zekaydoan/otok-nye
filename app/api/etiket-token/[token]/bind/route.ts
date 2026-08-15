@@ -71,18 +71,24 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
 
   const shop = await getShopById(shopId);
   if (!shop) return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
+  // Bu bayinin ilk aracını mı eklediğini (isFirstVehicle) güvenilir biçimde
+  // belirlemek için aynı liste kullanılıyor — bkz. aşağıdaki yanıt ve
+  // components/BindStickerForm.tsx (Meta Pixel "FirstVehicleAdded" olayı).
+  // (Not: bu uç nokta, plakasız basılmış bir etiketi YENİ bir araca bağlar —
+  // yukarıdaki getVehicleByPlate kontrolü zaten bu plakanın önceden var
+  // OLMADIĞINI doğruluyor, dolayısıyla bu gerçek bir "yeni araç" oluşturma
+  // akışıdır, sistemde zaten var olan bir aracı hesaba bağlama değildir.)
+  const currentVehicles = await listVehiclesByShop(shopId);
   const limit = PLAN_LIMITS[shop.plan].maxVehicles;
-  if (limit !== Infinity) {
-    const currentVehicles = await listVehiclesByShop(shopId);
-    if (currentVehicles.length >= limit) {
-      return NextResponse.json(
-        {
-          error: `${PLAN_LIMITS[shop.plan].label} planında en fazla ${limit} araç kaydedebilirsiniz. Daha fazla araç eklemek için planınızı yükseltin.`,
-        },
-        { status: 403 }
-      );
-    }
+  if (limit !== Infinity && currentVehicles.length >= limit) {
+    return NextResponse.json(
+      {
+        error: `${PLAN_LIMITS[shop.plan].label} planında en fazla ${limit} araç kaydedebilirsiniz. Daha fazla araç eklemek için planınızı yükseltin.`,
+      },
+      { status: 403 }
+    );
   }
+  const isFirstVehicle = currentVehicles.length === 0;
 
   const vehicle: Vehicle = {
     id: randomUUID(),
@@ -100,5 +106,5 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
   await createVehicle(vehicle);
   await bindStickerToken(params.token, vehicle.id);
 
-  return NextResponse.json({ vehicleId: vehicle.id });
+  return NextResponse.json({ vehicleId: vehicle.id, isFirstVehicle });
 }
