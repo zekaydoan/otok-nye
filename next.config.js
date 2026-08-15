@@ -1,9 +1,11 @@
 // Next/font (Inter) build sırasında fontu kendi sunucusuna indirip barındırdığı için
 // çalışma zamanında dış font sağlayıcısına (fonts.googleapis.com vb.) istek atılmaz —
-// bu sayede CSP'yi harici kaynaklara izin vermeden sıkı tutabiliyoruz.
+// bu sayede CSP'yi harici kaynaklara izin vermeden sıkı tutabiliyoruz. Tek istisna:
+// ana sayfa hero'sundaki gerçek fotoğraf Unsplash CDN'inden (ücretsiz/lisanslı, bkz.
+// app/page.tsx) çekiliyor, bu yüzden img-src'ye sadece o tek domain eklendi.
 const csp = [
   "default-src 'self'",
-  "img-src 'self' data:",
+  "img-src 'self' data: https://images.unsplash.com",
   "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",

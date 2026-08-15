@@ -281,14 +281,25 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Kullanıcının gösterdiği reklam görseline (parlayan QR, telefon ekran
-          görüntüsü, tarama ışını, bildirim balonu, sol tarafta özellik listesi)
-          olabildiğince yakın, tamamen kod/CSS ile üretilmiş bir "reklam afişi"
-          hissi — gerçek bir fotoğraf değil (bu ortamda görsel üretimi yok), ama
-          aynı kompozisyonu ve enerjiyi hedefliyor. Zemin, ilk sürümdeki neredeyse
-          siyah tondan — kullanıcı geri bildirimiyle — daha açık, canlı bir marka
-          mavisine çevrildi. */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-14 sm:py-20 lg:py-28">
+      {/* Kullanıcı haklı olarak "hiç gerçek görsel yok" dedi — CSS/SVG ile
+          üretilen sahnelerin verdiği "yapay" izlenimi çözmek için Unsplash'ten
+          ücretsiz/lisanslı (Unsplash License, ticari kullanım serbest, atıf
+          gerektirmez) gerçek bir oto tamirci/yağ değişimi fotoğrafı eklendi —
+          tam da ürünün konusu. next.config.js'teki CSP img-src'ye bu tek domain
+          bilinçli olarak eklendi. Zemin üstteki geri bildirimle daha açık bir
+          mavi tona çekildi; fotoğraf üstte hafif bir degrade ile kararmadan,
+          okunabilirlik için sadece yeterince kontrast katacak kadar örtülüyor. */}
+      <section className="relative overflow-hidden py-14 sm:py-20 lg:py-28">
+        <img
+          src="https://images.unsplash.com/photo-1643700973089-baa86a1ab9ee?auto=format&fit=crop&w=1600&q=75"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-br from-brand-500/80 via-brand-600/70 to-brand-700/80"
+        />
         {/* Derinlik için bulanık renkli lekeler */}
         <div
           aria-hidden
@@ -299,10 +310,11 @@ export default function HomePage() {
           className="pointer-events-none absolute -right-24 bottom-0 h-[28rem] w-[28rem] rounded-full bg-accent-500/20 blur-3xl"
         />
         {/* İnce nokta dokusu — Stripe/Linear tarzı "gradient mesh" hero'larda
-            standart olan doku katmanı, zemine derinlik katar. */}
+            standart olan doku katmanı, fotoğrafın üstünde hafif bir "dijital"
+            his katar. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.15]"
+          className="pointer-events-none absolute inset-0 opacity-[0.1]"
           style={{
             backgroundImage: "radial-gradient(rgba(255,255,255,0.7) 1px, transparent 1px)",
             backgroundSize: "26px 26px",
