@@ -5,6 +5,7 @@ import AdPixels from "@/components/AdPixels";
 import PageviewTracker from "@/components/PageviewTracker";
 import ActiveVisitorTracker from "@/components/ActiveVisitorTracker";
 import ScrollToTop from "@/components/ScrollToTop";
+import WhatsAppFloatButton from "@/components/WhatsAppFloatButton";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
@@ -103,6 +104,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ActiveVisitorTracker />
         {children}
         <ScrollToTop />
+        {/* ScrollToTop sağ altta olduğu için çakışmasın diye sol altta —
+            bkz. WhatsAppFloatButton.tsx (numara gelene kadar hiçbir şey
+            render etmez). */}
+        <WhatsAppFloatButton />
       </body>
     </html>
   );

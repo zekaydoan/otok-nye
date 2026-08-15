@@ -581,6 +581,24 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+
+          {/* Gerçek panelden çekilmiş ekran kaydı — bir tarayıcı penceresi
+              çerçevesi içinde, "bu gerçekten nasıl çalışıyor" sorusunu metinle
+              anlatmak yerine göstererek yanıtlıyor. */}
+          <div className="mx-auto mt-10 max-w-3xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center gap-1.5 border-b border-slate-200 bg-slate-100 px-3 py-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+              <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+              <span className="ml-2 text-xs text-slate-400">panel.otohafiza.com</span>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/otohafiza-demo.gif"
+              alt="OtoHafıza panelinde bir aracın bakım geçmişini görüntüleme ve QR etiket oluşturma ekran kaydı"
+              className="w-full"
+            />
+          </div>
         </div>
       </section>
 
@@ -921,6 +939,10 @@ export default function HomePage() {
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           <Link href="/blog" className="underline">
             Blog
+          </Link>
+          <span className="text-slate-300">·</span>
+          <Link href="/referans" className="underline">
+            Referans Programı
           </Link>
           <span className="text-slate-300">·</span>
           <Link href="/kvkk" className="underline">

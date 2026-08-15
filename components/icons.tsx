@@ -245,6 +245,30 @@ export function QrIcon(props: IconProps) {
   );
 }
 
+// Referans/tavsiye programı teaser sayfası için (bkz. app/referans/page.tsx).
+export function GiftIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <rect x="4" y="9.5" width="16" height="10.5" rx="1.5" />
+      <path strokeLinecap="round" d="M4 13.5h16" />
+      <path strokeLinecap="round" d="M12 9.5v10.5" />
+      <path d="M12 9.5c-1-2.5-3-3.5-4.2-3-1.2.5-1.5 2.2.2 3H12Z" />
+      <path d="M12 9.5c1-2.5 3-3.5 4.2-3 1.2.5 1.5 2.2-.2 3H12Z" />
+    </svg>
+  );
+}
+
+// Sağ altta sabit duran WhatsApp destek butonu için (bkz.
+// components/WhatsAppFloatButton.tsx) — ChatIcon'dan farklı olarak WhatsApp'ın
+// klasik "konuşma balonu içinde ahize" silueti, marka tanınırlığı için.
+export function WhatsAppIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
+      <path d="M12 2.5a9.5 9.5 0 0 0-8.2 14.3L2.5 21.5l4.8-1.3A9.5 9.5 0 1 0 12 2.5Zm0 1.8a7.7 7.7 0 0 1 6.5 11.8 7.7 7.7 0 0 1-8.9 3l-.4-.1-2.8.8.8-2.7-.2-.4A7.7 7.7 0 0 1 12 4.3Zm-3 3.5c-.2 0-.5.1-.7.3-.2.3-.9.8-.9 2s.9 2.3 1 2.5c.1.1 1.8 2.8 4.3 3.9.6.3 1.1.4 1.4.5.6.2 1.2.2 1.6.1.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3l-1.9-.9c-.3-.1-.5-.1-.6.1l-.4.5c-.1.1-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.7-.1-.2 0-.4.1-.5l.3-.4c.1-.1.1-.3.1-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5Z" />
+    </svg>
+  );
+}
+
 // Mobil header'daki hamburger menü butonu için (bkz. components/MobileNavMenu.tsx).
 export function MenuIcon(props: IconProps) {
   return (
