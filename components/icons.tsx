@@ -143,6 +143,20 @@ export function StickerIcon(props: IconProps) {
   );
 }
 
+// WhatsApp/mesajlaşma bildirimlerini temsil eden basit bir konuşma balonu.
+export function ChatIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8c-1.1 0-2.2-.2-3.1-.7L4 20l1.1-4.4A7.9 7.9 0 0 1 4 12Z"
+      />
+      <path strokeLinecap="round" d="m8.5 10.5 1.6 1.6L15.5 8" />
+    </svg>
+  );
+}
+
 export function SettingsIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>

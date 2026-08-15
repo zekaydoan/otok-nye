@@ -4,13 +4,14 @@ import { listBlogPosts } from "@/lib/blogPosts";
 import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
 import FaqAccordion from "@/components/FaqAccordion";
-import QrScanIllustration from "@/components/QrScanIllustration";
 import {
   BellIcon,
+  BrandMark,
   CalendarIcon,
   CameraIcon,
   CarIcon,
   ChartBarIcon,
+  ChatIcon,
   CheckCircleIcon,
   CheckIcon,
   DocumentIcon,
@@ -23,6 +24,18 @@ import {
   UsersIcon,
   XCircleIcon,
 } from "@/components/icons";
+
+// Hero'daki koyu temalı "reklam görseli" hissindeki sol sütun özellik listesi
+// — kullanıcının referans gösterdiği görseldeki gibi ikon + kısa başlık +
+// tek satır açıklama düzeni. features/tickerItems'tan bağımsız, bilinçli
+// olarak burada en "somut ve satış odaklı" 5 madde seçildi.
+const heroFeatures = [
+  { icon: QrIcon, title: "QR ile hızlı kayıt", desc: "Aracı saniyeler içinde sisteme ekleyin." },
+  { icon: BellIcon, title: "Otomatik hatırlatma", desc: "Bakım zamanı gelmeden müşterinizi uyarın." },
+  { icon: ChatIcon, title: "WhatsApp ile bilgilendirme", desc: "Tek tıkla müşterinize ulaşın." },
+  { icon: DocumentIcon, title: "Dijital servis fişi", desc: "Tüm işlemler kayıt altında, kaybolmaz." },
+  { icon: UsersIcon, title: "Çoklu çalışan desteği", desc: "Ekibinizle birlikte yönetin." },
+];
 
 // Header'ın hemen altındaki "Öne Çıkanlar" bandında sırayla beliren kısa
 // özellik tanıtımları — ticker tek satıra sığması için bilinçli olarak kısa
@@ -268,99 +281,168 @@ export default function HomePage() {
         </div>
       </div>
 
-      <section className="relative overflow-hidden bg-gradient-to-b from-brand-50/60 via-white to-white">
-        {/* Dekoratif arka plan lekeleri + hafif nokta deseni — saf CSS, ekstra
-            görsel dosyası gerektirmez ama sayfanın en üstüne biraz derinlik katar. */}
+      {/* Kullanıcının gösterdiği reklam görseline (koyu zemin, parlayan QR,
+          telefon ekran görüntüsü, tarama ışını, bildirim balonu, sol tarafta
+          özellik listesi) olabildiğince yakın, tamamen kod/CSS ile üretilmiş bir
+          "reklam afişi" hissi — gerçek bir fotoğraf değil (bu ortamda görsel
+          üretimi yok), ama aynı kompozisyonu ve enerjiyi hedefliyor. */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-brand-950 to-slate-900 py-14 sm:py-20 lg:py-28">
+        {/* Derinlik için bulanık renkli lekeler + motor bölmesini çağrıştıran
+            çok soluk bir araba silueti (fotoğraf değil, saf CSS/SVG doku). */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-brand-100/70 blur-3xl"
+          className="pointer-events-none absolute -left-24 top-0 h-96 w-96 rounded-full bg-brand-600/25 blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-24 top-32 h-80 w-80 rounded-full bg-accent-500/10 blur-3xl"
+          className="pointer-events-none absolute -right-24 bottom-0 h-[28rem] w-[28rem] rounded-full bg-accent-500/15 blur-3xl"
         />
-        <div
+        <CarIcon
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.4]"
-          style={{
-            backgroundImage: "radial-gradient(#93c5fd 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-            maskImage: "linear-gradient(to bottom, black, transparent 70%)",
-            WebkitMaskImage: "linear-gradient(to bottom, black, transparent 70%)",
-          }}
+          className="pointer-events-none absolute -right-8 bottom-0 hidden h-64 w-64 text-white/[0.04] lg:block"
         />
 
-        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:items-center lg:py-24">
+        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:items-center">
           <div className="animate-fade-in-up text-center lg:text-left">
-            <span className="inline-block rounded-full bg-accent-500/10 px-4 py-1 text-sm font-semibold text-accent-600">
+            <span className="inline-block rounded-full bg-accent-500/15 px-4 py-1 text-sm font-semibold text-accent-400">
               Aracının dijital hafızası
             </span>
-            <h1 className="mx-auto mt-6 max-w-xl text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl lg:mx-0">
-              Araca yapıştırın, her bakımda okutun, geçmiş kendiliğinden biriksin.
+            <h1 className="mx-auto mt-6 max-w-xl text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:mx-0">
+              Araca yapıştırın, her bakımda okutun,{" "}
+              <span className="bg-gradient-to-r from-brand-300 to-accent-400 bg-clip-text text-transparent">
+                geçmiş kendiliğinden biriksin.
+              </span>
             </h1>
-            <p className="mx-auto mt-5 max-w-xl text-lg text-slate-600 lg:mx-0">
+            <p className="mx-auto mt-5 max-w-xl text-lg text-slate-300 lg:mx-0">
               Her araca özel bir QR kod üretin. Müşteri veya siz QR&apos;ı okuttuğunuzda
-              plaka, marka, model ve yağ bakım geçmişi (tarih, saat, yağ türü, kaç kg
-              konulduğu) otomatik olarak ekranda belirir. Kayıtlar elle defter tutmaya
-              gerek kalmadan otomatik saklanır, bakım zamanı gelince müşteriye kendiliğinden
+              plaka, marka, model ve yağ bakım geçmişi otomatik olarak ekranda belirir —
+              elle defter tutmaya gerek kalmaz, bakım zamanı gelince müşteriye kendiliğinden
               hatırlatma gider.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
               <Link
                 href="/kayit"
-                className="rounded-lg bg-brand-600 px-6 py-3 text-lg font-semibold text-white shadow-lg shadow-brand-600/20 hover:bg-brand-700 active:scale-[0.98]"
+                className="rounded-lg bg-white px-6 py-3 text-lg font-semibold text-brand-800 shadow-lg shadow-black/20 hover:bg-slate-100 active:scale-[0.98]"
               >
                 Ücretsiz Hesap Aç
               </Link>
               <Link
                 href="#ozellikler"
-                className="rounded-lg border border-slate-300 bg-white px-6 py-3 text-lg font-semibold text-slate-700 hover:bg-slate-50 active:scale-[0.98]"
+                className="rounded-lg border border-white/25 bg-white/5 px-6 py-3 text-lg font-semibold text-white hover:bg-white/10 active:scale-[0.98]"
               >
                 Özellikleri İncele
               </Link>
             </div>
-            <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-500 lg:justify-start">
-              {["Kredi kartı gerekmez", "15 araca kadar ücretsiz", "2 dakikada kurulum"].map((t) => (
-                <span key={t} className="flex items-center gap-1.5">
-                  <CheckIcon className="h-4 w-4 text-green-600" />
-                  {t}
-                </span>
+
+            {/* Referans görseldeki sol sütun özellik listesi — ikon rozeti + kısa
+                başlık + tek satır açıklama, koyu zemin üzerinde parlayan
+                rozetlerle. */}
+            <div className="mt-10 grid gap-4 sm:grid-cols-2">
+              {heroFeatures.map((f) => (
+                <div key={f.title} className="flex items-start gap-3 text-left">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg shadow-brand-600/40">
+                    <f.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{f.title}</p>
+                    <p className="text-xs text-slate-400">{f.desc}</p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Başlıktaki "araca yapıştırın, okutun" sözünü tek bakışta somutlaştıran,
-              hareketli/parlak bir illüstrasyon (bkz. components/QrScanIllustration.tsx)
-              — önceki sakin/soyut kart yerine, canlı renkli degrade bir arka plan
-              panelinde, nabız gibi atan bir tarama efektiyle çok daha dikkat çekici
-              bir "hero görseli" hissi hedefliyor. Üzerine binen iki küçük rozet,
-              otomatik hatırlatma özelliğini de aynı görsele ekliyor. */}
-          <div className="relative flex justify-center lg:justify-self-center">
-            <div className="relative w-full max-w-md">
-              <div className="rotate-2 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-slate-900 p-4 shadow-2xl shadow-brand-900/30 transition-transform hover:rotate-0 sm:p-6">
-                <QrScanIllustration className="w-full drop-shadow-xl" />
+          {/* Sağ taraf: parlayan bir QR etiketinden telefona uzanan bir tarama
+              ışını ve gerçek uygulama arayüzüne benzeyen bir telefon mockup'ı —
+              referans görseldeki ana sahneyi somutlaştırıyor. */}
+          <div className="relative flex justify-center py-6 lg:justify-self-center lg:py-0">
+            <div className="relative w-full max-w-xs sm:max-w-sm">
+              {/* Parlayan QR etiketi — telefonun arkasında, sol üstte */}
+              <div className="absolute -left-2 top-6 z-0 sm:left-2 sm:top-10">
+                <div className="relative">
+                  <div className="absolute inset-0 -m-6 animate-pulse rounded-full bg-accent-400/40 blur-2xl" />
+                  <div className="relative rotate-[-8deg] rounded-xl border-2 border-white/80 bg-white p-2.5 shadow-2xl shadow-accent-500/30 sm:p-3">
+                    <div className="grid grid-cols-5 gap-[3px]">
+                      {[
+                        1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1,
+                        1,
+                      ].map((v, i) => (
+                        <span
+                          key={i}
+                          className={`h-1.5 w-1.5 sm:h-2 sm:w-2 ${v ? "bg-slate-900" : "bg-transparent"}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Ana görselin üzerine hafifçe taşan iki küçük rozet — QR okutma anını
-                  ve otomatik hatırlatmayı görsel olarak somutlaştırıyor. Mobilde
-                  taşma/yatay kaydırmaya yol açmaması için kart sınırlarına daha
-                  yakın, geniş ekranlarda ise daha belirgin şekilde taşırılıyor. */}
+              {/* Tarama ışını — QR'dan telefona uzanan, hafif titreşen degrade çizgi */}
               <div
-                className="animate-float-badge absolute -left-2 -top-3 flex -rotate-6 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 shadow-lg sm:-left-6 sm:-top-5 sm:gap-2 sm:px-3 sm:py-2"
-              >
-                <QrIcon className="h-4 w-4 shrink-0 text-brand-600 sm:h-5 sm:w-5" />
-                <span className="whitespace-nowrap text-[11px] font-semibold text-slate-700 sm:text-xs">
-                  QR okutuldu
-                </span>
+                aria-hidden
+                className="absolute left-16 top-16 z-10 h-1 w-24 origin-left rotate-[20deg] animate-pulse rounded-full bg-gradient-to-r from-accent-400 via-accent-400/70 to-transparent blur-[1px] sm:left-24 sm:top-24 sm:w-32"
+              />
+
+              {/* Telefon — gerçek uygulama arayüzüne benzeyen ekran içeriğiyle */}
+              <div className="relative z-20 ml-10 rotate-3 rounded-[2rem] border-4 border-slate-800 bg-slate-900 p-2 shadow-2xl transition-transform hover:rotate-0 sm:ml-16">
+                <div className="overflow-hidden rounded-[1.4rem] bg-white">
+                  <div className="flex items-center gap-1.5 bg-brand-700 px-4 py-2">
+                    <span className="flex h-4 w-4 items-center justify-center rounded bg-white/20 text-white">
+                      <BrandMark className="h-2.5 w-2.5" />
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-white">
+                      OtoHafıza
+                    </span>
+                  </div>
+                  <div className="p-3.5">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                      Araç
+                    </p>
+                    <p className="text-xl font-extrabold text-slate-900">34 ABC 123</p>
+                    <p className="text-xs text-slate-500">Volkswagen Passat · 2019</p>
+
+                    <div className="mt-3 rounded-lg bg-brand-50 p-2.5">
+                      <p className="text-[10px] font-semibold text-brand-700">Son Bakım</p>
+                      <p className="mt-0.5 text-xs text-slate-700">
+                        12.08.2026 · Castrol Edge 5W-30 · <strong>4,5 kg</strong>
+                      </p>
+                      <div className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-green-700">
+                        <CheckIcon className="h-3 w-3" />
+                        Düzenli Bakımlı
+                      </div>
+                    </div>
+
+                    <p className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                      Bakım Geçmişi
+                    </p>
+                    <div className="mt-1.5 space-y-1.5">
+                      {[
+                        { d: "12.08.2026", t: "Yağ Bakımı" },
+                        { d: "15.03.2026", t: "Hava Filtresi Değişimi" },
+                      ].map((r) => (
+                        <div key={r.t} className="flex items-center gap-1.5 text-[10px] text-slate-600">
+                          <CalendarIcon className="h-3 w-3 shrink-0 text-brand-500" />
+                          <span className="font-medium text-slate-800">{r.d}</span>
+                          <span className="truncate text-slate-500">· {r.t}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-3 rounded-lg bg-brand-600 py-1.5 text-center text-[10px] font-semibold text-white">
+                      Tüm geçmişi görüntüle
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div
-                className="animate-float-badge absolute -bottom-3 -right-2 flex rotate-3 items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-2.5 py-1.5 shadow-lg sm:-bottom-5 sm:-right-4 sm:gap-2 sm:px-3 sm:py-2"
-                style={{ animationDelay: "-1.6s" }}
-              >
-                <BellIcon className="h-4 w-4 shrink-0 text-amber-600 sm:h-5 sm:w-5" />
-                <span className="whitespace-nowrap text-[11px] font-semibold text-amber-800 sm:text-xs">
-                  Hatırlatma gönderildi
+
+              {/* Bildirim balonu — referans görseldeki sağ üst rozetle aynı fikir */}
+              <div className="animate-float-badge absolute -right-1 -top-2 z-30 flex w-32 -rotate-3 flex-col items-center gap-1 rounded-2xl border border-accent-400/40 bg-slate-900/90 p-3 text-center shadow-2xl shadow-accent-500/20 backdrop-blur sm:-right-4 sm:top-0 sm:w-36">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-white shadow-lg shadow-accent-500/40">
+                  <BellIcon className="h-4 w-4" />
                 </span>
+                <p className="text-[10px] font-semibold leading-snug text-white">
+                  Bakım zamanı gelmeden hatırlatır, işinizi kolaylaştırır!
+                </p>
               </div>
             </div>
           </div>
