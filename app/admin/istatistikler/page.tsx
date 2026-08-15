@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import {
+  getActiveVisitorCount,
   getCityVisits,
   getDailyPageviews,
   getPlanRevenueStats,
@@ -12,6 +13,7 @@ import {
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 import { ChartBarIcon, PackageIcon, UsersIcon } from "@/components/icons";
 import TurkeyVisitorMap from "@/components/TurkeyVisitorMap";
+import ActiveVisitorsCard from "@/components/ActiveVisitorsCard";
 
 // Yalnızca ADMIN_EMAILS ortam değişkeninde tanımlı hesaplara açık — bkz.
 // app/admin/siparisler/page.tsx ile aynı desen ve gerekçe.
@@ -28,16 +30,25 @@ export default async function AdminStatsPage() {
   if (!adminShopId) notFound();
 
   const today = new Date().toISOString().slice(0, 10);
-  const [pageviews, planCounts, planStartStats, planRevenue, orderStats, shops, cityVisits] =
-    await Promise.all([
-      getDailyPageviews(14),
-      getShopCountsByPlan(),
-      getPlanStartStats(),
-      getPlanRevenueStats(),
-      getStickerOrderStats(),
-      listAllShops(),
-      getCityVisits(today),
-    ]);
+  const [
+    pageviews,
+    planCounts,
+    planStartStats,
+    planRevenue,
+    orderStats,
+    shops,
+    cityVisits,
+    activeVisitors,
+  ] = await Promise.all([
+    getDailyPageviews(14),
+    getShopCountsByPlan(),
+    getPlanStartStats(),
+    getPlanRevenueStats(),
+    getStickerOrderStats(),
+    listAllShops(),
+    getCityVisits(today),
+    getActiveVisitorCount(),
+  ]);
 
   const todayViews = pageviews[pageviews.length - 1]?.count ?? 0;
   const last14DaysViews = pageviews.reduce((sum, d) => sum + d.count, 0);
@@ -63,7 +74,8 @@ export default async function AdminStatsPage() {
       </p>
 
       {/* Özet kartları */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <ActiveVisitorsCard initialCount={activeVisitors} />
         <StatCard label="Bugünkü Ziyaret" value={todayViews.toString()} />
         <StatCard label="Toplam Bayi" value={shops.length.toString()} sub={`${newShopsLast30Days} yeni (30 gün)`} />
         <StatCard label="Ücretli Abone" value={paidShopCount.toString()} />

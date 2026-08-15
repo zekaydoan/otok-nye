@@ -68,6 +68,7 @@ const suggestionsByShopStore = () => getStore("suggestions_by_shop");
 // yeterlidir ama kesin bir sayaç değildir (bkz. lib/rateLimit.ts aynı not).
 const siteAnalyticsStore = () => getStore("site_analytics");
 const cityVisitsStore = () => getStore("city_visits");
+const activeVisitorsStore = () => getStore("active_visitors");
 // KVKK self-servis veri talepleri (bkz. lib/types.ts DataRequest) — bayi
 // bazında değil, doğrudan admin tarafından tek listede değerlendirildiği için
 // suggestions'ın aksine ayrı bir shopId indeksine gerek yok.
@@ -857,6 +858,47 @@ export async function getCityVisits(dateISO: string): Promise<Record<string, num
     number
   > | null;
   return counts ?? {};
+}
+
+// ---------- Anlık (aktif) ziyaretçi sayacı ----------
+// "Şu an sitede kaç kişi var" — kalıcı bir ziyaret geçmişi değil, yalnızca
+// SON birkaç dakika içinde bir "nabız" (heartbeat) sinyali göndermiş anonim
+// tarayıcı sekmelerinin sayısıdır. Kimlik/IP saklanmaz: sessionId, tarayıcıda
+// rastgele üretilip yalnızca o sekme oturumu boyunca sessionStorage'da tutulan
+// geçici bir değerdir (bkz. components/ActiveVisitorTracker.tsx). Her sessionId
+// için tek bir blob tutulur ve üzerine yazılır (aynı sekme tekrar tekrar aynı
+// key'i günceller) — Netlify Blobs'ta TTL olmadığından, sekme kapatıldıktan
+// sonra kalan "hayalet" kayıtları temizlemek için okuma anında (bkz.
+// getActiveVisitorCount) süresi geçmiş olanlar ayrıca silinir.
+const HEARTBEAT_STALE_MS = 5 * 60 * 1000; // 5 dakikadan eski kayıtlar tamamen silinir
+
+export async function recordHeartbeat(sessionId: string): Promise<void> {
+  await activeVisitorsStore().setJSON(sessionId, { lastSeen: Date.now() });
+}
+
+// windowMs içinde nabız göndermiş sekme sayısını döner. Aynı taramada, bu
+// pencerenin dışına düşmüş (ama silme eşiğinin altında kalan) "hayalet"
+// kayıtları da fırsattan yararlanıp temizler — ayrı bir zamanlanmış görev
+// gerektirmez, admin paneli her açıldığında store kendiliğinden küçülür.
+export async function getActiveVisitorCount(windowMs = 90 * 1000): Promise<number> {
+  const { blobs } = await activeVisitorsStore().list();
+  const now = Date.now();
+  let activeCount = 0;
+  await Promise.all(
+    blobs.map(async (b) => {
+      const entry = (await activeVisitorsStore().get(b.key, { type: "json" })) as {
+        lastSeen: number;
+      } | null;
+      if (!entry) return;
+      const age = now - entry.lastSeen;
+      if (age > HEARTBEAT_STALE_MS) {
+        await activeVisitorsStore().delete(b.key).catch(() => {});
+        return;
+      }
+      if (age <= windowMs) activeCount++;
+    })
+  );
+  return activeCount;
 }
 
 // Son `days` günün (bugün dahil) günlük sayfa görüntüleme sayılarını, en eskiden en

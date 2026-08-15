@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AdPixels from "@/components/AdPixels";
 import PageviewTracker from "@/components/PageviewTracker";
+import ActiveVisitorTracker from "@/components/ActiveVisitorTracker";
 import ScrollToTop from "@/components/ScrollToTop";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -99,6 +100,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <AdPixels />
         <PageviewTracker />
+        <ActiveVisitorTracker />
         {children}
         <ScrollToTop />
       </body>
