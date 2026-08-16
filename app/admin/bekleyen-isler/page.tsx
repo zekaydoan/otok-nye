@@ -10,6 +10,7 @@ import {
 import { PLAN_LIMITS } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import { BellIcon, LightbulbIcon, LockIcon, PackageIcon, UsersIcon } from "@/components/icons";
+import IconBadge from "@/components/IconBadge";
 
 // Admin, önceden her kategoriyi (Bayiler, Öneriler, Veri Talepleri) tek tek
 // gezerek "bekleyen bir şey var mı" diye kontrol etmek zorundaydı — özellikle
@@ -80,7 +81,7 @@ export default async function AdminPendingPage() {
       {pendingPlanShops.length > 0 && (
         <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-center gap-2">
-            <UsersIcon className="h-5 w-5 text-brand-600" />
+            <IconBadge icon={<UsersIcon />} color="indigo" />
             <h2 className="font-bold text-slate-900">Bekleyen Plan Talepleri ({pendingPlanShops.length})</h2>
           </div>
           <p className="mt-1 text-xs text-slate-400">
@@ -107,7 +108,7 @@ export default async function AdminPendingPage() {
       {refundPendingOrders.length > 0 && (
         <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-center gap-2">
-            <PackageIcon className="h-5 w-5 text-brand-600" />
+            <IconBadge icon={<PackageIcon />} color="red" />
             <h2 className="font-bold text-slate-900">İade Bekleyen İptaller ({refundPendingOrders.length})</h2>
           </div>
           <p className="mt-1 text-xs text-slate-400">
@@ -134,7 +135,7 @@ export default async function AdminPendingPage() {
       {unreadSuggestions.length > 0 && (
         <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-center gap-2">
-            <LightbulbIcon className="h-5 w-5 text-brand-600" />
+            <IconBadge icon={<LightbulbIcon />} color="yellow" />
             <h2 className="font-bold text-slate-900">Okunmamış Öneriler ({unreadSuggestions.length})</h2>
           </div>
           <div className="mt-4">
@@ -148,7 +149,7 @@ export default async function AdminPendingPage() {
       {pendingDataRequests.length > 0 && (
         <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-center gap-2">
-            <LockIcon className="h-5 w-5 text-brand-600" />
+            <IconBadge icon={<LockIcon />} color="slate" />
             <h2 className="font-bold text-slate-900">Bekleyen KVKK Veri Talepleri ({pendingDataRequests.length})</h2>
           </div>
           <div className="mt-4">

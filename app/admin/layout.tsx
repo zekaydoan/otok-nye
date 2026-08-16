@@ -2,8 +2,23 @@ import Link from "next/link";
 import { ToastProvider } from "@/components/Toast";
 import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
+import IconBadge from "@/components/IconBadge";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { getPendingCounts } from "@/app/admin/bekleyen-isler/page";
+import { BellIcon, ChartBarIcon, ChatIcon, DocumentIcon, LightbulbIcon, LockIcon, UsersIcon } from "@/components/icons";
+
+// Her sekmenin kendine özgü rengi var (bkz. components/IconBadge) — ne işe
+// yaradığını isim + renk tekrarıyla pekiştirir, hepsi aynı gri metin olduğunda
+// gözle taranması zordu.
+const NAV_ITEMS = [
+  { href: "/admin/bekleyen-isler", label: "Bekleyen İşler", icon: <BellIcon />, color: "red" as const },
+  { href: "/admin/bayiler", label: "Bayiler", icon: <UsersIcon />, color: "blue" as const },
+  { href: "/admin/istatistikler", label: "İstatistikler", icon: <ChartBarIcon />, color: "purple" as const },
+  { href: "/admin/duyurular", label: "Duyurular", icon: <ChatIcon />, color: "amber" as const },
+  { href: "/admin/oneriler", label: "Öneriler", icon: <LightbulbIcon />, color: "yellow" as const },
+  { href: "/admin/veri-talepleri", label: "Veri Talepleri", icon: <LockIcon />, color: "slate" as const },
+  { href: "/admin/aktivite", label: "Aktivite", icon: <DocumentIcon />, color: "green" as const },
+];
 
 // Daha önce admin sayfaları çıplak bir <div> ile başlıyor, dashboard'daki gibi
 // bir marka şeridi ya da panele dönüş yolu sunmuyordu — yetkili bir hesapla
@@ -29,33 +44,22 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 Admin
               </span>
             </Link>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Link href="/admin/bekleyen-isler" className="relative text-sm font-medium text-slate-500 hover:text-slate-700">
-                Bekleyen İşler
-                {pendingTotal > 0 && (
-                  <span className="ml-1 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                    {pendingTotal}
-                  </span>
-                )}
-              </Link>
-              <Link href="/admin/bayiler" className="text-sm font-medium text-slate-500 hover:text-slate-700">
-                Bayiler
-              </Link>
-              <Link href="/admin/istatistikler" className="text-sm font-medium text-slate-500 hover:text-slate-700">
-                İstatistikler
-              </Link>
-              <Link href="/admin/duyurular" className="text-sm font-medium text-slate-500 hover:text-slate-700">
-                Duyurular
-              </Link>
-              <Link href="/admin/oneriler" className="text-sm font-medium text-slate-500 hover:text-slate-700">
-                Öneriler
-              </Link>
-              <Link href="/admin/veri-talepleri" className="text-sm font-medium text-slate-500 hover:text-slate-700">
-                Veri Talepleri
-              </Link>
-              <Link href="/admin/aktivite" className="text-sm font-medium text-slate-500 hover:text-slate-700">
-                Aktivite
-              </Link>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="relative flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                >
+                  <IconBadge icon={item.icon} color={item.color} />
+                  <span>{item.label}</span>
+                  {item.href === "/admin/bekleyen-isler" && pendingTotal > 0 && (
+                    <span className="rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                      {pendingTotal}
+                    </span>
+                  )}
+                </Link>
+              ))}
               <Link href="/dashboard" className="text-sm font-medium text-slate-500 hover:text-slate-700">
                 ← Panelime dön
               </Link>

@@ -13,7 +13,8 @@ import {
   listAllShops,
 } from "@/lib/blobStore";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
-import { ChartBarIcon, PackageIcon, UsersIcon } from "@/components/icons";
+import { CarIcon, ChartBarIcon, GiftIcon, PackageIcon, StarIcon, UsersIcon, WarningIcon, XCircleIcon } from "@/components/icons";
+import IconBadge, { type IconBadgeColor } from "@/components/IconBadge";
 import TurkeyVisitorMap from "@/components/TurkeyVisitorMap";
 import ActiveVisitorsCard from "@/components/ActiveVisitorsCard";
 
@@ -108,17 +109,35 @@ export default async function AdminStatsPage() {
       {/* Özet kartları */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <ActiveVisitorsCard initialCount={activeVisitors} />
-        <StatCard label="Bugünkü Ziyaret" value={todayViews.toString()} />
-        <StatCard label="Toplam Bayi" value={shops.length.toString()} sub={`${newShopsLast30Days} yeni (30 gün)`} />
-        <StatCard label="Ücretli Abone" value={paidShopCount.toString()} />
-        <StatCard label="Plan Cirosu" value={fmtTry(planRevenue.estimatedMonthlyTry)} sub="Tahmini, aylık" />
-        <StatCard label="Etiket Cirosu" value={fmtTry(orderStats.totalRevenueTry)} sub={`${orderStats.paidOrders} ödenmiş sipariş`} />
+        <StatCard icon={<ChartBarIcon />} color="blue" label="Bugünkü Ziyaret" value={todayViews.toString()} />
+        <StatCard
+          icon={<UsersIcon />}
+          color="indigo"
+          label="Toplam Bayi"
+          value={shops.length.toString()}
+          sub={`${newShopsLast30Days} yeni (30 gün)`}
+        />
+        <StatCard icon={<StarIcon />} color="amber" label="Ücretli Abone" value={paidShopCount.toString()} />
+        <StatCard
+          icon={<GiftIcon />}
+          color="green"
+          label="Plan Cirosu"
+          value={fmtTry(planRevenue.estimatedMonthlyTry)}
+          sub="Tahmini, aylık"
+        />
+        <StatCard
+          icon={<PackageIcon />}
+          color="pink"
+          label="Etiket Cirosu"
+          value={fmtTry(orderStats.totalRevenueTry)}
+          sub={`${orderStats.paidOrders} ödenmiş sipariş`}
+        />
       </div>
 
       {/* Ziyaret grafiği */}
       <section className="mt-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
         <div className="flex items-center gap-2">
-          <ChartBarIcon className="h-5 w-5 text-brand-600" />
+          <IconBadge icon={<ChartBarIcon />} color="blue" />
           <h2 className="font-bold text-slate-900">Son 14 Gün Sayfa Görüntüleme</h2>
         </div>
         <p className="mt-1 text-xs text-slate-400">
@@ -140,7 +159,7 @@ export default async function AdminStatsPage() {
       {/* Bugünkü ziyaretçilerin şehir dağılımı */}
       <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
         <div className="flex items-center gap-2">
-          <ChartBarIcon className="h-5 w-5 text-brand-600" />
+          <IconBadge icon={<ChartBarIcon />} color="purple" />
           <h2 className="font-bold text-slate-900">Bugün Hangi Şehirlerden Ziyaret Edildi</h2>
         </div>
         <p className="mt-1 text-xs text-slate-400">
@@ -167,7 +186,7 @@ export default async function AdminStatsPage() {
       {/* Plan dağılımı */}
       <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
         <div className="flex items-center gap-2">
-          <UsersIcon className="h-5 w-5 text-brand-600" />
+          <IconBadge icon={<UsersIcon />} color="indigo" />
           <h2 className="font-bold text-slate-900">Plan Dağılımı</h2>
         </div>
         <p className="mt-1 text-xs text-slate-400">
@@ -213,7 +232,7 @@ export default async function AdminStatsPage() {
         {/* Şehre göre etiket satışı */}
         <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-center gap-2">
-            <PackageIcon className="h-5 w-5 text-brand-600" />
+            <IconBadge icon={<PackageIcon />} color="pink" />
             <h2 className="font-bold text-slate-900">Şehre Göre Etiket Satışı</h2>
           </div>
           <p className="mt-1 text-xs text-slate-400">
@@ -237,7 +256,7 @@ export default async function AdminStatsPage() {
         {/* Şehre göre plan satışı */}
         <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="flex items-center gap-2">
-            <UsersIcon className="h-5 w-5 text-brand-600" />
+            <IconBadge icon={<UsersIcon />} color="blue" />
             <h2 className="font-bold text-slate-900">Şehre Göre Plan Satışı</h2>
           </div>
           <p className="mt-1 text-xs text-slate-400">
@@ -264,7 +283,7 @@ export default async function AdminStatsPage() {
       {/* Kayıp (churn) sinyalleri — bkz. lib/blobStore.ts getChurnStats */}
       <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
         <div className="flex items-center gap-2">
-          <UsersIcon className="h-5 w-5 text-brand-600" />
+          <IconBadge icon={<WarningIcon />} color="red" />
           <h2 className="font-bold text-slate-900">Kayıp Sinyalleri</h2>
         </div>
         <p className="mt-1 text-xs text-slate-400">
@@ -272,12 +291,21 @@ export default async function AdminStatsPage() {
         </p>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard
+            icon={<XCircleIcon />}
+            color="red"
             label="İptal Edilen Sipariş"
             value={churnStats.cancelledOrderCount.toString()}
             sub={churnStats.cancelledOrderValueTry > 0 ? `${fmtTry(churnStats.cancelledOrderValueTry)} iade gerekebilir` : undefined}
           />
-          <StatCard label="Ücretliden Free'ye Dönüş" value={churnStats.downgradeToFreeCount.toString()} />
           <StatCard
+            icon={<WarningIcon />}
+            color="amber"
+            label="Ücretliden Free'ye Dönüş"
+            value={churnStats.downgradeToFreeCount.toString()}
+          />
+          <StatCard
+            icon={<CarIcon />}
+            color="slate"
             label="Hiç Araç Eklememiş"
             value={churnStats.noVehicleShopCount.toString()}
             sub={
@@ -310,10 +338,25 @@ export default async function AdminStatsPage() {
   );
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function StatCard({
+  icon,
+  color,
+  label,
+  value,
+  sub,
+}: {
+  icon?: React.ReactElement;
+  color?: IconBadgeColor;
+  label: string;
+  value: string;
+  sub?: string;
+}) {
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-      <p className="text-xs font-medium text-slate-500">{label}</p>
+      <div className="flex items-center gap-2">
+        {icon && color && <IconBadge icon={icon} color={color} />}
+        <p className="text-xs font-medium text-slate-500">{label}</p>
+      </div>
       <p className="mt-1 text-xl font-bold text-slate-900">{value}</p>
       {sub && <p className="mt-0.5 text-[11px] text-slate-400">{sub}</p>}
     </div>
