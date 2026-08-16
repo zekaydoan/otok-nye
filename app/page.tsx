@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PLAN_LIMITS } from "@/lib/types";
+import { PAID_PLANS_DISABLED_MESSAGE, PAID_PLANS_ENABLED } from "@/lib/planAvailability";
 import { listBlogPosts } from "@/lib/blogPosts";
 import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
@@ -845,11 +846,17 @@ export default function HomePage() {
               </span>
             ))}
           </div>
+          {!PAID_PLANS_ENABLED && (
+            <p className="mx-auto mt-8 max-w-2xl rounded-lg bg-white/10 px-4 py-3 text-center text-sm text-slate-100">
+              {PAID_PLANS_DISABLED_MESSAGE}
+            </p>
+          )}
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {(Object.keys(PLAN_LIMITS) as Array<keyof typeof PLAN_LIMITS>).map((key) => {
               const plan = PLAN_LIMITS[key];
               const isPopular = key === "pro";
               const isCampaign = Boolean(plan.badge);
+              const isLocked = key !== "free" && !PAID_PLANS_ENABLED;
               return (
                 <div
                   key={key}
@@ -894,16 +901,22 @@ export default function HomePage() {
                           : `${plan.maxStaff} çalışan hesabına kadar`}
                     </li>
                   </ul>
-                  <Link
-                    href="/kayit"
-                    className={`mt-6 block rounded-lg py-2 text-center font-semibold ${
-                      isPopular
-                        ? "bg-white text-brand-700 hover:bg-slate-100"
-                        : "bg-white/10 hover:bg-white/20"
-                    }`}
-                  >
-                    Bu planla başla
-                  </Link>
+                  {isLocked ? (
+                    <span className="mt-6 block cursor-not-allowed rounded-lg bg-white/10 py-2 text-center font-semibold text-white/60">
+                      Yakında
+                    </span>
+                  ) : (
+                    <Link
+                      href="/kayit"
+                      className={`mt-6 block rounded-lg py-2 text-center font-semibold ${
+                        isPopular
+                          ? "bg-white text-brand-700 hover:bg-slate-100"
+                          : "bg-white/10 hover:bg-white/20"
+                      }`}
+                    >
+                      Bu planla başla
+                    </Link>
+                  )}
                 </div>
               );
             })}
