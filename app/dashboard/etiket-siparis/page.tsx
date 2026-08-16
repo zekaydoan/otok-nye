@@ -4,7 +4,8 @@ import { getShopById, getStickerUnitPriceTry, listStickerOrdersByShop } from "@/
 import { isBillingInfoComplete } from "@/lib/billing";
 import StickerOrderForm from "@/components/StickerOrderForm";
 import StickerOrderList from "@/components/StickerOrderList";
-import { BrandMark, CheckIcon } from "@/components/icons";
+import { buildBusinessWhatsAppLink } from "@/lib/whatsappBusiness";
+import { BrandMark, CheckIcon, WhatsAppIcon } from "@/components/icons";
 
 const BENEFITS = [
   "Motor bölmesi sıcaklığına, yağa ve neme dayanıklı malzeme",
@@ -25,6 +26,15 @@ export default async function StickerOrderPage() {
       <p className="mt-1 text-sm text-slate-500">
         Kargo takibi elle güncellenir, sipariş durumunuzu aşağıdan izleyebilirsiniz.
       </p>
+      <a
+        href={buildBusinessWhatsAppLink("Merhaba, etiket siparişiyle ilgili bir sorum var.")}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-green-700 hover:underline"
+      >
+        <WhatsAppIcon className="h-4 w-4 shrink-0" />
+        Sorularınız mı var? WhatsApp'tan sorun
+      </a>
 
       {/* Ürün tanıtımı — ödeme istemeden önce "neden bu parayı ödüyorum" sorusuna
           görsel olarak cevap verir. */}

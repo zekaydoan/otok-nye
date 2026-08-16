@@ -1,20 +1,16 @@
 import Link from "next/link";
 import { WhatsAppIcon } from "@/components/icons";
+import { buildBusinessWhatsAppLink } from "@/lib/whatsappBusiness";
 
 // Sitenin herkese açık (pazarlama) sayfalarında sağ altta sabit duran destek
 // butonu — bu sektörde (usta/esnaf) telefon/WhatsApp her zaman e-postadan daha
 // çok tercih edildiği için, bir form doldurmadan doğrudan mesaj atabilme.
-//
-// Kurumsal WhatsApp Business numarası — ülke koduyla, boşluksuz (ör.
-// "905XXXXXXXXX"). Sabit boşken bileşen hiçbir şey render etmiyor (kırık/boş
-// bir link göstermemek için); bu artık geçerli değil, numara tanımlı.
-const WHATSAPP_NUMBER = "905425756918";
+// Numara bkz. lib/whatsappBusiness.ts — aynı numara ana sayfa İletişim
+// bölümünde, Şifremi Unuttum akışında ve etiket sipariş sayfasında da kullanılır.
 const DEFAULT_MESSAGE = "Merhaba, OtoHafıza hakkında bilgi almak istiyorum.";
 
 export default function WhatsAppFloatButton() {
-  if (!WHATSAPP_NUMBER) return null;
-
-  const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
+  const href = buildBusinessWhatsAppLink(DEFAULT_MESSAGE);
 
   return (
     <Link

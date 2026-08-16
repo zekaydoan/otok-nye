@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import AuthSidePanel from "@/components/AuthSidePanel";
 import Logo from "@/components/Logo";
-import { CheckCircleIcon } from "@/components/icons";
+import { buildBusinessWhatsAppLink } from "@/lib/whatsappBusiness";
+import { CheckCircleIcon, WhatsAppIcon } from "@/components/icons";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -56,7 +57,16 @@ export default function ForgotPasswordPage() {
                 <strong>{email}</strong> adresi sistemde kayıtlıysa, şifrenizi sıfırlamak için
                 gereken bağlantıyı içeren bir e-posta gönderdik. Bağlantı 1 saat geçerlidir.
               </p>
-              <Link href="/giris" className="mt-6 inline-block text-sm font-medium text-brand-600">
+              <a
+                href={buildBusinessWhatsAppLink("Merhaba, şifremi sıfırlama e-postası gelmedi, yardımcı olur musunuz?")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-100"
+              >
+                <WhatsAppIcon className="h-4 w-4 shrink-0" />
+                E-posta gelmedi mi? WhatsApp'tan yazın
+              </a>
+              <Link href="/giris" className="mt-4 inline-block text-sm font-medium text-brand-600">
                 ← Giriş sayfasına dön
               </Link>
             </div>

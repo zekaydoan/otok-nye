@@ -5,6 +5,7 @@ import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
 import FaqAccordion from "@/components/FaqAccordion";
 import MobileNavMenu from "@/components/MobileNavMenu";
+import { buildBusinessWhatsAppLink } from "@/lib/whatsappBusiness";
 import {
   BellIcon,
   BrandMark,
@@ -25,6 +26,7 @@ import {
   StickerIcon,
   UploadIcon,
   UsersIcon,
+  WhatsAppIcon,
   XCircleIcon,
 } from "@/components/icons";
 
@@ -942,6 +944,18 @@ export default function HomePage() {
               className="text-base font-semibold text-slate-900 hover:text-brand-700"
             >
               hello@otohafiza.com
+            </a>
+          </div>
+
+          <div className="mt-3 inline-flex items-center gap-3 rounded-xl bg-white px-6 py-4 shadow-sm ring-1 ring-slate-100">
+            <WhatsAppIcon className="h-5 w-5 shrink-0 text-green-600" />
+            <a
+              href={buildBusinessWhatsAppLink("Merhaba, OtoHafıza hakkında bilgi almak istiyorum.")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-base font-semibold text-slate-900 hover:text-brand-700"
+            >
+              WhatsApp'tan Yazın
             </a>
           </div>
 
