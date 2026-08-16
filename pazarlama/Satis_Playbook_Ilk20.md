@@ -6,10 +6,19 @@
 
 Bu dönemde para tahsilatı **yapılmıyor**: kredi kartı istenmiyor, ödeme alınmıyor. Dükkan Ücretsiz plan üzerinden tam kapsamlı kayıt olup kullanmaya başlıyor; resmi ücretlendirme şirket kuruluş sürecimiz tamamlandığında devreye girecek (bkz. `SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md`). Bugün kaydolanlara o zaman sabit fiyat garantisi var — bkz. `pazarlama/OtoHafiza_Teklif_ve_Fiyat_Ilk20.docx`.
 
+## Farklılaştırma — Neden Biz (rakip var, önemli)
+
+eBakımDefteri (5 yıldır piyasada, 3000+ servis) ve Servisbir gibi doğrudan rakipler var — fiyat/özellik yarışında onlarla birebir yarışmıyoruz, iki somut farkımızı öne çıkarıyoruz:
+
+1. **Bugün başlarsınız.** Rakipte etiket kargoyla geliyor (1 yıllık planda bile "gönderilir" deniyor — gecikme var). Bizde bayı kendi yazıcısından o an QR etiket basabiliyor — kayıt, kurulum, ilk etiket aynı ziyarette biter.
+2. **Doğrudan kurucuya ulaşım.** Anonim bir çağrı merkezi değil — WhatsApp'tan yazdığında gerçek bir kişiyle (Zeki) konuşuyor.
+
+**Dürüstlük notu:** Hatırlatma şu an tam otomatik değil — tek tıkla siz gönderiyorsunuz (10 saniye sürer). Rakip "otomatik SMS" diyor, biz "tek tıkla WhatsApp" diyoruz — abartmayın, biri sorarsa "otomatik mi" diye, dürüstçe "şu an tek tık, saniyeler sürüyor" deyin.
+
 ## Açılış Cümleleri
 
 **Kapıdan girerken (yüz yüze, 10-15 saniye):**
-"Merhaba, [isim], OtoHafıza'dan geliyorum. Bakıma gelen müşterinizi 6 ay sonra otomatik geri getiren bir sistemimiz var, 2 dakika anlatabilir miyim?"
+"Merhaba, [isim], OtoHafıza'dan geliyorum. Bakıma gelen müşterinizi unutmadan geri çağıran bir sistemimiz var, bugün kurup bugün kullanmaya başlıyorsunuz. 2 dakika anlatabilir miyim?"
 
 **Telefonda:**
 "Merhaba, ben [isim], oto servislere yönelik bir uygulama geliştiriyoruz. 2 dakikanızı alabilir miyim?"
@@ -38,6 +47,9 @@ Bu dönemde para tahsilatı **yapılmıyor**: kredi kartı istenmiyor, ödeme al
 
 **"Müşteri bilgileri güvenli mi, kim görüyor"**
 "KVKK'ya uygun çalışıyoruz, bilgileri sadece siz ve ilgili müşteriniz görür, başka hiçbir dükkan göremez."
+
+**"Ben eBakımDefteri/başka bir sistem kullanıyorum ya da duydum"**
+"Onlar da iyi bir sistem, haklısınız. Farkımız şu: etiketi kargoyla beklemenize gerek yok, bugün kendi yazıcınızdan basıp aynı gün başlıyorsunuz. Ayrıca bir sorunuz olduğunda anonim bir çağrı merkezi değil, doğrudan bana WhatsApp'tan ulaşırsınız."
 
 ## Gün Gün 30 Günlük Program
 
