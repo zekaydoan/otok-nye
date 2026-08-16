@@ -6,6 +6,7 @@ import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
 import FaqAccordion from "@/components/FaqAccordion";
 import MobileNavMenu from "@/components/MobileNavMenu";
+import MobileLoginSplit from "@/components/MobileLoginSplit";
 import { buildBusinessWhatsAppLink } from "@/lib/whatsappBusiness";
 import {
   BellIcon,
@@ -264,18 +265,21 @@ export default function HomePage() {
             >
               Saha Partneri Girişi
             </Link>
-            {/* Mobilde her ziyaretçi zaten müşteri olacağından (uygulamayı
-                düzenli kullanan bayiler) öncelik "Giriş Yap"ta — bu yüzden
-                mobilde her zaman logonun yanında görünür. "Ücretsiz Başla"
-                mobilde hamburger menüye taşındı (bkz. MobileNavMenu.tsx),
-                masaüstünde ikisi de eskisi gibi yan yana görünmeye devam
-                ediyor. */}
+            {/* Masaüstünde (sm ve üstü) düz "Giriş Yap" linki — bayi/usta
+                girişine gider, Saha Partneri Girişi ayrıca solda kendi linkiyle
+                duruyor (satır ~261). Mobilde ise MobileLoginSplit devreye
+                girer: aynı "Giriş Yap" görünümü ama dokunulduğunda "Kullanıcı
+                Girişi"/"Saha Partneri Girişi" diye ikiye ayrılan bir menü
+                açar — mobilde header'daki ayrı partner linki (lg:inline)
+                gizli olduğundan, mobil kullanıcının partner girişine tek
+                dokunuşla ulaşabileceği asıl yol burası. */}
             <Link
               href="/giris"
-              className="rounded-lg bg-accent-500 px-3 py-2 font-semibold text-white hover:bg-accent-600 sm:px-4"
+              className="hidden rounded-lg bg-accent-500 px-3 py-2 font-semibold text-white hover:bg-accent-600 sm:inline-block sm:px-4"
             >
               Giriş Yap
             </Link>
+            <MobileLoginSplit />
             <Link
               href="/kayit"
               className="hidden rounded-lg bg-brand-600 px-3 py-2 text-white hover:bg-brand-700 sm:inline-block sm:px-4"
