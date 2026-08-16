@@ -1,10 +1,13 @@
 "use client";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import StatCard from "@/components/StatCard";
 import EmptyState from "@/components/EmptyState";
+import RecentlyViewedVehicles from "@/components/RecentlyViewedVehicles";
 import { CarIcon } from "@/components/icons";
 import type { Vehicle } from "@/lib/types";
+
+type SortOption = "son" | "plaka" | "marka";
 
 const PENDING_VEHICLE_KEY = "otoHafizaYeniArac";
 // Toplu araç içe aktarma (bkz. app/dashboard/araclar/toplu-ekle) sonrasında eklenen
@@ -29,6 +32,8 @@ export default function VehicleListSection({
   children?: ReactNode;
 }) {
   const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("son");
 
   useEffect(() => {
     try {
@@ -54,6 +59,28 @@ export default function VehicleListSection({
     } catch {
     }
   }, []);
+
+  // Çok araçlı bayiler için plaka/marka/model/sahip adına göre serbest metin
+  // arama + sıralama — sunucudan gelen liste zaten son etkileşime göre sıralı,
+  // bu yalnızca istemci tarafında ek bir görünüm tercihi.
+  const filteredVehicles = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase("tr-TR");
+    let list = vehicles;
+    if (term) {
+      list = list.filter((v) =>
+        [v.plateDisplay, v.plate, v.brand, v.model, v.ownerName ?? ""]
+          .join(" ")
+          .toLocaleLowerCase("tr-TR")
+          .includes(term)
+      );
+    }
+    if (sortBy === "plaka") {
+      list = [...list].sort((a, b) => a.plateDisplay.localeCompare(b.plateDisplay, "tr-TR"));
+    } else if (sortBy === "marka") {
+      list = [...list].sort((a, b) => a.brand.localeCompare(b.brand, "tr-TR"));
+    }
+    return list;
+  }, [vehicles, search, sortBy]);
 
   return (
     <>
@@ -118,6 +145,8 @@ export default function VehicleListSection({
         </Link>
       )}
 
+      <RecentlyViewedVehicles />
+
       {children}
 
       {vehicles.length === 0 ? (
@@ -131,28 +160,55 @@ export default function VehicleListSection({
           />
         </div>
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {vehicles.map((v) => (
-            <Link
-              key={v.id}
-              href={`/dashboard/araclar/${v.id}`}
-              className="hover-lift rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100 hover:shadow-md hover:ring-brand-300"
+        <>
+          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Plaka, marka, model veya sahip adıyla ara..."
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none sm:max-w-xs"
+            />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none sm:w-auto"
             >
-              <div className="flex items-start justify-between">
-                <p className="text-lg font-bold text-slate-900">{v.plateDisplay}</p>
-                {v.createdByShopId !== shopId && (
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                    başka bayi ekledi
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 text-sm text-slate-600">
-                {v.brand} {v.model} {v.year ? `(${v.year})` : ""}
-              </p>
-              {v.ownerName && <p className="mt-2 text-xs text-slate-400">Sahibi: {v.ownerName}</p>}
-            </Link>
-          ))}
-        </div>
+              <option value="son">Son eklenen/işlem gören</option>
+              <option value="plaka">Plakaya göre (A-Z)</option>
+              <option value="marka">Markaya göre (A-Z)</option>
+            </select>
+          </div>
+
+          {filteredVehicles.length === 0 ? (
+            <p className="mt-6 rounded-xl bg-slate-50 p-4 text-center text-sm text-slate-500">
+              &quot;{search}&quot; ile eşleşen araç bulunamadı.
+            </p>
+          ) : (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredVehicles.map((v) => (
+                <Link
+                  key={v.id}
+                  href={`/dashboard/araclar/${v.id}`}
+                  className="hover-lift rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100 hover:shadow-md hover:ring-brand-300"
+                >
+                  <div className="flex items-start justify-between">
+                    <p className="text-lg font-bold text-slate-900">{v.plateDisplay}</p>
+                    {v.createdByShopId !== shopId && (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                        başka bayi ekledi
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {v.brand} {v.model} {v.year ? `(${v.year})` : ""}
+                  </p>
+                  {v.ownerName && <p className="mt-2 text-xs text-slate-400">Sahibi: {v.ownerName}</p>}
+                </Link>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </>
   );

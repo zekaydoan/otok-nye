@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import jsQR from "jsqr";
 import { CameraIcon } from "@/components/icons";
+import IconBadge from "@/components/IconBadge";
 
 // Telefon kamerasıyla aracın üzerindeki QR etiketini tarayıp doğrudan araç sayfasına
 // yönlendirir — ustanın plaka yazmasına gerek bırakmaz. jsQR saf JS ile çalıştığı için
@@ -108,10 +109,10 @@ export default function QrScanner() {
     return (
       <button
         onClick={start}
-        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-brand-300 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-100"
+        className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100 hover:ring-blue-300 sm:flex-row sm:text-left"
       >
-        <CameraIcon className="h-4 w-4" />
-        QR ile Ara
+        <IconBadge icon={<CameraIcon />} color="blue" size="md" />
+        <span className="text-sm font-semibold text-slate-900">QR ile Ara</span>
       </button>
     );
   }

@@ -501,6 +501,35 @@ export interface UpcomingService {
   kmRemaining: number | null; // negatif ise km hedefi geçilmiş demektir; hesaplanamıyorsa null
 }
 
+export interface TodayActivitySummary {
+  newVehicles: number;
+  oilRecords: number;
+}
+
+// Dashboard'daki "Bugün ne yaptım" özet şeridi için — bugün bu bayi tarafından
+// eklenen araç ve girilen bakım kaydı sayısını döner. Ayrı bir sayaç/istatistik
+// deposu tutmuyoruz; diğer admin özet fonksiyonlarıyla (ör. getChurnStats,
+// getPendingCounts) aynı "bayinin araçlarını tara" deseni burada da kabul
+// edilebilir maliyette — bir bayinin araç sayısı plan limitleriyle (15/250/∞)
+// sınırlı.
+export async function getTodayActivitySummary(shopId: string): Promise<TodayActivitySummary> {
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const vehicles = await listVehiclesByShop(shopId);
+
+  const newVehicles = vehicles.filter(
+    (v) => v.createdByShopId === shopId && v.createdAt.slice(0, 10) === todayISO
+  ).length;
+
+  const recordLists = await Promise.all(vehicles.map((v) => listOilRecordsForVehicle(v.id)));
+  const oilRecords = recordLists.reduce(
+    (count, records) =>
+      count + records.filter((r) => r.shopId === shopId && r.createdAt.slice(0, 10) === todayISO).length,
+    0
+  );
+
+  return { newVehicles, oilRecords };
+}
+
 // Bir aracın en son bakım kaydına göre "bakım zamanı ne kadar yaklaştı" hesabı —
 // hem dashboard'daki "Yaklaşan Bakımlar" widget'ı (listUpcomingServicesForShop,
 // geniş 14 günlük pencere) hem de otomatik WhatsApp hatırlatma taraması

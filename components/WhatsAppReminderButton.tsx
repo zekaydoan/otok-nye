@@ -1,5 +1,7 @@
 "use client";
 
+import { WhatsAppIcon } from "@/components/icons";
+
 // Panelden tek tıkla WhatsApp hatırlatma gönderme butonu. Normal bir <a href>
 // yeterli olurdu ama bayinin "gönderdim" bilgisinin kalıcı olarak kaydedilmesi
 // (bkz. lib/blobStore.ts ReminderLogEntry) ve otomatik gece taramasının aynı
@@ -26,8 +28,9 @@ export default function WhatsAppReminderButton({
       target="_blank"
       rel="noreferrer"
       onClick={handleClick}
-      className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
+      className="flex items-center gap-1.5 rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-100"
     >
+      <WhatsAppIcon className="h-3.5 w-3.5" />
       WhatsApp'tan Hatırlat
     </a>
   );

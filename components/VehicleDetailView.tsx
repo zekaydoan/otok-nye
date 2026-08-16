@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   buildReminderMessage,
@@ -8,6 +8,7 @@ import {
   computeMaintenanceScore,
 } from "@/lib/maintenance";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { recordRecentVehicle } from "@/lib/recentVehicles";
 import type { ReminderStatusDisplay } from "@/lib/whatsappReminder";
 import AddOilRecordForm from "@/components/AddOilRecordForm";
 import ShareReportButton from "@/components/ShareReportButton";
@@ -52,6 +53,18 @@ export default function VehicleDetailView({
     vehicle.ownerPhone && latest?.nextServiceDate
       ? buildWhatsAppLink(vehicle.ownerPhone, buildReminderMessage(vehicle, latest))
       : null;
+
+  // Dashboard'daki "Son görüntülediğiniz araçlar" şeridi için (bkz. lib/recentVehicles.ts) —
+  // bu sayfa her açıldığında aracı tarayıcının localStorage'ındaki son-görüntülenen
+  // listesinin başına taşır.
+  useEffect(() => {
+    recordRecentVehicle({
+      id: vehicle.id,
+      plateDisplay: vehicle.plateDisplay,
+      brand: vehicle.brand,
+      model: vehicle.model,
+    });
+  }, [vehicle.id, vehicle.plateDisplay, vehicle.brand, vehicle.model]);
 
   function handleRecordCreated(record: OilRecord) {
     setRecords((prev) => {

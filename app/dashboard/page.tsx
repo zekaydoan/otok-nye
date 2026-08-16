@@ -3,6 +3,7 @@ import { getCurrentShopId } from "@/lib/auth";
 import {
   getReminderLogEntry,
   getShopById,
+  getTodayActivitySummary,
   listAppointmentsForShop,
   listUpcomingServicesForShop,
   listVehiclesByShop,
@@ -16,7 +17,8 @@ import PlateSearch from "@/components/PlateSearch";
 import QrScanner from "@/components/QrScanner";
 import VehicleListSection from "@/components/VehicleListSection";
 import WhatsAppReminderButton from "@/components/WhatsAppReminderButton";
-import { CalendarIcon } from "@/components/icons";
+import IconBadge from "@/components/IconBadge";
+import { CalendarIcon, DownloadIcon, PlusIcon, StickerIcon, UploadIcon, WarningIcon } from "@/components/icons";
 
 function dateBadge(daysUntil: number): { text: string; className: string } {
   if (daysUntil < 0) {
@@ -59,12 +61,21 @@ export default async function DashboardPage() {
   );
   const appointments = shopId ? await listAppointmentsForShop(shopId) : [];
   const limit = shop ? PLAN_LIMITS[shop.plan] : null;
+  const todayActivity = shopId ? await getTodayActivitySummary(shopId) : { newVehicles: 0, oilRecords: 0 };
 
   const greeting = getTimeGreeting();
   const todayISO = new Date().toISOString().slice(0, 10);
   const todaysAppointments = appointments
     .filter((a) => a.date === todayISO && a.status === "bekliyor")
     .sort((a, b) => (a.time < b.time ? -1 : 1));
+
+  // Gecikmiş bakımları (tarih ya da km hedefi geçilmiş) yaklaşanlardan ayırıyoruz —
+  // aynı listede karışınca en acil olanı kaçırmak kolaylaşıyordu, artık ayrı ve
+  // en üstte, kırmızı bir bölümde gösteriliyor.
+  const overdue = upcoming.filter(
+    (u) => (u.daysUntil !== null && u.daysUntil < 0) || (u.kmRemaining !== null && u.kmRemaining < 0)
+  );
+  const dueSoon = upcoming.filter((u) => !overdue.includes(u));
 
   return (
     <div>
@@ -87,51 +98,126 @@ export default async function DashboardPage() {
         <p className="relative mt-1 text-sm text-brand-100/90">
           Oluşturduğunuz + bakım kaydı eklediğiniz tüm araçlar
         </p>
+        {/* "Bugün ne yaptım" özet şeridi — küçük ama gün içinde panelin bir işe
+            yaradığı hissini güçlendiriyor. */}
+        <div className="relative mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+          <span className="rounded-full bg-white/15 px-3 py-1">
+            Bugün {todayActivity.newVehicles} yeni araç
+          </span>
+          <span className="rounded-full bg-white/15 px-3 py-1">
+            Bugün {todayActivity.oilRecords} bakım kaydı
+          </span>
+        </div>
       </div>
 
-      <div className="mt-4 flex w-full gap-2 sm:w-auto sm:justify-end">
-        <div className="flex-1 sm:flex-none">
-          <QrScanner />
+      {/* Gecikmiş bakımlar — tarih ya da km hedefi geçilmiş kayıtlar, en acil
+          olanı kaçırmamak için ayrı ve en üstte, kırmızı vurgulu. */}
+      {overdue.length > 0 && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
+          <div className="flex items-center gap-2">
+            <IconBadge icon={<WarningIcon />} color="red" size="sm" />
+            <h2 className="text-sm font-bold text-red-800">
+              {overdue.length} aracın bakım zamanı geçti
+            </h2>
+          </div>
+          <div className="mt-3 space-y-2">
+            {overdue.map(({ vehicle, record, daysUntil, kmRemaining, reminderStatus }) => {
+              const whatsAppLink = vehicle.ownerPhone
+                ? buildWhatsAppLink(vehicle.ownerPhone, buildReminderMessage(vehicle, record))
+                : null;
+              return (
+                <div
+                  key={vehicle.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-white p-3 shadow-sm ring-1 ring-red-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-1">
+                      {daysUntil !== null && (
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${dateBadge(daysUntil).className}`}>
+                          {dateBadge(daysUntil).text}
+                        </span>
+                      )}
+                      {kmRemaining !== null && (
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${kmBadge(kmRemaining).className}`}>
+                          {kmBadge(kmRemaining).text}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <Link
+                        href={`/dashboard/araclar/${vehicle.id}`}
+                        className="font-semibold text-slate-900 hover:text-brand-700"
+                      >
+                        {vehicle.plateDisplay}
+                      </Link>
+                      <p className="text-xs text-slate-500">
+                        {vehicle.brand} {vehicle.model}
+                      </p>
+                      {reminderStatus && (
+                        <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${reminderStatus.className}`}>
+                          {reminderStatus.text}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {whatsAppLink && <WhatsAppReminderButton vehicleId={vehicle.id} whatsAppLink={whatsAppLink} />}
+                </div>
+              );
+            })}
+          </div>
         </div>
+      )}
+
+      {/* Hızlı işlemler — her biri isimli + renkli IconBadge ile: admin panelindeki
+          "beyaz ikon, renkli kutucuk" görsel diliyle tutarlı (bkz. components/IconBadge). */}
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Link
           href="/dashboard/araclar/yeni"
-          className="flex-1 rounded-lg bg-brand-600 px-4 py-2 text-center font-semibold text-white hover:bg-brand-700 active:scale-[0.98] sm:flex-none"
+          className="flex h-full flex-col items-center justify-center gap-2 rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100 hover:ring-brand-300 sm:flex-row sm:text-left"
         >
-          + Yeni Araç Ekle
+          <IconBadge icon={<PlusIcon />} color="brand" size="md" />
+          <span className="text-sm font-semibold text-slate-900">Yeni Araç Ekle</span>
         </Link>
-      </div>
-
-      <div className="mt-2 flex items-center justify-end gap-3 text-xs font-medium">
-        <a href="/api/shop/export" className="text-brand-600 hover:underline">
-          Verimi İndir (CSV) ↓
+        <QrScanner />
+        <Link
+          href="/dashboard/araclar/toplu-ekle"
+          className="flex h-full flex-col items-center justify-center gap-2 rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100 hover:ring-indigo-300 sm:flex-row sm:text-left"
+        >
+          <IconBadge icon={<UploadIcon />} color="indigo" size="md" />
+          <span className="text-sm font-semibold text-slate-900">Toplu Ekle (CSV)</span>
+        </Link>
+        <a
+          href="/api/shop/export"
+          className="flex h-full flex-col items-center justify-center gap-2 rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100 hover:ring-green-300 sm:flex-row sm:text-left"
+        >
+          <IconBadge icon={<DownloadIcon />} color="green" size="md" />
+          <span className="text-sm font-semibold text-slate-900">Verimi İndir (CSV)</span>
         </a>
-        <Link href="/dashboard/araclar/toplu-ekle" className="text-brand-600 hover:underline">
-          Toplu Ekle (CSV) →
-        </Link>
       </div>
 
       <Link
         href="/dashboard/etiket-siparis"
-        className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-dashed border-brand-300 bg-brand-50/60 p-4 hover:bg-brand-50"
+        className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-4 hover:bg-amber-50"
       >
-        <div>
-          <p className="text-sm font-semibold text-brand-700">Dayanıklı QR Etiket Sipariş Et</p>
-          <p className="text-xs text-brand-600/80">
-            Motor bölmesine dayanıklı, su geçirmez profesyonel etiket — kapınıza gelsin.
-          </p>
+        <div className="flex items-center gap-3">
+          <IconBadge icon={<StickerIcon />} color="amber" size="md" />
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Dayanıklı QR Etiket Sipariş Et</p>
+            <p className="text-xs text-amber-700/80">
+              Motor bölmesine dayanıklı, su geçirmez profesyonel etiket — kapınıza gelsin.
+            </p>
+          </div>
         </div>
-        <span className="text-brand-600">→</span>
+        <span className="text-amber-600">→</span>
       </Link>
 
       {todaysAppointments.length > 0 && (
         <Link
           href="/dashboard/randevular"
-          className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-slate-100 hover:ring-brand-300"
+          className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-slate-100 hover:ring-brand-300"
         >
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
-              <CalendarIcon className="h-4 w-4" />
-            </span>
+            <IconBadge icon={<CalendarIcon />} color="brand" size="md" />
             <div>
               <p className="text-sm font-semibold text-slate-900">
                 Bugün {todaysAppointments.length} randevunuz var
@@ -162,7 +248,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {upcoming.length > 0 && (
+        {dueSoon.length > 0 && (
           <div className="mt-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-slate-900">Yaklaşan Bakımlar</h2>
@@ -171,7 +257,7 @@ export default async function DashboardPage() {
               </Link>
             </div>
             <div className="mt-3 space-y-2">
-              {upcoming.map(({ vehicle, record, daysUntil, kmRemaining, reminderStatus }) => {
+              {dueSoon.map(({ vehicle, record, daysUntil, kmRemaining, reminderStatus }) => {
                 const whatsAppLink = vehicle.ownerPhone
                   ? buildWhatsAppLink(vehicle.ownerPhone, buildReminderMessage(vehicle, record))
                   : null;

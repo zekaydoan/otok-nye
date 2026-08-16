@@ -372,3 +372,22 @@ export function BrandMark(props: IconProps) {
     </svg>
   );
 }
+
+// "Yeni ekle" eylemleri (bkz. dashboard hızlı işlemler satırı) için basit artı işareti.
+export function PlusIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+// Veri dışa aktarma (CSV indirme) eylemleri için — UploadIcon'un ters yönlü eşi.
+export function DownloadIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v11M8 11l4 4 4-4" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15" />
+    </svg>
+  );
+}
