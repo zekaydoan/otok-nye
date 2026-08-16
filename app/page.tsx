@@ -253,32 +253,12 @@ export default function HomePage() {
             <Link href="/blog" className="hidden hover:text-brand-700 sm:inline">
               Blog
             </Link>
-            {/* Saha Partneri girişi — ana "Giriş Yap"/"Ücretsiz Başla"
-                butonlarıyla aynı ağırlıkta değil (dolu buton değil, sadece
-                marka renginde metin) ama gri/soluk da değil; ayrı bir
-                ikincil kitleye ait olduğu belli olsun, aynı zamanda fark
-                edilsin diye (bkz. footer'daki renkli rozet — mobilde header
-                bu link'i gizlediğinden orası asıl erişim yolu). */}
-            <Link
-              href="/partner-girisi"
-              className="hidden text-xs font-semibold text-brand-600 hover:text-brand-700 lg:inline"
-            >
-              Saha Partneri Girişi
-            </Link>
-            {/* Masaüstünde (sm ve üstü) düz "Giriş Yap" linki — bayi/usta
-                girişine gider, Saha Partneri Girişi ayrıca solda kendi linkiyle
-                duruyor (satır ~261). Mobilde ise MobileLoginSplit devreye
-                girer: aynı "Giriş Yap" görünümü ama dokunulduğunda "Kullanıcı
-                Girişi"/"Saha Partneri Girişi" diye ikiye ayrılan bir menü
-                açar — mobilde header'daki ayrı partner linki (lg:inline)
-                gizli olduğundan, mobil kullanıcının partner girişine tek
-                dokunuşla ulaşabileceği asıl yol burası. */}
-            <Link
-              href="/giris"
-              className="hidden rounded-lg bg-accent-500 px-3 py-2 font-semibold text-white hover:bg-accent-600 sm:inline-block sm:px-4"
-            >
-              Giriş Yap
-            </Link>
+            {/* Tek "Giriş Yap" butonu, her ekran boyutunda — dokunulduğunda/
+                tıklandığında "Kullanıcı Girişi"/"Saha Partneri Girişi" diye
+                ikiye ayrılan bir menü açar (bkz. MobileLoginSplit.tsx). Önce
+                masaüstünde ayrı bir "Saha Partneri Girişi" linki de vardı,
+                ama iki ayrı öğe yer kaplayıp düzeni kalabalıklaştırdığından
+                kaldırıldı — artık tek bir buton, iki hedef. */}
             <MobileLoginSplit />
             <Link
               href="/kayit"

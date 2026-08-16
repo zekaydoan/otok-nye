@@ -3,25 +3,26 @@
 import { useState } from "react";
 import Link from "next/link";
 
-// Mobilde tek bir "Giriş Yap" butonu iki farklı kitleyi (bayi/usta ve saha
-// partneri) aynı ekrana (/giris) yönlendiriyordu — masaüstünde ayrı, renkli
-// bir "Saha Partneri Girişi" linki varken mobilde bu ayrım kayboluyordu
-// (header'daki o link `lg:inline` ile mobilde gizli). Bu bileşen sadece
-// mobilde (sm:hidden) "Giriş Yap"ı dokunulduğunda iki seçenek gösteren küçük
-// bir açılır menüye çeviriyor — MobileNavMenu.tsx'teki aynı açık/kapalı state
-// deseni. Masaüstünde (sm ve üstü) hiç render edilmiyor, oradaki düz "Giriş
-// Yap" linki (app/page.tsx) aynen kalıyor.
+// Tek bir "Giriş Yap" butonu iki farklı kitleyi (bayi/usta ve saha partneri)
+// aynı ekrana (/giris) yönlendiriyordu. Önce yalnızca mobilde bu şekildeydi,
+// masaüstünde ayrı bir "Saha Partneri Girişi" linki vardı — ama iki ayrı link
+// masaüstünde de yer kaplayıp düzeni kalabalıklaştırdığından, artık HER
+// boyutta (mobil + masaüstü) aynı tek buton kullanılıyor: dokunulduğunda/
+// tıklandığında "Kullanıcı Girişi"/"Saha Partneri Girişi" diye ikiye ayrılan
+// küçük bir açılır menü açılıyor — MobileNavMenu.tsx'teki aynı açık/kapalı
+// state deseni. Dosya adı "Mobile" ile başlıyor olsa da artık her ekran
+// boyutunda kullanılıyor (yeniden adlandırmak yerine mevcut dosya korundu).
 export default function MobileLoginSplit() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative sm:hidden">
+    <div className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={open ? "Giriş seçeneklerini kapat" : "Giriş seçeneklerini aç"}
-        className="rounded-lg bg-accent-500 px-3 py-2 font-semibold text-white hover:bg-accent-600"
+        className="rounded-lg bg-accent-500 px-3 py-2 font-semibold text-white hover:bg-accent-600 sm:px-4"
       >
         Giriş Yap
       </button>
