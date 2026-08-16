@@ -252,6 +252,18 @@ export default function HomePage() {
             <Link href="/blog" className="hidden hover:text-brand-700 sm:inline">
               Blog
             </Link>
+            {/* Saha Partneri girişi bilinçli olarak küçük/soluk tutuluyor —
+                ana ziyaretçi kitlesi (oto servis sahipleri) için değil, ayrı
+                bir ikincil kitle için. Ana "Giriş Yap"/"Ücretsiz Başla"
+                dönüşüm akışını görsel olarak gölgelememesi gerekiyor, ama yine
+                de her sayfa yüklemesinde, footer'a inmeden görünür olmalı
+                (bkz. footer'daki ikinci bağlantı — orası mobil için). */}
+            <Link
+              href="/partner-girisi"
+              className="hidden text-xs text-slate-400 hover:text-slate-600 lg:inline"
+            >
+              Saha Partneri Girişi
+            </Link>
             {/* Mobilde her ziyaretçi zaten müşteri olacağından (uygulamayı
                 düzenli kullanan bayiler) öncelik "Giriş Yap"ta — bu yüzden
                 mobilde her zaman logonun yanında görünür. "Ücretsiz Başla"
