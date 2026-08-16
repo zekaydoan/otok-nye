@@ -252,15 +252,15 @@ export default function HomePage() {
             <Link href="/blog" className="hidden hover:text-brand-700 sm:inline">
               Blog
             </Link>
-            {/* Saha Partneri girişi bilinçli olarak küçük/soluk tutuluyor —
-                ana ziyaretçi kitlesi (oto servis sahipleri) için değil, ayrı
-                bir ikincil kitle için. Ana "Giriş Yap"/"Ücretsiz Başla"
-                dönüşüm akışını görsel olarak gölgelememesi gerekiyor, ama yine
-                de her sayfa yüklemesinde, footer'a inmeden görünür olmalı
-                (bkz. footer'daki ikinci bağlantı — orası mobil için). */}
+            {/* Saha Partneri girişi — ana "Giriş Yap"/"Ücretsiz Başla"
+                butonlarıyla aynı ağırlıkta değil (dolu buton değil, sadece
+                marka renginde metin) ama gri/soluk da değil; ayrı bir
+                ikincil kitleye ait olduğu belli olsun, aynı zamanda fark
+                edilsin diye (bkz. footer'daki renkli rozet — mobilde header
+                bu link'i gizlediğinden orası asıl erişim yolu). */}
             <Link
               href="/partner-girisi"
-              className="hidden text-xs text-slate-400 hover:text-slate-600 lg:inline"
+              className="hidden text-xs font-semibold text-brand-600 hover:text-brand-700 lg:inline"
             >
               Saha Partneri Girişi
             </Link>
@@ -1012,10 +1012,9 @@ export default function HomePage() {
           © {new Date().getFullYear()} OtoHafıza — Aracının dijital hafızası.
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-          <Link href="/blog" className="underline">
-            Blog
-          </Link>
-          <span className="text-slate-300">·</span>
+          {/* "Blog" linki buradan kaldırıldı — sayfada zaten hem header
+              menüsünde hem de kendi bölümünde ("Blog'dan Öne Çıkanlar")
+              açıkça görünüyor, footer'da tekrarına gerek yok. */}
           <Link href="/referans" className="underline">
             Referans Programı
           </Link>
@@ -1035,11 +1034,14 @@ export default function HomePage() {
         <div className="mt-4 flex justify-center">
           <PaymentBadges />
         </div>
-        <p className="mt-4 text-xs text-slate-400">
-          <Link href="/partner-girisi" className="underline hover:text-slate-500">
+        <div className="mt-4 flex justify-center">
+          <Link
+            href="/partner-girisi"
+            className="rounded-full bg-brand-50 px-4 py-1.5 text-xs font-semibold text-brand-700 transition hover:bg-brand-100"
+          >
             Saha Partneri Girişi
           </Link>
-        </p>
+        </div>
         <p className="mx-auto mt-4 max-w-2xl text-xs text-slate-400">
           OtoHafıza;{" "}
           <a
