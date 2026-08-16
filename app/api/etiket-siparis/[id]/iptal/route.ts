@@ -43,6 +43,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
         status: "iptal",
         cancelledBy: "bayi",
         cancelledAt: new Date().toISOString(),
+        cancelledWithPayment: state.wasPaid,
         updatedAt: new Date().toISOString(),
       };
     });

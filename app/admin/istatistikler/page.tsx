@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import {
   getActiveVisitorCount,
+  getChurnStats,
   getCityVisits,
   getCityVisitsRange,
   getDailyPageviews,
@@ -51,6 +52,7 @@ export default async function AdminStatsPage() {
     cityVisitsMonth,
     cityVisitsYear,
     activeVisitors,
+    churnStats,
   ] = await Promise.all([
     getDailyPageviews(14),
     getShopCountsByPlan(),
@@ -62,6 +64,7 @@ export default async function AdminStatsPage() {
     getCityVisitsRange(dayOfMonth),
     getCityVisitsRange(dayOfYear),
     getActiveVisitorCount(),
+    getChurnStats(),
   ]);
 
   // Bir şehir sayacı içinden en yüksek değere sahip olanı ("Belirtilmemiş"
@@ -257,6 +260,34 @@ export default async function AdminStatsPage() {
           </div>
         </section>
       </div>
+
+      {/* Kayıp (churn) sinyalleri — bkz. lib/blobStore.ts getChurnStats */}
+      <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <div className="flex items-center gap-2">
+          <UsersIcon className="h-5 w-5 text-brand-600" />
+          <h2 className="font-bold text-slate-900">Kayıp Sinyalleri</h2>
+        </div>
+        <p className="mt-1 text-xs text-slate-400">
+          Büyüme kadar kayıp da izlenmeye değer — tüm zamanlar toplamı.
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard
+            label="İptal Edilen Sipariş"
+            value={churnStats.cancelledOrderCount.toString()}
+            sub={churnStats.cancelledOrderValueTry > 0 ? `${fmtTry(churnStats.cancelledOrderValueTry)} iade gerekebilir` : undefined}
+          />
+          <StatCard label="Ücretliden Free'ye Dönüş" value={churnStats.downgradeToFreeCount.toString()} />
+          <StatCard
+            label="Hiç Araç Eklememiş"
+            value={churnStats.noVehicleShopCount.toString()}
+            sub={
+              churnStats.totalShopCount > 0
+                ? `${Math.round((churnStats.noVehicleShopCount / churnStats.totalShopCount) * 100)}% oranında`
+                : undefined
+            }
+          />
+        </div>
+      </section>
 
       {/* Reklam ölçümü durumu */}
       <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">

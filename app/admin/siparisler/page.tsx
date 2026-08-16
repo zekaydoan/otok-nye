@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { getStickerUnitPriceTry, listAllStickerOrders } from "@/lib/blobStore";
 import AdminOrderRow from "@/components/AdminOrderRow";
+import AdminOrdersExportButton from "@/components/AdminOrdersExportButton";
 import AdminPriceSetting from "@/components/AdminPriceSetting";
 import EmptyState from "@/components/EmptyState";
 import { PackageIcon } from "@/components/icons";
@@ -29,6 +30,12 @@ export default async function AdminOrdersPage() {
       <div className="mt-6">
         <AdminPriceSetting currentPriceTry={unitPriceTry} />
       </div>
+
+      {orders.length > 0 && (
+        <div className="mt-6 flex justify-end">
+          <AdminOrdersExportButton orders={orders} />
+        </div>
+      )}
 
       <div className="mt-6 space-y-3">
         {orders.length === 0 && (

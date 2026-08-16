@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getShopByEmail, getStaffByEmail } from "@/lib/blobStore";
+import { getShopByEmail, getStaffByEmail, updateShopFields } from "@/lib/blobStore";
 import { createSessionToken, setSessionCookie, verifyPassword } from "@/lib/auth";
 import { checkRateLimit, getClientIp, resetRateLimit } from "@/lib/rateLimit";
+
+// Aktivite takibi (bkz. lib/types.ts Shop.lastLoginAt) login'i asla bozmamalı —
+// yazma başarısız olsa bile (ör. eşzamanlı ETag çakışması) hata sessizce yutulur.
+async function markShopLoggedIn(shopId: string): Promise<void> {
+  try {
+    await updateShopFields(shopId, (shop) => ({ ...shop, lastLoginAt: new Date().toISOString() }));
+  } catch {
+    // sessizce yut — giriş zaten başarılı, bu yalnızca ikincil bir bilgi
+  }
+}
 
 const MAX_ATTEMPTS = 8;
 const WINDOW_MS = 15 * 60 * 1000; // 15 dakika
@@ -56,6 +66,7 @@ export async function POST(req: NextRequest) {
     await resetRateLimit("login", rateLimitKey);
     const token = await createSessionToken({ shopId: shop.id, role: "sahibi" });
     setSessionCookie(token);
+    await markShopLoggedIn(shop.id);
     return NextResponse.json({ ok: true });
   }
 
@@ -67,6 +78,7 @@ export async function POST(req: NextRequest) {
       staffId: staff.id,
     });
     setSessionCookie(token);
+    await markShopLoggedIn(staff.shopId);
     return NextResponse.json({ ok: true });
   }
 

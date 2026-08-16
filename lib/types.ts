@@ -53,6 +53,13 @@ export interface Shop {
   // free'ye dönüş bu akışa girmez, anında uygulanır (risksiz düşüş).
   pendingPlan?: Plan;
   pendingPlanRequestedAt?: string; // ISO
+  // Hesap sahibinin veya herhangi bir çalışanının en son başarılı giriş anı —
+  // admin bayi listesindeki "uzun süredir giriş yapmamış" sinyali için (bkz.
+  // app/admin/bayiler, components/AdminShopSearch). app/api/auth/login'de her
+  // başarılı girişte güncellenir; giriş akışını yavaşlatmamak/bloklamamak için
+  // bu yazma başarısız olursa sessizce yutulur (aktivite takibi login'i asla
+  // bozmamalı).
+  lastLoginAt?: string; // ISO
   createdAt: string;
 }
 
@@ -299,6 +306,12 @@ export interface StickerOrder {
   // (bayi tarafı) ve app/api/admin/siparisler/[id]/route.ts (admin tarafı).
   cancelledBy?: "bayi" | "admin";
   cancelledAt?: string;
+  // İptal anında ödemesi zaten alınmış mıydı (status "odendi"/"hazirlaniyor")?
+  // status "iptal"e geçtiğinde orijinal durum bilgisi kaybolduğundan, admin
+  // panelindeki "iade bekleyen iptaller" listesinin (bkz.
+  // app/admin/bekleyen-isler) hangi iptal edilmiş siparişin gerçekten iade
+  // gerektirdiğini güvenilir biçimde süzebilmesi için ayrıca saklanır.
+  cancelledWithPayment?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -392,5 +405,23 @@ export interface DataRequest {
   contactInfo: string; // talep sahibinin dönüş için bıraktığı e-posta/telefon
   message?: string;
   status: DataRequestStatus;
+  createdAt: string;
+}
+
+// ---------- Admin İşlem Günlüğü (Audit Log) ----------
+// "Bu planı kim aktive etti, ne zaman?" gibi sorulara cevap verebilmek için —
+// bkz. app/admin/aktivite. Şimdilik yalnızca plan yükseltme onayı ve sipariş
+// durum/iade işlemleri kaydediliyor (bkz. app/api/admin/shops/[id]/plan/route.ts,
+// app/api/admin/siparisler/[id]/route.ts); kapsam ileride genişletilebilir.
+export type AdminAuditAction = "plan_degistirildi" | "siparis_guncellendi" | "iade_isaretlendi";
+
+export interface AdminAuditLogEntry {
+  id: string;
+  actorEmail: string; // işlemi yapan adminin e-postası (bkz. lib/adminAuth.ts)
+  action: AdminAuditAction;
+  targetType: "shop" | "sticker_order";
+  targetId: string;
+  targetLabel: string; // ör. bayi adı — listede tekrar sorgu yapmadan gösterebilmek için
+  detail: string; // kısa, insan tarafından okunabilir özet (ör. "free → business")
   createdAt: string;
 }

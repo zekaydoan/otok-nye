@@ -2,6 +2,8 @@ import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
 import { PLAN_LIMITS } from "./types";
 import type {
+  AdminAuditAction,
+  AdminAuditLogEntry,
   Announcement,
   AnnouncementAudience,
   Appointment,
@@ -96,6 +98,9 @@ const planEventsStore = () => getStore("plan_events");
 // burada "toplu okundu" mantığı işe yarıyor, çünkü duyurular sırayla okunmuyor,
 // panele her girişte hepsi birden görülmüş sayılıyor).
 const announcementsStore = () => getStore("announcements");
+
+// ---------- Admin İşlem Günlüğü (Audit Log) ----------
+const adminAuditLogStore = () => getStore("admin_audit_log");
 
 export function normalizePlate(plate: string): string {
   return plate.toUpperCase().replace(/[^A-Z0-9ÇĞİÖŞÜ]/g, "");
@@ -927,6 +932,38 @@ export async function listAnnouncementsForShop(shop: Shop): Promise<Announcement
   return all.filter((a) => announcementMatchesShop(a.audience, shop));
 }
 
+// ---------- Admin İşlem Günlüğü (Audit Log) ----------
+export async function recordAdminAuditLog(entry: {
+  actorEmail: string;
+  action: AdminAuditAction;
+  targetType: AdminAuditLogEntry["targetType"];
+  targetId: string;
+  targetLabel: string;
+  detail: string;
+}): Promise<void> {
+  const full: AdminAuditLogEntry = {
+    id: randomUUID(),
+    createdAt: new Date().toISOString(),
+    ...entry,
+  };
+  await adminAuditLogStore().setJSON(full.id, full);
+}
+
+// Aktivite Geçmişi sayfası için — hacim büyüdükçe (bkz. kapasite-analizi.md)
+// sayfalama eklenmesi gerekebilir, listAllSuggestions'daki aynı not burada da
+// geçerli. Şimdilik en yeni 200 kayıtla sınırlanır (basit bir üst sınır,
+// sayfa yükünü büyük ölçekte de makul tutar).
+export async function listAdminAuditLog(): Promise<AdminAuditLogEntry[]> {
+  const { blobs } = await adminAuditLogStore().list();
+  const entries = await Promise.all(
+    blobs.map((b) => adminAuditLogStore().get(b.key, { type: "json" }) as Promise<AdminAuditLogEntry | null>)
+  );
+  return entries
+    .filter((e): e is AdminAuditLogEntry => !!e)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .slice(0, 200);
+}
+
 // Bayinin panelinde henüz "görmediği" (lastSeenAnnouncementAt'ten sonra
 // oluşturulmuş, hedef kitlesine giren) duyuru sayısı — header'daki Duyurular
 // rozeti için (bkz. app/dashboard/layout.tsx). Alan hiç ayarlanmamışsa (hesap
@@ -1127,15 +1164,23 @@ function emptyPlanCounts(): Record<Plan, number> {
   return { free: 0, pro: 0, business: 0, business_yillik: 0 };
 }
 
+// getPlanStartStats VE getChurnStats (aşağıda) tarafından paylaşılan ham
+// okuma — plan olaylarının tamamını döner, filtreleme/gruplama her fonksiyonda
+// kendi ihtiyacına göre yapılır.
+async function listAllPlanEvents(): Promise<PlanEvent[]> {
+  const { blobs } = await planEventsStore().list();
+  const events = await Promise.all(
+    blobs.map((b) => planEventsStore().get(b.key, { type: "json" }) as Promise<PlanEvent | null>)
+  );
+  return events.filter((e): e is PlanEvent => !!e);
+}
+
 // Plan başlangıç olaylarını bugün/bu ay/bu yıl pencerelerine göre sayar. Hacim
 // büyüdükçe (bkz. kapasite-analizi.md) tam taramanın yerini periyodik
 // önceden-hesaplanmış özetler almalı — diğer "listAll*" fonksiyonlarındaki not
 // burada da geçerli.
 export async function getPlanStartStats(): Promise<PlanStartStats> {
-  const { blobs } = await planEventsStore().list();
-  const events = await Promise.all(
-    blobs.map((b) => planEventsStore().get(b.key, { type: "json" }) as Promise<PlanEvent | null>)
-  );
+  const events = await listAllPlanEvents();
 
   const now = new Date();
   const todayISO = now.toISOString().slice(0, 10);
@@ -1249,6 +1294,59 @@ export async function getStickerOrderStats(): Promise<StickerOrderStats> {
     paidOrders: paidOrders.length,
     totalRevenueTry: paidOrders.reduce((sum, o) => sum + o.totalPriceTry, 0),
     byCity: Array.from(cityMap.values()).sort((a, b) => b.revenueTry - a.revenueTry),
+  };
+}
+
+export interface ChurnStats {
+  cancelledOrderCount: number;
+  cancelledOrderValueTry: number; // yalnızca ödemesi alınmışken iptal edilenler (cancelledWithPayment)
+  downgradeToFreeCount: number; // ücretli bir plandan Ücretsiz'e geri dönüş sayısı (tüm zamanlar)
+  noVehicleShopCount: number;
+  totalShopCount: number;
+}
+
+// Büyüme kadar "kayıp" da izlenmeye değer — İstatistikler sayfasındaki tek
+// yönlü (ciro/plan dağılımı) görünümün yanına eklenir (bkz. app/admin/istatistikler).
+export async function getChurnStats(): Promise<ChurnStats> {
+  const [orders, shops, planEvents] = await Promise.all([
+    listAllStickerOrders(),
+    listAllShops(),
+    listAllPlanEvents(),
+  ]);
+
+  const cancelledOrders = orders.filter((o) => o.status === "iptal");
+  const cancelledOrderValueTry = cancelledOrders
+    .filter((o) => o.cancelledWithPayment)
+    .reduce((sum, o) => sum + o.totalPriceTry, 0);
+
+  // "free" plan olayı iki farklı anlama gelebilir: yeni kayıt (bkz.
+  // app/api/auth/signup) veya ücretli plandan geri dönüş (bkz.
+  // app/api/shop/plan). PlanEvent kendi başına bunu ayırt etmiyor; bir shop'un
+  // İLK plan olayının zamanı, o shop'un createdAt'ine (birkaç saniye içinde,
+  // aynı istek akışında yazıldığından) çok yakın olacaktır — bu yüzden
+  // shop.createdAt'e yakın (5 dakika içinde) "free" olayları kayıt anı sayılır,
+  // uzağındakiler gerçek bir geri dönüş (downgrade) sayılır.
+  const shopCreatedAt = new Map(shops.map((s) => [s.id, s.createdAt] as const));
+  const downgradeToFreeCount = planEvents.filter((e) => {
+    if (e.plan !== "free") return false;
+    const createdAt = shopCreatedAt.get(e.shopId);
+    if (!createdAt) return true; // shop artık yok (silinmiş) — güvenli tarafta kal, downgrade say
+    const diffMs = new Date(e.createdAt).getTime() - new Date(createdAt).getTime();
+    return diffMs > 5 * 60 * 1000;
+  }).length;
+
+  // Vehicle sayısı per-shop sorgu gerektiriyor — bkz. app/admin/bayiler'deki
+  // aynı desen ve performans notu (hacim büyüdükçe önceden-hesaplanmış bir
+  // sayaca geçilebilir).
+  const vehicleCounts = await Promise.all(shops.map((s) => listVehiclesByShop(s.id)));
+  const noVehicleShopCount = vehicleCounts.filter((v) => v.length === 0).length;
+
+  return {
+    cancelledOrderCount: cancelledOrders.length,
+    cancelledOrderValueTry,
+    downgradeToFreeCount,
+    noVehicleShopCount,
+    totalShopCount: shops.length,
   };
 }
 

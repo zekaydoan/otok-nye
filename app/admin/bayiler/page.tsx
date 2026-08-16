@@ -25,6 +25,8 @@ export default async function AdminShopsPage() {
         plan: s.plan,
         vehicleCount: (await listVehiclesByShop(s.id)).length,
         createdAt: s.createdAt,
+        pendingPlan: s.pendingPlan,
+        lastLoginAt: s.lastLoginAt,
       }))
   );
 

@@ -27,3 +27,16 @@ export async function getCurrentAdminShopId(): Promise<string | null> {
 
   return adminEmails.includes(shop.email.toLowerCase()) ? shopId : null;
 }
+
+// Audit log kayıtlarında (bkz. lib/blobStore.ts recordAdminAuditLog) "kim
+// yaptı" sorusuna cevap vermek için adminin kendi e-postasını döner. Ayrı bir
+// fonksiyon olmasının nedeni: çoğu admin route zaten getCurrentAdminShopId ile
+// yetki kontrolü yapıyor, oradan tekrar shop nesnesini çekmek yerine ihtiyaç
+// duyulan tek yerde (audit log yazarken) bu kullanılır.
+export async function getCurrentAdminEmail(): Promise<string | null> {
+  const shopId = await getCurrentShopId();
+  if (!shopId) return null;
+  const shop = await getShopById(shopId);
+  if (!shop) return null;
+  return getAdminEmails().includes(shop.email.toLowerCase()) ? shop.email : null;
+}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentAdminShopId } from "@/lib/adminAuth";
-import { getShopById, recordPlanStart, updateShopFields } from "@/lib/blobStore";
+import { getCurrentAdminEmail, getCurrentAdminShopId } from "@/lib/adminAuth";
+import { getShopById, recordAdminAuditLog, recordPlanStart, updateShopFields } from "@/lib/blobStore";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 
 // Admin, bir bayinin planını elle değiştirebilsin diye — POS/tekrarlayan ödeme
@@ -36,6 +36,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   await recordPlanStart(params.id, plan);
+
+  // Audit log — bkz. app/admin/aktivite. Hata verse bile ana işlemi (plan zaten
+  // değişti) geri almaya gerek yok, bu yüzden ayrı bir try/catch'e alınmadı;
+  // recordAdminAuditLog kendi içinde bir hata fırlatırsa bu endpoint 500 döner
+  // ama plan değişikliği zaten kalıcı olmuştur (Netlify Blobs write'ları ayrı).
+  const actorEmail = (await getCurrentAdminEmail()) || "bilinmeyen";
+  await recordAdminAuditLog({
+    actorEmail,
+    action: "plan_degistirildi",
+    targetType: "shop",
+    targetId: params.id,
+    targetLabel: shop.name,
+    detail: `${PLAN_LIMITS[shop.plan].label} → ${PLAN_LIMITS[plan].label}`,
+  });
 
   return NextResponse.json({ ok: true });
 }

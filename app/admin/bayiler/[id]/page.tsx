@@ -31,7 +31,8 @@ export default async function AdminShopDetailPage({ params }: { params: { id: st
             {shop.email} · {shop.phone} · {shop.city || "Şehir belirtilmemiş"}
           </p>
           <p className="mt-1 text-xs text-slate-400">
-            Kayıt: {shop.createdAt.slice(0, 10)} · {vehicles.length} araç
+            Kayıt: {shop.createdAt.slice(0, 10)} · {vehicles.length} araç · Son giriş:{" "}
+            {shop.lastLoginAt ? new Date(shop.lastLoginAt).toLocaleString("tr-TR") : "Kayıtlı değil"}
           </p>
         </div>
         <span className="rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">

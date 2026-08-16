@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentAdminShopId } from "@/lib/adminAuth";
-import { updateStickerOrder } from "@/lib/blobStore";
+import { getCurrentAdminEmail, getCurrentAdminShopId } from "@/lib/adminAuth";
+import { recordAdminAuditLog, updateStickerOrder } from "@/lib/blobStore";
 import { STICKER_ORDER_STATUS_LABELS, type StickerOrderStatus } from "@/lib/types";
 
 const MAX_LEN = 120;
@@ -41,19 +41,53 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "Geçersiz iade tutarı." }, { status: 400 });
   }
 
+  // Audit log'a "gerçekten ne değişti" yazabilmek için (bkz. app/admin/aktivite),
+  // güncelleme öncesi durumu closure dışında okunabilecek bir objede tutuyoruz —
+  // aynı desen app/api/etiket-siparis/[id]/iptal/route.ts'te de kullanıldı (TS'in
+  // closure-içi reassignment'ları await sonrası narrowlamaması sorununu önler).
+  const before: { status: StickerOrderStatus | null; refundedAt?: string } = { status: null };
+
+  let updated;
   try {
-    const updated = await updateStickerOrder(params.id, (order) => ({
-      ...order,
-      status,
-      trackingCarrier: trackingCarrier ?? order.trackingCarrier,
-      trackingNumber: trackingNumber ?? order.trackingNumber,
-      adminNote: adminNote ?? order.adminNote,
-      refundedAt: refunded ? order.refundedAt || new Date().toISOString() : refunded === false ? undefined : order.refundedAt,
-      refundAmountTry: refunded ? refundAmountTry ?? order.refundAmountTry : refunded === false ? undefined : order.refundAmountTry,
-      updatedAt: new Date().toISOString(),
-    }));
-    return NextResponse.json({ order: updated });
+    updated = await updateStickerOrder(params.id, (order) => {
+      before.status = order.status;
+      before.refundedAt = order.refundedAt;
+      return {
+        ...order,
+        status,
+        trackingCarrier: trackingCarrier ?? order.trackingCarrier,
+        trackingNumber: trackingNumber ?? order.trackingNumber,
+        adminNote: adminNote ?? order.adminNote,
+        refundedAt: refunded ? order.refundedAt || new Date().toISOString() : refunded === false ? undefined : order.refundedAt,
+        refundAmountTry: refunded ? refundAmountTry ?? order.refundAmountTry : refunded === false ? undefined : order.refundAmountTry,
+        updatedAt: new Date().toISOString(),
+      };
+    });
   } catch {
     return NextResponse.json({ error: "Kaydedilemedi, lütfen tekrar deneyin." }, { status: 409 });
   }
+
+  const actorEmail = (await getCurrentAdminEmail()) || "bilinmeyen";
+  if (before.status !== status) {
+    await recordAdminAuditLog({
+      actorEmail,
+      action: "siparis_guncellendi",
+      targetType: "sticker_order",
+      targetId: params.id,
+      targetLabel: `${updated.shopName} — ${updated.quantity} adet`,
+      detail: `${STICKER_ORDER_STATUS_LABELS[before.status ?? status]} → ${STICKER_ORDER_STATUS_LABELS[status]}`,
+    });
+  }
+  if (refunded && !before.refundedAt) {
+    await recordAdminAuditLog({
+      actorEmail,
+      action: "iade_isaretlendi",
+      targetType: "sticker_order",
+      targetId: params.id,
+      targetLabel: `${updated.shopName} — ${updated.quantity} adet`,
+      detail: `${(refundAmountTry ?? updated.refundAmountTry ?? 0).toLocaleString("tr-TR")}₺ iade edildi olarak işaretlendi`,
+    });
+  }
+
+  return NextResponse.json({ order: updated });
 }
