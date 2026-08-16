@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 
 const POLL_INTERVAL_MS = 10 * 1000;
+// İl sayısı arttıkça kart sonsuza kadar büyümesin diye en yüksek sayıdan
+// itibaren yalnızca bu kadarı chip olarak gösterilir, kalanı "+N il daha"
+// ile özetlenir (bkz. aşağıdaki render). Ayrıca bkz. app/admin/istatistikler
+// sayfasındaki grid'de bu kart lg ekranda 2 hücre kaplıyor.
+const MAX_VISIBLE_PROVINCES = 6;
 
 interface ProvinceCount {
   province: string;
@@ -58,13 +63,22 @@ export default function ActiveVisitorsCard({
       </p>
       <p className="mt-1 text-xl font-bold text-slate-900">{count}</p>
       {byProvince.length > 0 && (
-        <ul className="mt-1.5 space-y-0.5 border-t border-slate-100 pt-1.5">
-          {byProvince.map((p) => (
-            <li key={p.province} className="text-xs text-slate-500">
-              <span className="font-medium text-slate-700">{p.count} Kişi</span> {p.province}
-            </li>
+        <div className="mt-2 flex max-h-16 flex-wrap gap-1 overflow-y-auto border-t border-slate-100 pt-2">
+          {byProvince.slice(0, MAX_VISIBLE_PROVINCES).map((p) => (
+            <span
+              key={p.province}
+              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600"
+            >
+              <span className="font-semibold text-slate-800">{p.count}</span>
+              {p.province}
+            </span>
           ))}
-        </ul>
+          {byProvince.length > MAX_VISIBLE_PROVINCES && (
+            <span className="inline-flex items-center whitespace-nowrap rounded-full bg-slate-50 px-2 py-0.5 text-[11px] text-slate-400">
+              +{byProvince.length - MAX_VISIBLE_PROVINCES} il daha
+            </span>
+          )}
+        </div>
       )}
     </div>
   );

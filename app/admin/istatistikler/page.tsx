@@ -108,7 +108,9 @@ export default async function AdminStatsPage() {
 
       {/* Özet kartları */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <ActiveVisitorsCard initialCount={activeVisitors.count} initialByProvince={activeVisitors.byProvince} />
+        <div className="col-span-2 sm:col-span-1 lg:col-span-2">
+          <ActiveVisitorsCard initialCount={activeVisitors.count} initialByProvince={activeVisitors.byProvince} />
+        </div>
         <StatCard icon={<ChartBarIcon />} color="blue" label="Bugünkü Ziyaret" value={todayViews.toString()} />
         <StatCard
           icon={<UsersIcon />}
