@@ -798,6 +798,55 @@ export async function updateStickerOrder(
   throw new Error("Sipariş eşzamanlı olarak değiştirildi, lütfen tekrar deneyin.");
 }
 
+// Yukarıdaki deleteShop yorumunda "Etiket siparişleri silinmez" denmişti — bu
+// KURAL HÂLÂ GEÇERLİ, ama tek bir dar istisnayla: hiç ödemesi alınmamış (test/
+// hatalı/yarım bırakılmış) siparişler mali bir belge değildir, hiçbir fatura
+// kesilmemiştir. Bu fonksiyon YALNIZCA böyle siparişler için admin panelinden
+// (bkz. app/api/admin/siparisler/[id]/route.ts DELETE) çağrılabilir; ödemesi
+// alınmış (şu an veya iptalden önce) bir sipariş asla buradan silinemez — o
+// akış hâlâ status="iptal" + iade işaretlemesidir (bkz. updateStickerOrder).
+const PAID_STATUSES_FOR_DELETE_GUARD = new Set(["odendi", "hazirlaniyor", "kargoda", "teslim_edildi"]);
+
+export async function deleteStickerOrder(orderId: string): Promise<StickerOrder> {
+  const order = await getStickerOrderById(orderId, { consistency: "strong" });
+  if (!order) throw new Error("Sipariş bulunamadı.");
+
+  const wasEverPaid = PAID_STATUSES_FOR_DELETE_GUARD.has(order.status) || order.cancelledWithPayment === true;
+  if (wasEverPaid) {
+    throw new Error(
+      "Bu siparişin ödemesi alınmış (veya alınmışken iptal edilmiş) — mali kayıt olduğu için silinemez, yalnızca durumu değiştirilebilir."
+    );
+  }
+
+  // Bu siparişe ait, henüz hiçbir araca bağlanmamış QR token'ları da temizlenir
+  // (bkz. createStickerTokens). Bağlanmış (bir araca bind edilmiş) bir token
+  // varsa — normalde ödenmemiş bir siparişte olmaması gereken bir durum, ama
+  // savunma amaçlı kontrol edilir — silme tamamen reddedilir: o token artık
+  // gerçek bir aracın QR geçmişine bağlı, sessizce kaybolmamalı.
+  const { blobs: tokenLinks } = await stickerTokensByOrderStore().list({ prefix: `${orderId}/` });
+  const tokens = tokenLinks.map((b) => b.key.slice(orderId.length + 1));
+  const tokenRecords = await Promise.all(tokens.map((t) => getStickerToken(t)));
+  if (tokenRecords.some((t) => t?.vehicleId)) {
+    throw new Error(
+      "Bu siparişteki etiketlerden biri zaten bir araca bağlanmış — sipariş silinemez."
+    );
+  }
+
+  await Promise.all(
+    tokens.map(async (t) => {
+      await stickerTokensStore().delete(t);
+      await stickerTokensByOrderStore().delete(`${orderId}/${t}`);
+    })
+  );
+  if (order.paymentToken) {
+    await stickerOrderTokensStore().delete(order.paymentToken);
+  }
+  await stickerOrdersByShopStore().delete(`${order.shopId}/${orderId}`);
+  await stickerOrdersStore().delete(orderId);
+
+  return order;
+}
+
 // ---------- Etiket Token ----------
 // Bir sipariş onaylandığında (veya sipariş anında) quantity kadar benzersiz token
 // üretir — her biri fiziksel olarak basılacak bir etikete karşılık gelir.

@@ -7,6 +7,11 @@ import { STICKER_ORDER_STATUS_LABELS, type StickerOrder, type StickerOrderStatus
 import { stickerOrderStatusBadgeClass } from "@/lib/stickerOrderUi";
 import { useToast } from "@/components/Toast";
 
+// Kalıcı silme yalnızca hiç ödemesi alınmamış siparişler için sunulur (bkz.
+// lib/blobStore.ts deleteStickerOrder) — istemci tarafı bu kontrolü yalnızca
+// butonu göstermek/gizlemek için yapar, gerçek koruma sunucu tarafındadır.
+const PAID_STATUSES: StickerOrderStatus[] = ["odendi", "hazirlaniyor", "kargoda", "teslim_edildi"];
+
 export default function AdminOrderRow({ order }: { order: StickerOrder }) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -19,6 +24,32 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+
+  const canDelete = !PAID_STATUSES.includes(order.status) && !order.cancelledWithPayment;
+
+  async function handleDelete() {
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/siparisler/${order.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Silinemedi.");
+        setConfirmingDelete(false);
+        return;
+      }
+      setDeleted(true);
+      showToast("Sipariş silindi.");
+      router.refresh();
+    } catch {
+      setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function handleSave() {
     setSaving(true);
@@ -48,6 +79,8 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
       setSaving(false);
     }
   }
+
+  if (deleted) return null;
 
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
@@ -163,6 +196,39 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
       )}
 
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+
+      {canDelete && (
+        <div className="mt-3 flex items-center justify-end border-t border-slate-100 pt-3">
+          {!confirmingDelete ? (
+            <button
+              onClick={() => setConfirmingDelete(true)}
+              className="text-xs font-semibold text-red-600 hover:underline"
+            >
+              Siparişi kalıcı olarak sil
+            </button>
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-500">
+                Emin misiniz? Bu işlem geri alınamaz.
+              </span>
+              <button
+                onClick={() => setConfirmingDelete(false)}
+                disabled={deleting}
+                className="text-xs font-medium text-slate-500 hover:underline disabled:opacity-60"
+              >
+                Vazgeç
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {deleting ? "Siliniyor..." : "Evet, sil"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

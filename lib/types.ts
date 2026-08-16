@@ -427,7 +427,11 @@ export interface StickerSelfPrint {
 // bkz. app/admin/aktivite. Şimdilik yalnızca plan yükseltme onayı ve sipariş
 // durum/iade işlemleri kaydediliyor (bkz. app/api/admin/shops/[id]/plan/route.ts,
 // app/api/admin/siparisler/[id]/route.ts); kapsam ileride genişletilebilir.
-export type AdminAuditAction = "plan_degistirildi" | "siparis_guncellendi" | "iade_isaretlendi";
+export type AdminAuditAction =
+  | "plan_degistirildi"
+  | "siparis_guncellendi"
+  | "iade_isaretlendi"
+  | "siparis_silindi";
 
 export interface AdminAuditLogEntry {
   id: string;

@@ -10,6 +10,7 @@ const ACTION_LABELS: Record<AdminAuditAction, string> = {
   plan_degistirildi: "Plan değiştirildi",
   siparis_guncellendi: "Sipariş durumu güncellendi",
   iade_isaretlendi: "İade işaretlendi",
+  siparis_silindi: "Sipariş kalıcı olarak silindi",
 };
 
 const TARGET_HREF: Record<string, (id: string) => string> = {

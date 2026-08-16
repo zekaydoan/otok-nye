@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdminEmail, getCurrentAdminShopId } from "@/lib/adminAuth";
-import { recordAdminAuditLog, updateStickerOrder } from "@/lib/blobStore";
+import { deleteStickerOrder, recordAdminAuditLog, updateStickerOrder } from "@/lib/blobStore";
 import { STICKER_ORDER_STATUS_LABELS, type StickerOrderStatus } from "@/lib/types";
 
 const MAX_LEN = 120;
@@ -90,4 +90,35 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   return NextResponse.json({ order: updated });
+}
+
+// Yalnızca hiç ödemesi alınmamış (test/hatalı/yarım bırakılmış) siparişler için
+// kalıcı silme — bkz. lib/blobStore.ts deleteStickerOrder'daki koruma mantığı.
+// Ödemesi alınmış (şu an veya iptalden önce) bir sipariş burada 409 ile
+// reddedilir; o siparişler mali kayıt olduğu için yalnızca PATCH ile durumu
+// "iptal" yapılıp iade işaretlenebilir, asla silinemez.
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const adminShopId = await getCurrentAdminShopId();
+  if (!adminShopId) return NextResponse.json({ error: "Yetkisiz." }, { status: 403 });
+
+  let deleted;
+  try {
+    deleted = await deleteStickerOrder(params.id);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Silinemedi.";
+    const notFound = message === "Sipariş bulunamadı.";
+    return NextResponse.json({ error: message }, { status: notFound ? 404 : 409 });
+  }
+
+  const actorEmail = (await getCurrentAdminEmail()) || "bilinmeyen";
+  await recordAdminAuditLog({
+    actorEmail,
+    action: "siparis_silindi",
+    targetType: "sticker_order",
+    targetId: params.id,
+    targetLabel: `${deleted.shopName} — ${deleted.quantity} adet`,
+    detail: `${STICKER_ORDER_STATUS_LABELS[deleted.status]} durumundaki (ödenmemiş) sipariş kalıcı olarak silindi`,
+  });
+
+  return NextResponse.json({ ok: true });
 }
