@@ -9,11 +9,12 @@ import {
   getStaffById,
 } from "@/lib/blobStore";
 import { PLAN_LIMITS } from "@/lib/types";
+import { isBillingInfoComplete } from "@/lib/billing";
 import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
 import IconBadge, { type IconBadgeColor } from "@/components/IconBadge";
 import { ToastProvider } from "@/components/Toast";
-import { BellIcon, CalendarIcon, ChartBarIcon, LightbulbIcon, SettingsIcon } from "@/components/icons";
+import { BellIcon, CalendarIcon, ChartBarIcon, DocumentIcon, LightbulbIcon, SettingsIcon } from "@/components/icons";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getCurrentSession();
@@ -42,6 +43,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // giriş yapmış olan hesap admin ise render edilir; diğer bayiler için bu
   // koddan bile admin panelinin var olduğu anlaşılmaz.
   const isAdmin = Boolean(await getCurrentAdminShopId());
+  // Fatura bilgisi eksikken hiçbir bayi (free plan dahil) yeni araç, bakım kaydı
+  // veya randevu ekleyemez (bkz. lib/billing.ts, app/api/vehicles, app/api/vehicles/bulk,
+  // app/api/vehicles/[id]/records, app/api/randevular) — burada, o engele önceden
+  // çarpmak yerine panelin her sayfasında görünen proaktif bir uyarı gösteriyoruz.
+  // Yalnızca hesap sahibi bu bilgiyi düzenleyebildiğinden (bkz.
+  // app/dashboard/fatura-bilgileri) çalışan hesaplarına farklı bir metin gösterilir.
+  const billingComplete = isBillingInfoComplete(shop.billingInfo);
 
   // Admin paneli sekmesindeki (bkz. app/admin/layout.tsx) "isim + renkli IconBadge"
   // görsel diliyle tutarlı olsun diye burada da aynı NAV_ITEMS deseni kullanılıyor —
@@ -118,7 +126,32 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </div>
           </div>
         </header>
-        <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+        <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+          {!billingComplete && (
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4">
+              <div className="flex items-center gap-3">
+                <IconBadge icon={<DocumentIcon />} color="amber" size="sm" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">Fatura bilgileriniz eksik</p>
+                  <p className="text-xs text-amber-700">
+                    {session.role === "sahibi"
+                      ? "Yeni araç, bakım kaydı veya randevu ekleyebilmek için önce fatura bilgilerinizi tamamlamanız gerekiyor."
+                      : "Yeni araç, bakım kaydı veya randevu eklenemiyor — hesap sahibinizin fatura bilgilerini tamamlaması gerekiyor."}
+                  </p>
+                </div>
+              </div>
+              {session.role === "sahibi" && (
+                <Link
+                  href="/dashboard/fatura-bilgileri"
+                  className="shrink-0 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+                >
+                  Şimdi Tamamla →
+                </Link>
+              )}
+            </div>
+          )}
+          {children}
+        </main>
       </div>
     </ToastProvider>
   );

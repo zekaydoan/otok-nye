@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { getCurrentShopId } from "@/lib/auth";
 import { createOilRecord, getShopById, getVehicleById, savePhoto } from "@/lib/blobStore";
 import { defaultNextServiceDate, defaultNextServiceKm } from "@/lib/maintenance";
+import { isBillingInfoComplete } from "@/lib/billing";
 import type { OilRecord } from "@/lib/types";
 
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024; // base64 karakter sayısı için kaba üst sınır
@@ -22,6 +23,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const shop = await getShopById(shopId);
   if (!shop) return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
+
+  // Fatura bilgisi eksikken hiçbir bayi (free plan dahil) yeni bakım kaydı
+  // giremez — bkz. lib/billing.ts. İstemci bu koddan yakalayıp
+  // /dashboard/fatura-bilgileri'ne yönlendirir (bkz. components/AddOilRecordForm.tsx).
+  if (!isBillingInfoComplete(shop.billingInfo)) {
+    return NextResponse.json(
+      { error: "Devam etmeden önce fatura bilgilerinizi kaydetmeniz gerekiyor.", requiresBilling: true },
+      { status: 409 }
+    );
+  }
 
   const body = await req.json();
   const {

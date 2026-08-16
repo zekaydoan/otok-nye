@@ -9,6 +9,7 @@ import {
   normalizePlate,
 } from "@/lib/blobStore";
 import { validatePlate } from "@/lib/plates";
+import { isBillingInfoComplete } from "@/lib/billing";
 import { PLAN_LIMITS } from "@/lib/types";
 import type { Vehicle } from "@/lib/types";
 
@@ -71,6 +72,17 @@ export async function POST(req: NextRequest) {
   // app/dashboard/araclar/yeni/page.tsx (Meta Pixel "FirstVehicleAdded" olayı).
   const shop = await getShopById(shopId);
   if (!shop) return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
+
+  // Fatura bilgisi eksikken hiçbir bayi (free plan dahil) yeni araç ekleyemez —
+  // bkz. lib/billing.ts. İstemci bu koddan yakalayıp /dashboard/fatura-bilgileri'ne
+  // yönlendirir (bkz. app/dashboard/araclar/yeni/page.tsx).
+  if (!isBillingInfoComplete(shop.billingInfo)) {
+    return NextResponse.json(
+      { error: "Devam etmeden önce fatura bilgilerinizi kaydetmeniz gerekiyor.", requiresBilling: true },
+      { status: 409 }
+    );
+  }
+
   const currentVehicles = await listVehiclesByShop(shopId);
   const limit = PLAN_LIMITS[shop.plan].maxVehicles;
   if (limit !== Infinity && currentVehicles.length >= limit) {

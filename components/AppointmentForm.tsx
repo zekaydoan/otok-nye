@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import type { Appointment } from "@/lib/types";
 
@@ -12,6 +13,7 @@ export default function AppointmentForm({
   // (bkz. VehicleDetailView / AddOilRecordForm'daki aynı desen).
   onCreated?: (appointment: Appointment) => void;
 }) {
+  const router = useRouter();
   const { showToast } = useToast();
   const now = new Date();
   const emptyForm = {
@@ -39,6 +41,10 @@ export default function AppointmentForm({
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.requiresBilling) {
+          router.push(`/dashboard/fatura-bilgileri?returnTo=${encodeURIComponent("/dashboard/randevular")}`);
+          return;
+        }
         setError(data.error || "Bir hata oluştu.");
         return;
       }

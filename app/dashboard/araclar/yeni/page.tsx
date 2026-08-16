@@ -62,6 +62,10 @@ export default function NewVehiclePage() {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.requiresBilling) {
+          router.push(`/dashboard/fatura-bilgileri?returnTo=${encodeURIComponent("/dashboard/araclar/yeni")}`);
+          return;
+        }
         setError(data.error || "Bir hata oluştu.");
         if (data.vehicleId) setExistingVehicleId(data.vehicleId);
         setIsPlanLimitError(data.code === "plan_limit");

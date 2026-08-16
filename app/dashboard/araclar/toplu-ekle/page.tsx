@@ -127,6 +127,10 @@ export default function BulkImportPage() {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.requiresBilling) {
+          router.push(`/dashboard/fatura-bilgileri?returnTo=${encodeURIComponent("/dashboard/araclar/toplu-ekle")}`);
+          return;
+        }
         setError(data.error || "Bir hata oluştu.");
         return;
       }
