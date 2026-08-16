@@ -53,6 +53,19 @@ export interface Shop {
   // free'ye dönüş bu akışa girmez, anında uygulanır (risksiz düşüş).
   pendingPlan?: Plan;
   pendingPlanRequestedAt?: string; // ISO
+  // ---- iyzico Abonelik (otomatik tekrarlayan tahsilat) — hazırlık aşaması ----
+  // Bu dört alan, PAID_PLANS_ENABLED açıldığında `/api/shop/plan`'in
+  // admin-onaylı manuel akış yerine iyzico'nun Abonelik API'sine bağlanması
+  // için eklendi (bkz. SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md madde 1,
+  // lib/iyzicoSubscription.ts). Şirket kuruluşu tamamlanıp iyzico hesabında
+  // Abonelik özelliği aktive edilene kadar bu alanlar kullanılmıyor —
+  // şu anki `pendingPlan` akışı hâlâ geçerli, ikisi birbirini dışlamıyor.
+  iyzicoSubscriptionReferenceCode?: string; // aktif/son abonelik kaydının referans kodu
+  iyzicoCustomerReferenceCode?: string; // iyzico'nun email+gsm'den ürettiği müşteri kodu
+  iyzicoPricingPlanReferenceCode?: string; // hangi iyzico ödeme planına bağlı (Pro/İşletme/...)
+  // Son başarılı tekrarlayan ödemenin ne zaman alındığı (webhook'tan) — admin
+  // panelinde "vadesi geçmiş" gibi bir görünüm gerekirse buradan hesaplanabilir.
+  planRenewsAt?: string; // ISO, son başarılı abonelik ödemesi zamanı
   // Hesap sahibinin veya herhangi bir çalışanının en son başarılı giriş anı —
   // admin bayi listesindeki "uzun süredir giriş yapmamış" sinyali için (bkz.
   // app/admin/bayiler, components/AdminShopSearch). app/api/auth/login'de her

@@ -51,6 +51,12 @@ const stickerOrderTokensStore = () => getStore("sticker_order_tokens");
 // bir siparişe ait tüm token'ları listeleyebilmek için sipariş->token indeksi.
 const stickerTokensStore = () => getStore("sticker_tokens");
 const stickerTokensByOrderStore = () => getStore("sticker_tokens_by_order");
+// iyzico Abonelik: subscriptionReferenceCode -> {shopId, plan} eşlemesi —
+// hazırlık aşaması (bkz. lib/iyzicoSubscription.ts). Abonelik başlatılırken
+// yazılır, tekrarlayan ödeme webhook'u (app/api/webhooks/iyzico-abonelik)
+// bildirimde yalnızca subscriptionReferenceCode döndüğünden, "hangi bayi/hangi
+// plan" bilgisine buradan ulaşılır — sticker_order_tokens ile aynı desen.
+const subscriptionShopLinksStore = () => getStore("subscription_shop_links");
 const settingsStore = () => getStore("settings");
 // Şifre sıfırlama: token -> { shopId, expiresAt }. Token tek kullanımlıktır,
 // kullanıldıktan hemen sonra veya süresi dolduğunda silinir.
@@ -921,6 +927,26 @@ export async function bindStickerToken(token: string, vehicleId: string): Promis
   const updated: StickerToken = { ...record, vehicleId, boundAt: new Date().toISOString() };
   await stickerTokensStore().setJSON(token, updated);
   return updated;
+}
+
+// ---------- iyzico Abonelik — hazırlık aşaması ----------
+// bkz. lib/iyzicoSubscription.ts, app/api/webhooks/iyzico-abonelik. Henüz
+// /api/shop/plan'e bağlanmadı (bkz. SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md
+// madde 1) — bu fonksiyonlar altyapı hazırlığı, canlı akışta kullanılmıyor.
+export async function linkSubscriptionToShop(
+  subscriptionReferenceCode: string,
+  shopId: string,
+  plan: Plan
+): Promise<void> {
+  await subscriptionShopLinksStore().setJSON(subscriptionReferenceCode, { shopId, plan });
+}
+
+export async function getSubscriptionShopLink(
+  subscriptionReferenceCode: string
+): Promise<{ shopId: string; plan: Plan } | null> {
+  return (await subscriptionShopLinksStore().get(subscriptionReferenceCode, {
+    type: "json",
+  })) as { shopId: string; plan: Plan } | null;
 }
 
 // Etiket birim fiyatı henüz kesinleşmedi (baskı tedarikçisi araştırması sürüyor) —

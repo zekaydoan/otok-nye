@@ -5,16 +5,84 @@ eline geçtiğinde geri dönüp düzeltilmesi gereken, şu an bilinçli olarak
 placeholder/kapalı bırakılmış yerlerin listesidir. Zeki'nin "şirket ile ilgili
 işlemleri yapmaya başladık" demesi üzerine bu liste sırayla ele alınmalı.
 
-## 1. Ücretli planları aç
+## 1. Ücretli planları aç — otomatik tekrarlayan tahsilat (iyzico Abonelik)
 
-- **Dosya:** `lib/planAvailability.ts`
-- **Değişiklik:** `PAID_PLANS_ENABLED = false` → `true`
-- Başka hiçbir yer değiştirilmesi gerekmiyor — hem `/api/shop/plan` hem
-  `PlanSelector` hem `/dashboard/plan` sayfası bu tek bayrağı okuyor.
-- Bu noktada ayrıca gerçek kart tahsilatı (iyzico/Stripe entegrasyonu,
-  `/api/shop/plan`'e ödeme adımı eklenmesi) hâlâ yapılmamış olacak — bkz.
-  README.md "Ödeme / Abonelik Notu". Şimdilik plan talebi admin onayına
-  düşmeye devam ediyor, bu istenen bir davranışsa dokunmaya gerek yok.
+**Karar güncellendi (16 Ağustos 2026, ikinci görüşme):** Önce manuel akışla
+açma kararı alınmıştı, sonra Zeki bunu değiştirdi — **baştan iyzico'nun
+Abonelik API'siyle otomatik tekrarlayan tahsilata gidilecek**, manuel
+onay/tahsilat kalıcı çözüm OLARAK KULLANILMAYACAK. Aşağıdaki plan bunu
+hedefler.
+
+### Neden manuel yetmiyor (netleşen gerekçe)
+
+`/api/shop/plan` şu an sadece bir *talep* akışı: bayı plan seçer → admin'e
+mail gider → admin banka havalesi/elden ödemeyi görür → elle aktive eder.
+Ama sistemde **hiçbir yenileme/vade takibi yok** (`Shop` tipinde
+`planRenewsAt`/`planExpiresAt` gibi bir alan yok, `recordPlanStart` yalnızca
+istatistik için ilk başlangıcı loglar). Yani plan bir kez aktive edilince,
+ödeme yapılsa da yapılmasa da elle indirilmediği sürece süresiz aktif kalır
+— her ay "kimden tahsilat isteyeceğim" tamamen hafızaya kalır. 5-10
+müşteride bile riskli.
+
+### iyzico Abonelik API — araştırılan gerçek durum
+
+- **Ücretli bir eklenti:** İlk 3 ay ücretsiz, sonrasında **199₺/ay**. Bu,
+  plan fiyatlandırmasına/maliyet hesabına dahil edilmeli.
+- **Ön koşul:** iyzico hesabında "Abonelik" özelliğinin aktif olması gerekiyor.
+  - Sandbox (test) ortamı için: hesaba kayıtlı e-posta veya üye işyeri
+    numarası **entegrasyon@iyzico.com** adresine iletilmeli, orada aktive
+    ediyorlar.
+  - Gerçek hesapta: iyzico panelinde **"Eklentiler"** sayfasından satın
+    alınıyor; sayfada görünmüyorsa **destek@iyzico.com** ile iletişime
+    geçilmeli.
+- **4 adımlı entegrasyon:** (1) Ürün oluşturma, (2) Ödeme Planı oluşturma
+  (aylık/yıllık, OtoHafıza'daki Pro/İşletme/İşletme Yıllık planlarının her
+  biri için ayrı bir iyzico "plan" olacak), (3) Abonelik Başlatma (checkout
+  form veya direkt API isteğiyle, plan referans koduyla), (4) Webhook —
+  her tekrarlayan ödemede iyzico bildirim gönderiyor, biz bu bildirimle
+  `Shop.plan`'i güncel tutacağız (başarısızsa düşürme, retry servisi de var).
+  Detaylı adımlar: docs.iyzico.com/urunler/abonelik/abonelik-entegrasyonu
+- **Deneme süresi desteği var** — bir ödeme planına deneme süresi
+  tanımlanabiliyor, kart bilgisi deneme başında kaydedilip süre bitince
+  otomatik tahsilat başlıyor. İleride "X gün ücretsiz dene, otomatik geç"
+  akışı için kullanılabilir, şimdilik zorunlu değil.
+- Sadece kredi kartıyla çalışıyor (başka ödeme yöntemi yok).
+
+### Yapılacaklar (şirket kuruluşu tamamlandığında sırayla)
+
+1. ⏳ **Bekliyor — Zeki'nin yapması gerekiyor.** iyzico hesabına kayıtlı
+   e-posta/üye işyeri no'yu entegrasyon@iyzico.com'a iletip sandbox'ta
+   Abonelik özelliğini (ve mümkünse webhook signature özelliğini) aktive
+   ettirmek. Bu adım kod değil — hesap sahipliği gerektiriyor, ben
+   gönderemem.
+2. ✅ **Kod tarafı hazırlandı (17 Ağustos 2026):** `lib/iyzicoSubscription.ts`
+   yazıldı — ürün oluşturma, ödeme planı oluşturma, Checkout Form ile abonelik
+   başlatma, sonuç sorgulama (GET), webhook imza doğrulama. `lib/iyzico.ts`'teki
+   `buildAuthHeaders`/`getBaseUrl`/`requireEnv` dışa açılıp yeniden kullanıldı.
+   **UÇTAN UCA TEST EDİLMEDİ** — 1. madde tamamlanmadan sandbox'a erişim yok.
+   GET isteğinin (sonuç sorgulama) imza hesaplaması dokümantasyonda net
+   örneklenmemişti, en olası yorum uygulandı — sandbox erişimi olunca ilk
+   test edilmesi gereken kısım burası.
+3. ✅ **Tamamlandı:** `Shop` tipine `planRenewsAt`, `iyzicoSubscriptionReferenceCode`,
+   `iyzicoCustomerReferenceCode`, `iyzicoPricingPlanReferenceCode` eklendi.
+   `lib/blobStore.ts`'e `linkSubscriptionToShop`/`getSubscriptionShopLink`
+   eklendi (subscriptionReferenceCode -> {shopId, plan} eşlemesi).
+4. ✅ **Tamamlandı:** `app/api/webhooks/iyzico-abonelik/route.ts` kuruldu —
+   imza doğrular, `subscription.order.success`'te planı/`planRenewsAt`'i
+   günceller, `subscription.order.failure`'da admin'e mail atar (otomatik
+   düşürme yapmaz, bilinçli tercih). iyzico Merchant Panel'de "Ayarlar >
+   Firma Ayarları > İşyeri Bildirimleri" altındaki abonelik bildirim URL'sine
+   bu endpoint tanımlanmalı — `IYZICO_MERCHANT_ID` ortam değişkeni de gerekli
+   (bkz. `.env.example`).
+5. ⏳ **Henüz yapılmadı — asıl kalan iş:** `/api/shop/plan` mevcut "talep → admin onayı" akışından, doğrudan
+   abonelik başlatan bir akışa geçirilir.
+6. ⏳ `PAID_PLANS_ENABLED` en son, her şey test edildikten sonra `true` yapılır.
+
+Sandbox'ta geliştirme, gerçek şirket kuruluşunu beklemeden 1. adım
+tamamlanınca başlayabilir — üretim/gerçek tahsilat için ise gerçek iyzico
+hesabında Abonelik eklentisinin satın alınması (ki bu muhtemelen kurumsal
+hesap/vergi bilgisi ister) ve `PAID_PLANS_ENABLED` gerçek şirket kuruluşunu
+bekliyor.
 
 ## 2. KVKK Aydınlatma Metni — adres/telefon
 

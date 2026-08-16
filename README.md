@@ -181,12 +181,13 @@ otomatik olarak simüle edilir (sadece `next dev` ile Blobs çalışmayabilir).
 ## Ödeme / Abonelik Notu
 
 Plan seçimi şu anda hesabınıza kaydediliyor ancak gerçek kredi kartı tahsilatı
-bağlı değil. Canlıda otomatik tahsilat için kendi ödeme sağlayıcı hesabınızın
-(iyzico, Stripe vb.) API anahtarlarını ortam değişkeni olarak eklemeniz ve
-`/api/shop/plan` uç noktasına ödeme adımını entegre etmeniz gerekir. Aşağıdaki
-Etiket Mağazası özelliği iyzico'yu zaten entegre ediyor (`lib/iyzico.ts`) — aynı
-API anahtarları/altyapı, ileride abonelik tahsilatını otomatikleştirmek için de
-kullanılabilir (iyzico'nun ayrı bir "Abonelik" API'si de mevcut, bkz. docs.iyzico.com).
+bağlı değil — `/api/shop/plan` bir talep akışıdır (admin manuel onaylar).
+Otomatik tekrarlayan tahsilat için `lib/iyzicoSubscription.ts` (iyzico'nun
+ayrı "Abonelik" ürünü) ve `app/api/webhooks/iyzico-abonelik` altyapısı
+hazırlandı ama **henüz `/api/shop/plan`'e bağlanmadı** ve uçtan uca test
+edilmedi (gerçek bir sandbox hesabında Abonelik özelliği aktive edilmeden
+test edilemiyor). Detaylı yol haritası ve ön koşullar için bkz.
+`SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md` madde 1.
 
 ## Etiket Mağazası (Fiziksel QR Etiket Sipariş + Ödeme)
 

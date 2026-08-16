@@ -11,21 +11,23 @@ import crypto from "crypto";
 // IYZICO_SECRET_KEY sandbox anahtarlarıyla en az bir tam sipariş + ödeme + callback
 // akışını test edin.
 
-function requireEnv(name: string): string {
+export function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`${name} ortam değişkeni tanımlı değil.`);
   return value;
 }
 
-function getBaseUrl(): string {
+export function getBaseUrl(): string {
   return process.env.IYZICO_BASE_URL || "https://sandbox-api.iyzipay.com";
 }
 
 // randomKey + uriPath + requestBody dizgisinin HMACSHA256 imzasını üretir ve
 // IYZWSv2 Authorization başlığını döner. bodyJson, fetch ile gönderilecek istek
 // gövdesiyle bayt bayt aynı olmalıdır (imza, tam olarak gönderilen JSON metni
-// üzerinden hesaplanır).
-function buildAuthHeaders(uriPath: string, bodyJson: string): Record<string, string> {
+// üzerinden hesaplanır). Dışa açık: lib/iyzicoSubscription.ts aynı imzalama
+// mantığını (Checkout Form akışında zaten kanıtlanmış) tekrar yazmak yerine
+// buradan içe aktarıp kullanıyor.
+export function buildAuthHeaders(uriPath: string, bodyJson: string): Record<string, string> {
   const apiKey = requireEnv("IYZICO_API_KEY");
   const secretKey = requireEnv("IYZICO_SECRET_KEY");
   const randomKey = `${Date.now()}${crypto.randomInt(100_000_000, 999_999_999)}`;
