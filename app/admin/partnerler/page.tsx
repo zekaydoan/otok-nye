@@ -22,6 +22,13 @@ export default async function AdminPartnersPage() {
         Ödeme tahsilatı henüz otomatik değil — komisyon tutarları burada hesaplanır, ödeme
         elle (banka transferi vb.) yapılıp &quot;ödendi&quot; olarak işaretlenir.
       </p>
+      <p className="mt-2 text-sm text-slate-500">
+        Partnerler artık genelde{" "}
+        <span className="font-medium text-slate-700">/partner-basvuru</span>&apos;dan kendileri
+        başvurup hesap açıyor (siz onay vermeden anında aktif oluyorlar — aktivite geçmişinde
+        görürsünüz). Aşağıdaki form yalnızca istisnai durumlar (ör. siz elle eklemek isterseniz)
+        için duruyor.
+      </p>
 
       {summaries.length > 0 && (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">

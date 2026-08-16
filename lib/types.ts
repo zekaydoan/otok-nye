@@ -456,7 +456,8 @@ export type AdminAuditAction =
   | "partner_durum_degisti"
   | "partner_atandi"
   | "partner_komisyon_odendi"
-  | "partner_sifre_sifirlandi";
+  | "partner_sifre_sifirlandi"
+  | "partner_kendi_basvurdu";
 
 export interface AdminAuditLogEntry {
   id: string;
@@ -538,9 +539,12 @@ export interface Partner {
   email?: string;
   // Saha Partneri kendi panelinde (bkz. app/partner) giriş yapabilsin diye —
   // telefon numarasıyla giriş yapar (bkz. lib/partnerAuth.ts,
-  // app/api/partner/giris). Admin partneri oluştururken otomatik üretilen
-  // geçici bir şifre ile başlar (bkz. blobStore.generatePartnerTempPassword),
-  // asla düz metin saklanmaz.
+  // app/api/partner/giris). İki oluşturma yolu var: (1) partner kendisi
+  // /partner-basvuru'dan başvurup kendi 6 haneli şifresini belirler (bkz.
+  // app/api/partner/basvuru — asıl/önerilen yol, admin beklemesine gerek yok),
+  // (2) admin panelden elle ekler ve otomatik üretilen geçici bir şifre ile
+  // başlar (bkz. blobStore.generatePartnerTempPassword, istisnai/yedek yol).
+  // Her iki durumda da asla düz metin saklanmaz.
   passwordHash: string;
   // Kayıt linkinde kullanılan benzersiz, URL-güvenli kod — ?ref=KOD parametresiyle
   // kayıt formuna taşınır (bkz. app/kayit/page.tsx, app/api/auth/signup).

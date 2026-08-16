@@ -101,6 +101,12 @@ export default function PartnerLoginPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-slate-500">
+            Henüz hesabınız yok mu?{" "}
+            <Link href="/partner-basvuru" className="font-medium text-brand-600 hover:underline">
+              Saha Partneri olun
+            </Link>
+          </p>
+          <p className="mt-2 text-center text-sm text-slate-500">
             Şifrenizi mi unuttunuz? OtoHafıza ile iletişime geçin, sıfırlansın.
           </p>
         </div>
