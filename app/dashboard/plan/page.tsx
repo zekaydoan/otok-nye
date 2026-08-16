@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentSession } from "@/lib/auth";
 import { getShopById } from "@/lib/blobStore";
 import { isBillingInfoComplete } from "@/lib/billing";
+import { PAID_PLANS_ENABLED } from "@/lib/planAvailability";
 import PlanSelector from "@/components/PlanSelector";
 
 export default async function PlanPage() {
@@ -13,12 +14,12 @@ export default async function PlanPage() {
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Abonelik Planı</h1>
       <p className="mt-1 text-sm text-slate-500">
-        İhtiyacınıza göre plan seçin. Kredi kartı ile otomatik tahsilat, ödeme
-        sağlayıcı hesabınız (ör. iyzico/Stripe) tanımlandığında devreye alınabilir —
-        şimdilik plan seçiminiz hesabınıza kaydedilir.
+        {PAID_PLANS_ENABLED
+          ? "İhtiyacınıza göre plan seçin. Kredi kartı ile otomatik tahsilat, ödeme sağlayıcı hesabınız (ör. iyzico/Stripe) tanımlandığında devreye alınabilir — şimdilik plan seçiminiz hesabınıza kaydedilir."
+          : "Şirket kuruluş işlemlerimiz tamamlanana kadar yalnızca Ücretsiz plan kullanılabiliyor. Ücretli planlar (Pro, İşletme) kısa süre içinde açılacak."}
       </p>
 
-      {shop && isOwner && shop.plan === "free" && !isBillingInfoComplete(shop.billingInfo) && (
+      {shop && isOwner && shop.plan === "free" && PAID_PLANS_ENABLED && !isBillingInfoComplete(shop.billingInfo) && (
         <div className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Ücretli bir plana geçmeden önce{" "}
           <Link

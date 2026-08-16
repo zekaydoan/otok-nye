@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
+import { PAID_PLANS_DISABLED_MESSAGE, PAID_PLANS_ENABLED } from "@/lib/planAvailability";
 import { useToast } from "@/components/Toast";
 
 export default function PlanSelector({
@@ -51,6 +52,11 @@ export default function PlanSelector({
 
   return (
     <div className="mt-6">
+      {!PAID_PLANS_ENABLED && (
+        <p className="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {PAID_PLANS_DISABLED_MESSAGE}
+        </p>
+      )}
       {pendingPlan && (
         <p className="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <strong>{PLAN_LIMITS[pendingPlan].label}</strong> planına geçiş talebiniz alındı,
@@ -64,6 +70,7 @@ export default function PlanSelector({
         const active = key === currentPlan;
         const isPending = key === pendingPlan;
         const isCampaign = Boolean(plan.badge);
+        const isLocked = key !== "free" && !PAID_PLANS_ENABLED && !active && !isPending;
         return (
           <div
             key={key}
@@ -89,25 +96,29 @@ export default function PlanSelector({
               {plan.maxVehicles === Infinity ? "Sınırsız araç" : `${plan.maxVehicles} araca kadar`}
             </p>
             <button
-              disabled={active || isPending || loading !== null}
+              disabled={active || isPending || isLocked || loading !== null}
               onClick={() => choosePlan(key)}
               className={`mt-4 w-full rounded-lg py-2 text-sm font-semibold ${
                 active
                   ? "bg-slate-100 text-slate-400"
                   : isPending
                     ? "bg-amber-100 text-amber-700"
-                    : isCampaign
-                      ? "bg-accent-500 text-white hover:bg-accent-600"
-                      : "bg-brand-600 text-white hover:bg-brand-700"
+                    : isLocked
+                      ? "bg-slate-100 text-slate-400"
+                      : isCampaign
+                        ? "bg-accent-500 text-white hover:bg-accent-600"
+                        : "bg-brand-600 text-white hover:bg-brand-700"
               } disabled:opacity-60`}
             >
               {active
                 ? "Mevcut Plan"
                 : isPending
                   ? "Onay Bekleniyor"
-                  : loading === key
-                    ? "Talep gönderiliyor..."
-                    : "Bu Planı Seç"}
+                  : isLocked
+                    ? "Yakında"
+                    : loading === key
+                      ? "Talep gönderiliyor..."
+                      : "Bu Planı Seç"}
             </button>
           </div>
         );

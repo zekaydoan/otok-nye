@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/auth";
 import { getShopById, recordPlanStart, updateShopFields } from "@/lib/blobStore";
 import { isBillingInfoComplete } from "@/lib/billing";
+import { PAID_PLANS_DISABLED_MESSAGE, PAID_PLANS_ENABLED } from "@/lib/planAvailability";
 import { notifyAdmins, escapeHtml } from "@/lib/email";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 
@@ -18,6 +19,17 @@ export async function POST(req: NextRequest) {
   const { plan } = (await req.json()) as { plan?: Plan };
   if (!plan || !(plan in PLAN_LIMITS)) {
     return NextResponse.json({ error: "Geçersiz plan." }, { status: 400 });
+  }
+
+  // Şirket kuruluşu tamamlanana kadar yalnızca Free plan kabul ediliyor (bkz.
+  // lib/planAvailability.ts) — ücretli plan talepleri, fatura bilgisi eksik olsa
+  // da olmasa da burada tamamen reddedilir. free'ye dönüş bu kısıtlamadan
+  // etkilenmez, her zaman serbesttir.
+  if (plan !== "free" && !PAID_PLANS_ENABLED) {
+    return NextResponse.json(
+      { error: PAID_PLANS_DISABLED_MESSAGE, code: "paid_plans_disabled" },
+      { status: 403 }
+    );
   }
 
   // Ücretsiz olmayan her plan için fatura kesileceğinden (bkz. lib/billing.ts),
