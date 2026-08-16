@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { createShop, getShopByEmail, getStaffByEmail, recordPlanStart } from "@/lib/blobStore";
+import {
+  attributeShopToPartnerIfUnset,
+  createShop,
+  getPartnerByReferralCode,
+  getShopByEmail,
+  getStaffByEmail,
+  recordPlanStart,
+} from "@/lib/blobStore";
 import { createSessionToken, hashPassword, setSessionCookie } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { TR_PROVINCES, type Shop } from "@/lib/types";
@@ -21,12 +28,13 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, email, phone, password, city } = body as {
+  const { name, email, phone, password, city, ref } = body as {
     name?: string;
     email?: string;
     phone?: string;
     password?: string;
     city?: string;
+    ref?: string; // Saha Partner Ağı referans kodu (?ref=KOD) — bkz. app/kayit/page.tsx
   };
 
   if (!name || !email || !phone || !password || !city) {
@@ -71,6 +79,22 @@ export async function POST(req: NextRequest) {
 
   await createShop(shop);
   await recordPlanStart(shop.id, shop.plan);
+
+  // Saha Partner Ağı: geçerli bir referans koduyla geldiyse bayiyi o partnere
+  // bağlar (bkz. lib/blobStore.ts attributeShopToPartnerIfUnset). Bilinmeyen/
+  // geçersiz bir kod ya da bulunamayan partner sessizce yok sayılır — kayıt
+  // akışını ASLA bloklamaz, bu yalnızca bir izleme/komisyon detayıdır.
+  if (ref) {
+    try {
+      const partner = await getPartnerByReferralCode(ref);
+      if (partner && partner.status === "aktif") {
+        await attributeShopToPartnerIfUnset(shop.id, partner.id);
+      }
+    } catch (err) {
+      console.error("[signup] Partner ataması başarısız (kayıt yine de tamamlandı):", err);
+    }
+  }
+
   const token = await createSessionToken({ shopId: shop.id, role: "sahibi" });
   setSessionCookie(token);
 

@@ -4,18 +4,28 @@ import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { listAdminAuditLog } from "@/lib/blobStore";
 import EmptyState from "@/components/EmptyState";
 import { ChartBarIcon } from "@/components/icons";
-import type { AdminAuditAction } from "@/lib/types";
+import type { AdminAuditAction, AdminAuditLogEntry } from "@/lib/types";
 
 const ACTION_LABELS: Record<AdminAuditAction, string> = {
   plan_degistirildi: "Plan değiştirildi",
   siparis_guncellendi: "Sipariş durumu güncellendi",
   iade_isaretlendi: "İade işaretlendi",
   siparis_silindi: "Sipariş kalıcı olarak silindi",
+  partner_olusturuldu: "Partner eklendi",
+  partner_durum_degisti: "Partner durumu değişti",
+  partner_atandi: "Partner ataması değişti",
+  partner_komisyon_odendi: "Partner komisyonu ödendi",
 };
 
-const TARGET_HREF: Record<string, (id: string) => string> = {
+// Record<AdminAuditLogEntry["targetType"], ...> ile (Record<string, ...>
+// yerine) kasıtlı olarak katı tiplendirildi — targetType'a yeni bir değer
+// eklenip burası unutulursa (bkz. Bölüm 68 partner_atandi/targetType "partner"
+// eklenmesiyle burada az kalsın atlanan bir eksiklik) derleme zamanında hata
+// verir, sessiz bir runtime çökmesine dönüşmez.
+const TARGET_HREF: Record<AdminAuditLogEntry["targetType"], (id: string) => string> = {
   shop: (id) => `/admin/bayiler/${id}`,
   sticker_order: () => `/admin/siparisler`,
+  partner: (id) => `/admin/partnerler/${id}`,
 };
 
 // Admin "bu planı kim, ne zaman aktive etti?" gibi sorulara artık burada cevap

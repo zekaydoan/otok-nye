@@ -5,7 +5,16 @@ import Logo from "@/components/Logo";
 import IconBadge from "@/components/IconBadge";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { getPendingCounts } from "@/app/admin/bekleyen-isler/page";
-import { BellIcon, ChartBarIcon, ChatIcon, DocumentIcon, LightbulbIcon, LockIcon, UsersIcon } from "@/components/icons";
+import {
+  BellIcon,
+  ChartBarIcon,
+  ChatIcon,
+  DocumentIcon,
+  HandshakeIcon,
+  LightbulbIcon,
+  LockIcon,
+  UsersIcon,
+} from "@/components/icons";
 
 // Her sekmenin kendine özgü rengi var (bkz. components/IconBadge) — ne işe
 // yaradığını isim + renk tekrarıyla pekiştirir, hepsi aynı gri metin olduğunda
@@ -13,6 +22,7 @@ import { BellIcon, ChartBarIcon, ChatIcon, DocumentIcon, LightbulbIcon, LockIcon
 const NAV_ITEMS = [
   { href: "/admin/bekleyen-isler", label: "Bekleyen İşler", icon: <BellIcon />, color: "red" as const },
   { href: "/admin/bayiler", label: "Bayiler", icon: <UsersIcon />, color: "blue" as const },
+  { href: "/admin/partnerler", label: "Partnerler", icon: <HandshakeIcon />, color: "teal" as const },
   { href: "/admin/istatistikler", label: "İstatistikler", icon: <ChartBarIcon />, color: "purple" as const },
   { href: "/admin/duyurular", label: "Duyurular", icon: <ChatIcon />, color: "amber" as const },
   { href: "/admin/oneriler", label: "Öneriler", icon: <LightbulbIcon />, color: "yellow" as const },

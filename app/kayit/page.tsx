@@ -1,15 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AuthSidePanel from "@/components/AuthSidePanel";
 import Logo from "@/components/Logo";
 import { trackConversionEvent } from "@/components/AdPixels";
 import { TR_PROVINCES } from "@/lib/types";
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  // Saha Partner Ağı: bir partnerin paylaştığı linkten gelen kayıtlar
+  // ?ref=KOD parametresini taşır — kayıt isteğiyle birlikte gönderilip
+  // hangi partnere bağlanacağı sunucu tarafında doğrulanır (bkz.
+  // app/api/auth/signup/route.ts, lib/blobStore.ts attributeShopToPartnerIfUnset).
+  // Bilinmeyen/geçersiz bir kod sessizce yok sayılır — kayıt akışını bloklamaz.
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get("ref");
   const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", password: "" });
   const [consent, setConsent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +35,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(referralCode ? { ...form, ref: referralCode } : form),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -46,18 +53,13 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-      <div className="grid w-full max-w-4xl gap-6 lg:grid-cols-2">
-        <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8">
-          <Link href="/" className="inline-block">
-            <Logo withText />
-          </Link>
-          <h1 className="mt-6 text-2xl font-bold text-slate-900">Firma Hesabı Oluştur</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Oto tamir/servis firmanız için ücretsiz hesap açın.
-          </p>
+    <>
+      <h1 className="mt-6 text-2xl font-bold text-slate-900">Firma Hesabı Oluştur</h1>
+      <p className="mt-1 text-sm text-slate-500">
+        Oto tamir/servis firmanız için ücretsiz hesap açın.
+      </p>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700">Firma / Tamirci Adı</label>
               <div className="relative mt-1">
@@ -212,12 +214,27 @@ export default function SignupPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
-            Zaten hesabınız var mı?{" "}
-            <Link href="/giris" className="font-medium text-brand-600">
-              Giriş yapın
-            </Link>
-          </p>
+      <p className="mt-6 text-center text-sm text-slate-500">
+        Zaten hesabınız var mı?{" "}
+        <Link href="/giris" className="font-medium text-brand-600">
+          Giriş yapın
+        </Link>
+      </p>
+    </>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+      <div className="grid w-full max-w-4xl gap-6 lg:grid-cols-2">
+        <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8">
+          <Link href="/" className="inline-block">
+            <Logo withText />
+          </Link>
+          <Suspense fallback={<p className="mt-6 text-sm text-slate-500">Yükleniyor...</p>}>
+            <SignupForm />
+          </Suspense>
         </div>
 
         <AuthSidePanel

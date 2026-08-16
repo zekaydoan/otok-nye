@@ -74,6 +74,13 @@ export interface Shop {
   // bozmamalı).
   lastLoginAt?: string; // ISO
   createdAt: string;
+  // ---- Saha Partner Ağı (bkz. aşağıdaki "Saha Partner Ağı" bölümü) ----
+  // Bu bayi bir partnerin referans koduyla (?ref=KOD) kayıt olduysa partnerin
+  // id'si buraya yazılır. İlk yazıldıktan sonra admin elle değiştirmediği
+  // sürece KALICIDIR — partner değişse/ayrılsa bile geçmiş kaydı korunur (bkz.
+  // pazarlama/Saha_Partner_Agi_Analiz.docx Bölüm 8 "Müşteri Sahipliği Modeli").
+  partnerId?: string;
+  partnerAttributedAt?: string; // ISO, ilk bağlantı anı
 }
 
 // ---------- Fatura Bilgileri ----------
@@ -444,15 +451,149 @@ export type AdminAuditAction =
   | "plan_degistirildi"
   | "siparis_guncellendi"
   | "iade_isaretlendi"
-  | "siparis_silindi";
+  | "siparis_silindi"
+  | "partner_olusturuldu"
+  | "partner_durum_degisti"
+  | "partner_atandi"
+  | "partner_komisyon_odendi";
 
 export interface AdminAuditLogEntry {
   id: string;
   actorEmail: string; // işlemi yapan adminin e-postası (bkz. lib/adminAuth.ts)
   action: AdminAuditAction;
-  targetType: "shop" | "sticker_order";
+  targetType: "shop" | "sticker_order" | "partner";
   targetId: string;
   targetLabel: string; // ör. bayi adı — listede tekrar sorgu yapmadan gösterebilmek için
   detail: string; // kısa, insan tarafından okunabilir özet (ör. "free → business")
+  createdAt: string;
+}
+
+// ---------- Saha Partner Ağı ----------
+// Oto servisleri zaten dolaşan saha satış personeli (yağ/yedek parça/kimyasal/
+// POS-muhasebe yazılımı satıcıları, distribütör saha ekipleri) OtoHafıza'yı
+// önerip kaydettirdiğinde hem tek seferlik bir "aktivasyon primi", hem
+// getirdiği işletme ücretliye geçtiğinde bir "dönüşüm bonusu", hem de o
+// işletme ödemeye devam ettikçe aylık tekrarlayan bir komisyon kazanır.
+// Detaylı iş modeli/rakamlar: pazarlama/Saha_Partner_Agi_Analiz.docx
+//
+// ÖNEMLİ — kapsam notu: Bu dosyadaki veri modeli ve blobStore.ts'teki hesaplama
+// mantığı, gerçek otomatik tahsilattan (iyzico Abonelik, bkz.
+// SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md madde 1) BAĞIMSIZ olarak şimdiden
+// kuruldu — "kim kimi getirdi" ve "kim ne kadar hak etti" bilgisi bugünden
+// doğru tutulsun diye. Partnere GERÇEKTEN ödeme yapmak (banka transferi vb.)
+// bu sistemin dışında, elle yürütülen bir süreç olmaya devam ediyor; sistem
+// yalnızca "ne kadar tahakkuk etti" ve "ödendi mi" bilgisini tutar.
+
+export type PartnerStatus = "aktif" | "pasif";
+
+export const PARTNER_STATUS_LABELS: Record<PartnerStatus, string> = {
+  aktif: "Aktif",
+  pasif: "Pasif",
+};
+
+export type PartnerCategory =
+  | "yag"
+  | "yedek_parca"
+  | "kimyasal"
+  | "aku_lastik"
+  | "pos_yazilim"
+  | "distributor"
+  | "diger";
+
+export const PARTNER_CATEGORY_LABELS: Record<PartnerCategory, string> = {
+  yag: "Motor Yağı",
+  yedek_parca: "Yedek Parça",
+  kimyasal: "Kimyasal / Katkı",
+  aku_lastik: "Akü / Lastik",
+  pos_yazilim: "POS / Muhasebe Yazılımı",
+  distributor: "Distribütör",
+  diger: "Diğer",
+};
+
+export type PartnerTier = "starter" | "silver" | "gold" | "platinum";
+
+export const PARTNER_TIER_LABELS: Record<PartnerTier, string> = {
+  starter: "Starter",
+  silver: "Silver",
+  gold: "Gold",
+  platinum: "Platinum",
+};
+
+// Bir partnerin getirdiği AKTİF (en az 1 araç eklenmiş) işletme sayısına göre
+// hangi seviyede olduğunu belirler — ayrı bir alanda saklanmaz, her okumada
+// blobStore.computePartnerTier ile anlık hesaplanır (elle güncelleme unutulmasın
+// diye). Eşikler pazarlama/Saha_Partner_Agi_Analiz.docx Bölüm 5 ile aynı.
+export const PARTNER_TIER_THRESHOLDS: { tier: PartnerTier; minActiveShops: number }[] = [
+  { tier: "platinum", minActiveShops: 75 },
+  { tier: "gold", minActiveShops: 30 },
+  { tier: "silver", minActiveShops: 10 },
+  { tier: "starter", minActiveShops: 0 },
+];
+
+export interface Partner {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  // Kayıt linkinde kullanılan benzersiz, URL-güvenli kod — ?ref=KOD parametresiyle
+  // kayıt formuna taşınır (bkz. app/kayit/page.tsx, app/api/auth/signup).
+  referralCode: string;
+  status: PartnerStatus;
+  category?: PartnerCategory;
+  region?: string; // serbest metin, ör. "Merter Oto Sanayi Sitesi, İstanbul"
+  // Hiyerarşi hazırlığı: bu partneri sisteme kendisi getiren bir "üst partner"
+  // (bölge koordinatörü modeli) varsa id'si. Bugün kullanılmıyor — tek seviye
+  // başlanıyor — ama şemada baştan yer ayrıldı, ileride tabloyu yeniden kurmaya
+  // gerek kalmasın diye (bkz. saha partner analiz raporu, "uzun vadeli mimari"
+  // tartışması).
+  parentPartnerId?: string;
+  notes?: string;
+  createdAt: string;
+  // En son bir işletmenin bu partnere bağlandığı an — "90 gün boyunca yeni
+  // işletme getirmeyen partner bölge önceliğini kaybeder" kuralının dayanağı
+  // (bkz. analiz raporu Bölüm 2). Şimdilik yalnızca bilgi amaçlı gösteriliyor,
+  // otomatik bir aksiyon (bölge önceliğini düşürme) tetiklemiyor.
+  lastAttributionAt?: string;
+}
+
+// ---- Komisyon kademeleri (bkz. Saha_Partner_Agi_Analiz.docx Bölüm 2 ve 3) ----
+export const PARTNER_COMMISSION_EARLY_RATE = 0.2; // ilk 3 ay
+export const PARTNER_COMMISSION_EARLY_MONTHS = 3;
+export const PARTNER_COMMISSION_STANDARD_RATE = 0.13; // 4. aydan itibaren, süresiz
+export const PARTNER_ACTIVATION_BONUS_TRY = 200;
+export const PARTNER_CONVERSION_BONUS_TRY = 100;
+// Aktivasyon priminin tahakkuk etmesi için: işletme partnerin koduyla kayıt
+// olduktan sonra bu kadar gün içinde en az 1 gerçek bakım kaydı girilmiş
+// olmalı (yalnızca kayıt yeterli değil — bkz. analiz raporu Bölüm 7 "Partner
+// Suistimalleri").
+export const PARTNER_ACTIVATION_WINDOW_DAYS = 14;
+
+export type PartnerCommissionType = "aktivasyon" | "donusum" | "recurring";
+
+export const PARTNER_COMMISSION_TYPE_LABELS: Record<PartnerCommissionType, string> = {
+  aktivasyon: "Aktivasyon Primi",
+  donusum: "Dönüşüm Bonusu",
+  recurring: "Aylık Komisyon",
+};
+
+export type PartnerCommissionStatus = "tahakkuk_etti" | "odendi";
+
+export const PARTNER_COMMISSION_STATUS_LABELS: Record<PartnerCommissionStatus, string> = {
+  tahakkuk_etti: "Tahakkuk Etti",
+  odendi: "Ödendi",
+};
+
+export interface PartnerCommissionEntry {
+  id: string;
+  partnerId: string;
+  shopId: string;
+  shopName: string; // anlık görüntü — bayi adı sonradan değişse de geçmiş kayıt anlamlı kalsın
+  type: PartnerCommissionType;
+  amountTry: number;
+  // Yalnızca "recurring" tipinde dolu — hangi ayı kapsadığı (ör. "2026-09").
+  // Aynı ay için iki kez tahakkuk etmeyi önleyen benzersizlik anahtarının parçası.
+  periodMonth?: string;
+  status: PartnerCommissionStatus;
+  paidAt?: string;
   createdAt: string;
 }

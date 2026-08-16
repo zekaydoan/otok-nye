@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdminEmail, getCurrentAdminShopId } from "@/lib/adminAuth";
-import { getShopById, recordAdminAuditLog, recordPlanStart, updateShopFields } from "@/lib/blobStore";
+import {
+  checkAndAccruePartnerConversionBonus,
+  getShopById,
+  recordAdminAuditLog,
+  recordPlanStart,
+  updateShopFields,
+} from "@/lib/blobStore";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 
 // Admin, bir bayinin planını elle değiştirebilsin diye — POS/tekrarlayan ödeme
@@ -36,6 +42,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   await recordPlanStart(params.id, plan);
+
+  // Saha Partner Ağı: bu bayi bir partnerin koduyla geldiyse ve free'den
+  // ücretliye ilk kez geçiyorsa dönüşüm bonusunu tahakkuk ettirir (bkz.
+  // lib/blobStore.ts checkAndAccruePartnerConversionBonus). Ana işlemi
+  // bloklamaz — plan zaten değişti, bir komisyon hesaplama hatası bu kaydı
+  // geri almamalı.
+  checkAndAccruePartnerConversionBonus(params.id, shop.plan).catch((err) =>
+    console.error("[admin/shops/plan] Partner dönüşüm bonusu kontrolü başarısız:", err)
+  );
 
   // Audit log — bkz. app/admin/aktivite. Hata verse bile ana işlemi (plan zaten
   // değişti) geri almaya gerek yok, bu yüzden ayrı bir try/catch'e alınmadı;

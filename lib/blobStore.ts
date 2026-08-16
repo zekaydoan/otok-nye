@@ -1,6 +1,15 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
-import { PLAN_LIMITS } from "./types";
+import {
+  PLAN_LIMITS,
+  PARTNER_ACTIVATION_BONUS_TRY,
+  PARTNER_ACTIVATION_WINDOW_DAYS,
+  PARTNER_COMMISSION_EARLY_MONTHS,
+  PARTNER_COMMISSION_EARLY_RATE,
+  PARTNER_COMMISSION_STANDARD_RATE,
+  PARTNER_CONVERSION_BONUS_TRY,
+  PARTNER_TIER_THRESHOLDS,
+} from "./types";
 import type {
   AdminAuditAction,
   AdminAuditLogEntry,
@@ -11,6 +20,9 @@ import type {
   DataRequest,
   DataRequestStatus,
   OilRecord,
+  Partner,
+  PartnerCommissionEntry,
+  PartnerTier,
   Plan,
   Shop,
   StaffAccount,
@@ -111,6 +123,18 @@ const adminAuditLogStore = () => getStore("admin_audit_log");
 
 // ---------- Kendi Yazıcısından Etiket Basma Kaydı ----------
 const stickerSelfPrintsStore = () => getStore("sticker_self_prints");
+
+// ---------- Saha Partner Ağı (bkz. types.ts "Saha Partner Ağı" bölümü) ----------
+const partnersStore = () => getStore("partners");
+const partnersByReferralCodeStore = () => getStore("partners_by_referral_code");
+// Bir partnerin getirdiği bayilerin indeksi — anahtar `${partnerId}/${shopId}`,
+// shopVehicleLinksStore/suggestionsByShopStore'daki aynı desen: tüm bayileri
+// taramak yerine tek bir prefix taramasıyla "bu partner kimleri getirdi"
+// sorusuna cevap vermek için.
+const shopsByPartnerStore = () => getStore("shops_by_partner");
+const partnerCommissionsStore = () => getStore("partner_commissions");
+const partnerCommissionsByPartnerStore = () => getStore("partner_commissions_by_partner");
+const partnerCommissionsByShopStore = () => getStore("partner_commissions_by_shop");
 
 export function normalizePlate(plate: string): string {
   return plate.toUpperCase().replace(/[^A-Z0-9ÇĞİÖŞÜ]/g, "");
@@ -1531,4 +1555,339 @@ export async function updateDataRequestStatus(
   const updated: DataRequest = { ...existing, status };
   await dataRequestsStore().setJSON(id, updated);
   return updated;
+}
+
+// ---------- Saha Partner Ağı ----------
+// bkz. types.ts "Saha Partner Ağı" bölümü ve pazarlama/Saha_Partner_Agi_Analiz.docx
+
+function slugifyPartnerName(name: string): string {
+  const trMap: Record<string, string> = {
+    ç: "c", ğ: "g", ı: "i", ö: "o", ş: "s", ü: "u",
+  };
+  return name
+    .toLowerCase()
+    .split("")
+    .map((ch) => trMap[ch] || ch)
+    .join("")
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 12);
+}
+
+// Partnerin adından, panelde/sahada kolay hatırlanır, URL-güvenli bir referans
+// kodu üretir (ör. "Ahmet Yılmaz" -> "ahmetyilmaz47"). Çakışma ihtimaline karşı
+// (aynı isimli iki partner) 2 haneli rastgele bir sayı eklenip
+// partners_by_referral_code indeksinden benzersizlik kontrol edilir.
+export async function generatePartnerReferralCode(name: string): Promise<string> {
+  const base = slugifyPartnerName(name) || "partner";
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const suffix = Math.floor(10 + Math.random() * 90); // 10-99
+    const candidate = `${base}${suffix}`;
+    const existing = await partnersByReferralCodeStore().get(candidate, { type: "text" });
+    if (!existing) return candidate;
+  }
+  // Aşırı düşük ihtimalli çakışma tükenmesi — son çare tamamen rastgele bir kod.
+  return `${base}${randomUUID().slice(0, 6)}`;
+}
+
+export async function createPartner(partner: Partner): Promise<void> {
+  await partnersStore().setJSON(partner.id, partner);
+  await partnersByReferralCodeStore().set(partner.referralCode.toLowerCase(), partner.id);
+}
+
+export async function getPartnerById(id: string): Promise<Partner | null> {
+  return (await partnersStore().get(id, { type: "json" })) as Partner | null;
+}
+
+export async function getPartnerByReferralCode(code: string): Promise<Partner | null> {
+  const id = await partnersByReferralCodeStore().get(code.toLowerCase(), { type: "text" });
+  if (!id) return null;
+  return getPartnerById(id);
+}
+
+// Hacim büyüdükçe (bkz. kapasite-analizi.md) sayfalama eklenmesi gerekebilir —
+// listAllSuggestions'daki aynı not burada da geçerli.
+export async function listAllPartners(): Promise<Partner[]> {
+  const { blobs } = await partnersStore().list();
+  const partners = await Promise.all(blobs.map((b) => getPartnerById(b.key)));
+  return partners
+    .filter((p): p is Partner => !!p)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+export async function updatePartnerFields(
+  id: string,
+  mutate: (partner: Partner) => Partner
+): Promise<Partner> {
+  const existing = await getPartnerById(id);
+  if (!existing) throw new Error("Partner bulunamadı.");
+  const updated = mutate(existing);
+  await partnersStore().setJSON(id, updated);
+  return updated;
+}
+
+// Bir bayiyi bir partnere bağlar — YALNIZCA henüz partnersiz bir bayi için
+// (kayıt anında ?ref= ile otomatik atama, bkz. app/api/auth/signup). İlk
+// bağlantı KALICIDIR: bu fonksiyon zaten partneri olan bir bayi için hiçbir
+// şey değiştirmez (bkz. types.ts Shop yorumu — "Müşteri Sahipliği Modeli",
+// partner değişse/ayrılsa bile geçmiş korunur). Admin'in bilinçli olarak elle
+// yeniden atama yapması ayrı bir işlemdir, bkz. setShopPartner (aşağıda).
+export async function attributeShopToPartnerIfUnset(
+  shopId: string,
+  partnerId: string
+): Promise<boolean> {
+  const shop = await getShopById(shopId);
+  if (!shop || shop.partnerId) return false;
+
+  const now = new Date().toISOString();
+  let attributed = false;
+  await updateShopFields(shopId, (s) => {
+    if (s.partnerId) return s; // yarış durumunda başka bir istek zaten atamış
+    attributed = true;
+    return { ...s, partnerId, partnerAttributedAt: now };
+  });
+  if (!attributed) return false;
+
+  await shopsByPartnerStore().set(`${partnerId}/${shopId}`, now);
+  await updatePartnerFields(partnerId, (p) => ({ ...p, lastAttributionAt: now }));
+  return true;
+}
+
+// Admin panelinden bir bayiye elle partner atama/değiştirme/kaldırma —
+// attributeShopToPartnerIfUnset'ten farklı olarak var olan bir atamanın da
+// üzerine yazabilir (ör. partner sahada yanlış kod vermiş, admin düzeltiyor).
+// partnerAttributedAt yalnızca bayinin daha önce HİÇ partneri yoksa set edilir
+// — "ilk bağlantı" tarihi anlamını korur, salt admin düzeltmesiyle sıfırlanmaz.
+export async function setShopPartner(shopId: string, partnerId: string | null): Promise<Shop> {
+  const before = await getShopById(shopId);
+  if (!before) throw new Error("Bayi bulunamadı.");
+
+  if (before.partnerId && before.partnerId !== partnerId) {
+    await shopsByPartnerStore().delete(`${before.partnerId}/${shopId}`);
+  }
+
+  const now = new Date().toISOString();
+  const updated = await updateShopFields(shopId, (s) => ({
+    ...s,
+    partnerId: partnerId || undefined,
+    partnerAttributedAt: partnerId ? s.partnerAttributedAt || now : undefined,
+  }));
+
+  if (partnerId) {
+    await shopsByPartnerStore().set(`${partnerId}/${shopId}`, now);
+    await updatePartnerFields(partnerId, (p) => ({ ...p, lastAttributionAt: now }));
+  }
+  return updated;
+}
+
+export async function listShopsForPartner(partnerId: string): Promise<Shop[]> {
+  const { blobs } = await shopsByPartnerStore().list({ prefix: `${partnerId}/` });
+  const shops = await Promise.all(blobs.map((b) => getShopById(b.key.slice(partnerId.length + 1))));
+  return shops.filter((s): s is Shop => !!s);
+}
+
+export function computePartnerTier(activeShopCount: number): PartnerTier {
+  const match = PARTNER_TIER_THRESHOLDS.find((t) => activeShopCount >= t.minActiveShops);
+  return match ? match.tier : "starter";
+}
+
+// ---- Komisyon ----
+
+function parsePlanPriceTry(plan: Plan): number {
+  // PLAN_LIMITS[plan].price ör. "9.990₺" — binlik ayraç noktasını ve para birimi
+  // simgesini temizleyip sayıya çevirir. Tek kaynaktan (PLAN_LIMITS) okunduğu
+  // için plan fiyatı değişse bile komisyon hesaplaması otomatik güncel kalır.
+  const raw = PLAN_LIMITS[plan].price.replace(/[^0-9]/g, "");
+  return raw ? Number(raw) : 0;
+}
+
+export async function recordPartnerCommission(
+  entry: Omit<PartnerCommissionEntry, "id" | "createdAt" | "status">
+): Promise<PartnerCommissionEntry> {
+  const full: PartnerCommissionEntry = {
+    id: randomUUID(),
+    status: "tahakkuk_etti",
+    createdAt: new Date().toISOString(),
+    ...entry,
+  };
+  await partnerCommissionsStore().setJSON(full.id, full);
+  await partnerCommissionsByPartnerStore().set(`${full.partnerId}/${full.id}`, full.createdAt);
+  await partnerCommissionsByShopStore().set(`${full.shopId}/${full.id}`, full.createdAt);
+  return full;
+}
+
+export async function getPartnerCommissionById(id: string): Promise<PartnerCommissionEntry | null> {
+  return (await partnerCommissionsStore().get(id, { type: "json" })) as PartnerCommissionEntry | null;
+}
+
+export async function listCommissionsForPartner(partnerId: string): Promise<PartnerCommissionEntry[]> {
+  const { blobs } = await partnerCommissionsByPartnerStore().list({ prefix: `${partnerId}/` });
+  const entries = await Promise.all(
+    blobs.map((b) => getPartnerCommissionById(b.key.slice(partnerId.length + 1)))
+  );
+  return entries
+    .filter((e): e is PartnerCommissionEntry => !!e)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+export async function listCommissionsForShop(shopId: string): Promise<PartnerCommissionEntry[]> {
+  const { blobs } = await partnerCommissionsByShopStore().list({ prefix: `${shopId}/` });
+  const entries = await Promise.all(
+    blobs.map((b) => getPartnerCommissionById(b.key.slice(shopId.length + 1)))
+  );
+  return entries.filter((e): e is PartnerCommissionEntry => !!e);
+}
+
+export async function markPartnerCommissionPaid(id: string): Promise<PartnerCommissionEntry> {
+  const existing = await getPartnerCommissionById(id);
+  if (!existing) throw new Error("Komisyon kaydı bulunamadı.");
+  const updated: PartnerCommissionEntry = {
+    ...existing,
+    status: "odendi",
+    paidAt: new Date().toISOString(),
+  };
+  await partnerCommissionsStore().setJSON(id, updated);
+  return updated;
+}
+
+// Bir bayi için, henüz aktivasyon primi tahakkuk etmemişse ve koşul (partnerin
+// koduyla geldi + PARTNER_ACTIVATION_WINDOW_DAYS içinde en az 1 bakım kaydı)
+// karşılandıysa tek seferlik aktivasyon primini tahakkuk ettirir.
+// app/api/vehicles/[id]/records/route.ts'den her yeni bakım kaydından sonra
+// çağrılır — "yeterli koşul" kontrolü burada yapıldığından çağıran taraf
+// yalnızca shopId geçer, başka bir şey bilmek zorunda değildir.
+export async function checkAndAccruePartnerActivationBonus(shopId: string): Promise<void> {
+  const shop = await getShopById(shopId);
+  if (!shop || !shop.partnerId || !shop.partnerAttributedAt) return;
+
+  const attributedAt = new Date(shop.partnerAttributedAt).getTime();
+  const withinWindow =
+    Date.now() - attributedAt <= PARTNER_ACTIVATION_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  if (!withinWindow) return;
+
+  const existing = await listCommissionsForShop(shopId);
+  if (existing.some((e) => e.type === "aktivasyon")) return; // zaten tahakkuk etmiş
+
+  await recordPartnerCommission({
+    partnerId: shop.partnerId,
+    shopId: shop.id,
+    shopName: shop.name,
+    type: "aktivasyon",
+    amountTry: PARTNER_ACTIVATION_BONUS_TRY,
+  });
+}
+
+// Bir bayi free plandan ücretli bir plana (ilk kez) geçtiğinde çağrılır — hem
+// admin'in elle plan aktive ettiği akıştan (app/api/admin/shops/[id]/plan) hem
+// de iyzico Abonelik webhook'undan (app/api/webhooks/iyzico-abonelik) çağrılır.
+// `previousPlan` "free" değilse (ör. free'ye düşüp tekrar ücretliye çıkma)
+// dönüşüm bonusu tekrar tetiklenmez — bu, partnerin getirdiği YENİ bir ödeyen
+// müşteri için bir kereye mahsus bir ödül.
+export async function checkAndAccruePartnerConversionBonus(
+  shopId: string,
+  previousPlan: Plan
+): Promise<void> {
+  if (previousPlan !== "free") return;
+  const shop = await getShopById(shopId);
+  if (!shop || !shop.partnerId || shop.plan === "free") return;
+
+  const existing = await listCommissionsForShop(shopId);
+  if (existing.some((e) => e.type === "donusum")) return;
+
+  await recordPartnerCommission({
+    partnerId: shop.partnerId,
+    shopId: shop.id,
+    shopName: shop.name,
+    type: "donusum",
+    amountTry: PARTNER_CONVERSION_BONUS_TRY,
+  });
+}
+
+// Her başarılı tekrarlayan ödeme bildiriminde (iyzico webhook,
+// subscription.order.success) çağrılır. periodMonth (ör. "2026-09") ile aynı
+// ay için iki kez tahakkuk etmeyi önler — idempotent: webhook'un aynı
+// bildirimi yeniden denemesi (bkz. webhook route yorumu) çift kayda yol açmaz.
+//
+// Kademeli oran (bkz. types.ts PARTNER_COMMISSION_EARLY_RATE): "ilk 3 ay"ı,
+// partnerin bu bayi için daha önce kaç kez recurring komisyon kazandığına göre
+// hesaplar (0/1/2 -> erken oran, 3+ -> standart oran). business_yillik (yıllık
+// plan) bu sayaca uymaz — yılda tek ödeme olduğundan kademeli mantık anlamsız,
+// doğrudan standart oran uygulanır.
+export async function accruePartnerRecurringCommission(
+  shopId: string,
+  periodMonth: string
+): Promise<void> {
+  const shop = await getShopById(shopId);
+  if (!shop || !shop.partnerId) return;
+
+  const existing = await listCommissionsForShop(shopId);
+  const recurringEntries = existing.filter((e) => e.type === "recurring");
+  if (recurringEntries.some((e) => e.periodMonth === periodMonth)) return; // bu ay zaten tahakkuk etti
+
+  const rate =
+    shop.plan === "business_yillik"
+      ? PARTNER_COMMISSION_STANDARD_RATE
+      : recurringEntries.length < PARTNER_COMMISSION_EARLY_MONTHS
+        ? PARTNER_COMMISSION_EARLY_RATE
+        : PARTNER_COMMISSION_STANDARD_RATE;
+
+  const amountTry = Math.round(parsePlanPriceTry(shop.plan) * rate);
+  if (amountTry <= 0) return;
+
+  await recordPartnerCommission({
+    partnerId: shop.partnerId,
+    shopId: shop.id,
+    shopName: shop.name,
+    type: "recurring",
+    amountTry,
+    periodMonth,
+  });
+}
+
+// ---- Admin panel özet görünümleri ----
+
+export interface PartnerSummary {
+  partner: Partner;
+  totalShopCount: number;
+  activeShopCount: number;
+  paidShopCount: number;
+  tier: PartnerTier;
+  pendingCommissionTry: number;
+  paidCommissionTry: number;
+}
+
+export async function getPartnerSummary(partnerId: string): Promise<PartnerSummary | null> {
+  const partner = await getPartnerById(partnerId);
+  if (!partner) return null;
+
+  const shops = await listShopsForPartner(partnerId);
+  const vehicleCounts = await Promise.all(shops.map((s) => listVehiclesByShop(s.id)));
+  const activeShopCount = vehicleCounts.filter((v) => v.length > 0).length;
+  const paidShopCount = shops.filter((s) => s.plan !== "free").length;
+
+  const commissions = await listCommissionsForPartner(partnerId);
+  const pendingCommissionTry = commissions
+    .filter((c) => c.status === "tahakkuk_etti")
+    .reduce((sum, c) => sum + c.amountTry, 0);
+  const paidCommissionTry = commissions
+    .filter((c) => c.status === "odendi")
+    .reduce((sum, c) => sum + c.amountTry, 0);
+
+  return {
+    partner,
+    totalShopCount: shops.length,
+    activeShopCount,
+    paidShopCount,
+    tier: computePartnerTier(activeShopCount),
+    pendingCommissionTry,
+    paidCommissionTry,
+  };
+}
+
+// Admin Partnerler listesi için tüm partnerlerin özetini döner — hacim
+// büyüdükçe (bkz. kapasite-analizi.md) sayfalama eklenmesi gerekebilir,
+// listAllSuggestions'daki aynı not burada da geçerli.
+export async function listAllPartnerSummaries(): Promise<PartnerSummary[]> {
+  const partners = await listAllPartners();
+  const summaries = await Promise.all(partners.map((p) => getPartnerSummary(p.id)));
+  return summaries.filter((s): s is PartnerSummary => !!s);
 }

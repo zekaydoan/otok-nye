@@ -203,6 +203,21 @@ export function UsersIcon(props: IconProps) {
   );
 }
 
+// Saha Partner Ağı (bkz. app/admin/partnerler) için — iki elin tokalaşması,
+// UsersIcon'dan (bayiler/kullanıcılar) ayırt edilebilsin diye "ortaklık"
+// temasını taşıyan ayrı bir siluet.
+export function HandshakeIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.5 11.5 6 8l3 2.2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21.5 11.5 18 8l-3 2.2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 10.2l2.2 1.9a1.4 1.4 0 0 0 1.9-.1l.1-.1a1.3 1.3 0 0 0-.1-1.9L11 8" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 8 3.5 10v5l3 3.3 3-2 2 1.7a1.5 1.5 0 0 0 2-2.2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M18 8l2.5 2v5l-3 3.3-3.2-2.1" />
+    </svg>
+  );
+}
+
 // Toplu araç içe aktarma özelliği (bkz. app/dashboard/araclar/toplu-ekle) için.
 export function UploadIcon(props: IconProps) {
   return (

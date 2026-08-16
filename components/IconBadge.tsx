@@ -17,6 +17,7 @@ const COLOR_CLASSES = {
   pink: "bg-pink-500",
   indigo: "bg-indigo-500",
   brand: "bg-brand-600",
+  teal: "bg-teal-500",
 } as const;
 
 export type IconBadgeColor = keyof typeof COLOR_CLASSES;

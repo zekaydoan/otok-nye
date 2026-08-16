@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getCurrentShopId } from "@/lib/auth";
-import { createOilRecord, getShopById, getVehicleById, savePhoto } from "@/lib/blobStore";
+import {
+  checkAndAccruePartnerActivationBonus,
+  createOilRecord,
+  getShopById,
+  getVehicleById,
+  savePhoto,
+} from "@/lib/blobStore";
 import { defaultNextServiceDate, defaultNextServiceKm } from "@/lib/maintenance";
 import { isBillingInfoComplete } from "@/lib/billing";
 import type { OilRecord } from "@/lib/types";
@@ -122,6 +128,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   await createOilRecord(record);
+
+  // Saha Partner Ağı: bu bayi bir partnerin koduyla geldiyse ve bu onun ilk
+  // gerçek bakım kaydıysa (14 gün içinde), aktivasyon primini tahakkuk
+  // ettirir. Bilinçli olarak isteğin ana akışını bloklamaz/hataya düşürmez —
+  // bir komisyon hesaplama sorunu, bakım kaydını kaybetme sebebi olmamalı.
+  checkAndAccruePartnerActivationBonus(shop.id).catch((err) =>
+    console.error("[records] Partner aktivasyon primi kontrolü başarısız:", err)
+  );
 
   return NextResponse.json({ record });
 }

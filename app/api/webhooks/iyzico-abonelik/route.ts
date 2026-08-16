@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSubscriptionShopLink, updateShopFields } from "@/lib/blobStore";
+import {
+  accruePartnerRecurringCommission,
+  checkAndAccruePartnerConversionBonus,
+  getShopById,
+  getSubscriptionShopLink,
+  updateShopFields,
+} from "@/lib/blobStore";
 import { verifySubscriptionWebhookSignature, type SubscriptionWebhookPayload } from "@/lib/iyzicoSubscription";
 import { notifyAdmins, escapeHtml } from "@/lib/email";
 
@@ -50,12 +56,30 @@ export async function POST(req: NextRequest) {
 
   try {
     if (payload.iyziEventType === "subscription.order.success") {
+      // Saha Partner Ağı: dönüşüm bonusu ve tekrarlayan komisyon, planın
+      // DEĞİŞMEDEN önceki hâline göre karar verilmeli — bu yüzden
+      // updateShopFields'tan önce mevcut plan okunur.
+      const shopBefore = await getShopById(link.shopId);
+      const previousPlan = shopBefore?.plan;
+
       await updateShopFields(link.shopId, (shop) => ({
         ...shop,
         plan: link.plan,
         iyzicoSubscriptionReferenceCode: payload.subscriptionReferenceCode,
         planRenewsAt: new Date().toISOString(),
       }));
+
+      if (previousPlan) {
+        // Bilinçli olarak ana akışı bloklamaz/hataya düşürmez — plan zaten
+        // güncellendi, bir komisyon hesaplama hatası bu ödemeyi geri almamalı.
+        checkAndAccruePartnerConversionBonus(link.shopId, previousPlan).catch((err) =>
+          console.error("[iyzico-abonelik-webhook] Partner dönüşüm bonusu kontrolü başarısız:", err)
+        );
+      }
+      const periodMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+      accruePartnerRecurringCommission(link.shopId, periodMonth).catch((err) =>
+        console.error("[iyzico-abonelik-webhook] Partner recurring komisyon kontrolü başarısız:", err)
+      );
     } else if (payload.iyziEventType === "subscription.order.failure") {
       // Otomatik düşürme YAPILMAZ — iyzico'nun kendi retry servisi/panel
       // üzerinden tekrar deneme imkanı var, admin'e haber verip elle
