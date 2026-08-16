@@ -11,6 +11,7 @@ import {
 import { PLAN_LIMITS } from "@/lib/types";
 import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
+import IconBadge, { type IconBadgeColor } from "@/components/IconBadge";
 import { ToastProvider } from "@/components/Toast";
 import { BellIcon, CalendarIcon, ChartBarIcon, LightbulbIcon, SettingsIcon } from "@/components/icons";
 
@@ -42,6 +43,38 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // koddan bile admin panelinin var olduğu anlaşılmaz.
   const isAdmin = Boolean(await getCurrentAdminShopId());
 
+  // Admin paneli sekmesindeki (bkz. app/admin/layout.tsx) "isim + renkli IconBadge"
+  // görsel diliyle tutarlı olsun diye burada da aynı NAV_ITEMS deseni kullanılıyor —
+  // tek fark, Randevular/Duyurular rozetlerinin ve Admin Paneli sekmesinin bu bayiye
+  // özgü, çalışma zamanında hesaplanan verilere bağlı olması.
+  const navItems: {
+    href: string;
+    label: string;
+    icon: React.ReactElement;
+    color: IconBadgeColor;
+    badge?: number;
+  }[] = [
+    {
+      href: "/dashboard/randevular",
+      label: "Randevular",
+      icon: <CalendarIcon />,
+      color: "blue",
+      badge: unseenWhatsappAppointments,
+    },
+    {
+      href: "/dashboard/duyurular",
+      label: "Duyurular",
+      icon: <BellIcon />,
+      color: "amber",
+      badge: unseenAnnouncements,
+    },
+    { href: "/dashboard/oneriler", label: "Öneri Kutusu", icon: <LightbulbIcon />, color: "yellow" },
+    ...(isAdmin
+      ? [{ href: "/admin/istatistikler", label: "Admin Paneli", icon: <ChartBarIcon />, color: "purple" as const }]
+      : []),
+    { href: "/dashboard/ayarlar", label: "Ayarlar", icon: <SettingsIcon />, color: "slate" },
+  ];
+
   return (
     <ToastProvider>
       <div className="min-h-screen bg-slate-50">
@@ -59,74 +92,27 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 </span>
               )}
             </Link>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Link
-                href="/dashboard/randevular"
-                className="relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                aria-label={
-                  unseenWhatsappAppointments > 0
-                    ? `Randevular (${unseenWhatsappAppointments} yeni WhatsApp onayı)`
-                    : "Randevular"
-                }
-                title={
-                  unseenWhatsappAppointments > 0
-                    ? `${unseenWhatsappAppointments} yeni WhatsApp onayı`
-                    : "Randevular"
-                }
-              >
-                <CalendarIcon className="h-[18px] w-[18px]" />
-                {unseenWhatsappAppointments > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
-                    {unseenWhatsappAppointments}
-                  </span>
-                )}
-              </Link>
-              <Link
-                href="/dashboard/duyurular"
-                className="relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                aria-label={
-                  unseenAnnouncements > 0 ? `Duyurular (${unseenAnnouncements} yeni)` : "Duyurular"
-                }
-                title={unseenAnnouncements > 0 ? `${unseenAnnouncements} yeni duyuru` : "Duyurular"}
-              >
-                <BellIcon className="h-[18px] w-[18px]" />
-                {unseenAnnouncements > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
-                    {unseenAnnouncements}
-                  </span>
-                )}
-              </Link>
-              <Link
-                href="/dashboard/oneriler"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                aria-label="Öneri Kutusu"
-                title="Öneri Kutusu"
-              >
-                <LightbulbIcon className="h-[18px] w-[18px]" />
-              </Link>
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="relative flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                >
+                  <IconBadge icon={item.icon} color={item.color} />
+                  <span>{item.label}</span>
+                  {!!item.badge && item.badge > 0 && (
+                    <span className="rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              ))}
               <Link
                 href="/dashboard/plan"
                 className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 sm:px-3"
               >
                 {PLAN_LIMITS[shop.plan].label} plan
-              </Link>
-              {isAdmin && (
-                <Link
-                  href="/admin/istatistikler"
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                  aria-label="Admin Paneli"
-                  title="Admin Paneli"
-                >
-                  <ChartBarIcon className="h-[18px] w-[18px]" />
-                </Link>
-              )}
-              <Link
-                href="/dashboard/ayarlar"
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                aria-label="Ayarlar"
-                title="Ayarlar"
-              >
-                <SettingsIcon className="h-[18px] w-[18px]" />
               </Link>
               <LogoutButton />
             </div>
