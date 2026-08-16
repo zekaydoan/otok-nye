@@ -31,7 +31,7 @@ export default async function PlanPage() {
         </div>
       )}
 
-      {shop && isOwner && <PlanSelector currentPlan={shop.plan} />}
+      {shop && isOwner && <PlanSelector currentPlan={shop.plan} pendingPlan={shop.pendingPlan} />}
       {shop && !isOwner && (
         <div className="mt-6 rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-700">
           Plan değişikliği yalnızca hesap sahibi tarafından yapılabilir.

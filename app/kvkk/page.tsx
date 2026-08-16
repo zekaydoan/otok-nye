@@ -20,10 +20,11 @@ export default function KvkkPage() {
 
         <div className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
           Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında
-          bilgilendirme amacıyla hazırlanmış bir <strong>şablondur</strong>. Yayına almadan
-          önce köşeli parantez içindeki alanları ([ ]) kendi işletme bilgilerinizle
-          doldurmanız ve metni bir hukuk danışmanına onaylatmanız önerilir. Bu içerik hukuki
-          tavsiye niteliği taşımaz.
+          bilgilendirme amacıyla hazırlanmıştır. Firma unvanı ve e-posta bilgileri
+          doldurulmuştur; yalnızca açık adres ve telefon bilgileri (aşağıda vurgulu
+          alanlarda) eklenmeyi bekliyor. Yayına tam olarak hazır hâle getirmeden önce metni
+          bir hukuk danışmanına onaylatmanız önerilir. Bu içerik hukuki tavsiye niteliği
+          taşımaz.
         </div>
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">
@@ -32,10 +33,12 @@ export default function KvkkPage() {
 
         <h3 className="mt-4 font-semibold text-slate-800">1.1 Veri Sorumlusu</h3>
         <p className="mt-2 text-sm text-slate-600">
-          İşbu aydınlatma metni, [Firma Unvanınız] ("OtoHafıza", "Platform")
-          tarafından, 6698 sayılı Kişisel Verilerin Korunması Kanunu'nun ("KVKK") 10.
-          maddesi uyarınca veri sorumlusu sıfatıyla hazırlanmıştır. İletişim: [Adres],
-          [E-posta], [Telefon].
+          İşbu aydınlatma metni, SARPER DİJİTAL TEKNOLOJİLER VE KİRALAMA A.Ş. ("OtoHafıza",
+          "Platform") tarafından, 6698 sayılı Kişisel Verilerin Korunması Kanunu'nun ("KVKK")
+          10. maddesi uyarınca veri sorumlusu sıfatıyla hazırlanmıştır. İletişim:
+          hello@otohafiza.com{" "}
+          <span className="rounded bg-amber-100 px-1 text-amber-700">[Adres bekleniyor]</span>,{" "}
+          <span className="rounded bg-amber-100 px-1 text-amber-700">[Telefon bekleniyor]</span>.
         </p>
 
         <h3 className="mt-4 font-semibold text-slate-800">1.2 İşlenen Kişisel Veriler</h3>
@@ -113,8 +116,9 @@ export default function KvkkPage() {
           haklarına sahiptir.
         </p>
         <p className="mt-3 text-sm text-slate-600">
-          Taleplerinizi [E-posta] adresine veya [Adres] adresine yazılı olarak
-          iletebilirsiniz.
+          Taleplerinizi hello@otohafiza.com adresine veya{" "}
+          <span className="rounded bg-amber-100 px-1 text-amber-700">[Adres bekleniyor]</span>{" "}
+          adresine yazılı olarak iletebilirsiniz.
         </p>
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">4. Veri Güvenliği</h2>

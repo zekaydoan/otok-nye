@@ -46,6 +46,13 @@ export interface Shop {
   // (bkz. BillingInfo). Kayıt anında toplanmaz — yalnızca ilk ücretli satın alma
   // girişiminde zorunlu tutulur (bkz. lib/billing.ts, app/dashboard/fatura-bilgileri).
   billingInfo?: BillingInfo;
+  // Bayi ücretli bir plana geçmek istediğinde — kart ile otomatik tahsilat
+  // entegrasyonu henüz kurulmadığından (bkz. app/api/shop/plan/route.ts) plan
+  // ANINDA değişmez, admin onayı bekler. Admin, app/admin/bayiler'den planı
+  // elle aktive ettiğinde (app/api/admin/shops/[id]/plan) bu alanlar temizlenir.
+  // free'ye dönüş bu akışa girmez, anında uygulanır (risksiz düşüş).
+  pendingPlan?: Plan;
+  pendingPlanRequestedAt?: string; // ISO
   createdAt: string;
 }
 

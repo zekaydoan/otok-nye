@@ -22,7 +22,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!shop) return NextResponse.json({ error: "Bayi bulunamadı." }, { status: 404 });
 
   try {
-    await updateShopFields(params.id, (s) => ({ ...s, plan }));
+    // Admin bir planı elle aktive ettiğinde, bayinin (varsa) beklemedeki
+    // yükseltme talebi de temizlenir — artık aktif planla çelişen bir
+    // "beklemede" durumu kalmasın (bkz. app/api/shop/plan/route.ts).
+    await updateShopFields(params.id, (s) => ({
+      ...s,
+      plan,
+      pendingPlan: undefined,
+      pendingPlanRequestedAt: undefined,
+    }));
   } catch {
     return NextResponse.json({ error: "Kaydedilemedi, lütfen tekrar deneyin." }, { status: 409 });
   }

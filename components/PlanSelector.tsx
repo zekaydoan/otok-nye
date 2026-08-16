@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 
-export default function PlanSelector({ currentPlan }: { currentPlan: Plan }) {
+export default function PlanSelector({
+  currentPlan,
+  pendingPlan,
+}: {
+  currentPlan: Plan;
+  pendingPlan?: Plan;
+}) {
   const router = useRouter();
   const { showToast } = useToast();
   const [loading, setLoading] = useState<Plan | null>(null);
@@ -29,7 +35,12 @@ export default function PlanSelector({ currentPlan }: { currentPlan: Plan }) {
         setError(data.error || "Plan değiştirilemedi, lütfen tekrar deneyin.");
         return;
       }
-      showToast("Plan güncellendi.");
+      const data = await res.json().catch(() => ({}));
+      showToast(
+        data.pending
+          ? "Talebiniz alındı — ödemeniz onaylandıktan sonra planınız aktif edilecek."
+          : "Plan güncellendi."
+      );
       router.refresh();
     } catch {
       setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
@@ -40,11 +51,18 @@ export default function PlanSelector({ currentPlan }: { currentPlan: Plan }) {
 
   return (
     <div className="mt-6">
+      {pendingPlan && (
+        <p className="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <strong>{PLAN_LIMITS[pendingPlan].label}</strong> planına geçiş talebiniz alındı,
+          ödemeniz onaylandıktan sonra ekibimiz planınızı aktif edecek.
+        </p>
+      )}
       {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {(Object.keys(PLAN_LIMITS) as Plan[]).map((key) => {
         const plan = PLAN_LIMITS[key];
         const active = key === currentPlan;
+        const isPending = key === pendingPlan;
         const isCampaign = Boolean(plan.badge);
         return (
           <div
@@ -71,17 +89,25 @@ export default function PlanSelector({ currentPlan }: { currentPlan: Plan }) {
               {plan.maxVehicles === Infinity ? "Sınırsız araç" : `${plan.maxVehicles} araca kadar`}
             </p>
             <button
-              disabled={active || loading !== null}
+              disabled={active || isPending || loading !== null}
               onClick={() => choosePlan(key)}
               className={`mt-4 w-full rounded-lg py-2 text-sm font-semibold ${
                 active
                   ? "bg-slate-100 text-slate-400"
-                  : isCampaign
-                    ? "bg-accent-500 text-white hover:bg-accent-600"
-                    : "bg-brand-600 text-white hover:bg-brand-700"
+                  : isPending
+                    ? "bg-amber-100 text-amber-700"
+                    : isCampaign
+                      ? "bg-accent-500 text-white hover:bg-accent-600"
+                      : "bg-brand-600 text-white hover:bg-brand-700"
               } disabled:opacity-60`}
             >
-              {active ? "Mevcut Plan" : loading === key ? "Değiştiriliyor..." : "Bu Planı Seç"}
+              {active
+                ? "Mevcut Plan"
+                : isPending
+                  ? "Onay Bekleniyor"
+                  : loading === key
+                    ? "Talep gönderiliyor..."
+                    : "Bu Planı Seç"}
             </button>
           </div>
         );

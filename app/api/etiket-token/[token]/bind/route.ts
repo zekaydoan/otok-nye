@@ -11,10 +11,16 @@ import {
   normalizePlate,
 } from "@/lib/blobStore";
 import { validatePlate } from "@/lib/plates";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { PLAN_LIMITS } from "@/lib/types";
 import type { Vehicle } from "@/lib/types";
 
 const MAX_LEN = 120;
+// Bir bayinin normal kullanımında (yeni gelen bir etiket siparişini tek tek
+// araçlara bağlama) art arda birçok bind denemesi olağandır; eşik bunu
+// engellemeyecek kadar cömert, otomatik/kaba kuvvet denemesini ise
+// engelleyecek kadar düşük tutuldu (bkz. SECURITY_FIX_PLAN.md H2).
+const MAX_BIND_ATTEMPTS_PER_HOUR = 30;
 
 // Fiziksel, plakasız basılmış bir etiketi (bkz. app/e/[token]) ilk kez bir araca
 // bağlar. Etiket sipariş anında belirli bir bayiye ait olarak üretildiğinden yalnızca
@@ -22,6 +28,19 @@ const MAX_LEN = 120;
 export async function POST(req: NextRequest, { params }: { params: { token: string } }) {
   const shopId = await getCurrentShopId();
   if (!shopId) return NextResponse.json({ error: "Giriş yapmalısınız." }, { status: 401 });
+
+  const rate = await checkRateLimit(
+    "etiket-bind",
+    `${shopId}|${getClientIp(req)}`,
+    MAX_BIND_ATTEMPTS_PER_HOUR,
+    60 * 60 * 1000
+  );
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: `Çok fazla deneme yaptınız. ${rate.retryAfterSeconds} saniye sonra tekrar deneyin.` },
+      { status: 429 }
+    );
+  }
 
   const tokenRecord = await getStickerToken(params.token, { consistency: "strong" });
   if (!tokenRecord) return NextResponse.json({ error: "Etiket bulunamadı." }, { status: 404 });

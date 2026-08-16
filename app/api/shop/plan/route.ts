@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/auth";
 import { getShopById, recordPlanStart, updateShopFields } from "@/lib/blobStore";
 import { isBillingInfoComplete } from "@/lib/billing";
+import { notifyAdmins, escapeHtml } from "@/lib/email";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
@@ -33,16 +34,49 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // free'ye dönüş risksiz — anında uygulanır, olası bekleyen bir yükseltme
+  // talebi de bu vazgeçmeyle birlikte iptal edilir. Ücretli bir plana geçiş
+  // ise kart ile otomatik tahsilat entegrasyonu kurulana kadar (bkz. README
+  // "Ödeme / Abonelik Notu") gerçek ödeme doğrulaması yapılamadığından,
+  // shop.plan'i DEĞİŞTİRMEYİZ — yalnızca "beklemede" olarak işaretleyip admin'e
+  // haber veririz; admin banka havalesi/elden ödemeyi doğruladıktan sonra
+  // app/api/admin/shops/[id]/plan üzerinden planı elle aktive eder.
+  if (plan === "free") {
+    try {
+      await updateShopFields(shopId, (shop) => ({
+        ...shop,
+        plan: "free",
+        pendingPlan: undefined,
+        pendingPlanRequestedAt: undefined,
+      }));
+    } catch {
+      return NextResponse.json({ error: "Kaydedilemedi, lütfen tekrar deneyin." }, { status: 409 });
+    }
+    await recordPlanStart(shopId, "free");
+    return NextResponse.json({ ok: true });
+  }
+
+  let shopName = "";
   try {
-    await updateShopFields(shopId, (shop) => {
-      shop.plan = plan;
-      return shop;
-    });
+    const updated = await updateShopFields(shopId, (shop) => ({
+      ...shop,
+      pendingPlan: plan,
+      pendingPlanRequestedAt: new Date().toISOString(),
+    }));
+    shopName = updated.name;
   } catch {
     return NextResponse.json({ error: "Kaydedilemedi, lütfen tekrar deneyin." }, { status: 409 });
   }
 
-  await recordPlanStart(shopId, plan);
+  await notifyAdmins(
+    `Plan yükseltme talebi — ${shopName}`,
+    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
+      <p><strong>${escapeHtml(shopName)}</strong>, <strong>${escapeHtml(PLAN_LIMITS[plan].label)}</strong>
+      planına geçmek istiyor. Ödeme (banka havalesi/elden) alındıktan sonra admin panelinden
+      planı elle aktive edin.</p>
+      <p><a href="https://otohafiza.com/admin/bayiler">Admin panelinden görüntüle</a></p>
+    </div>`
+  );
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, pending: true });
 }
