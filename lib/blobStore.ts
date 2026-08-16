@@ -1,5 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
+import { hashPassword, verifyPassword } from "./auth";
 import {
   PLAN_LIMITS,
   PARTNER_ACTIVATION_BONUS_TRY,
@@ -127,6 +128,10 @@ const stickerSelfPrintsStore = () => getStore("sticker_self_prints");
 // ---------- Saha Partner Ağı (bkz. types.ts "Saha Partner Ağı" bölümü) ----------
 const partnersStore = () => getStore("partners");
 const partnersByReferralCodeStore = () => getStore("partners_by_referral_code");
+// Partnerin kendi paneline giriş yapabilmesi için (bkz. lib/partnerAuth.ts) —
+// shopsByEmailStore'un telefon karşılığı, normalizePartnerPhone ile normalize
+// edilmiş numara anahtar olarak kullanılır.
+const partnersByPhoneStore = () => getStore("partners_by_phone");
 // Bir partnerin getirdiği bayilerin indeksi — anahtar `${partnerId}/${shopId}`,
 // shopVehicleLinksStore/suggestionsByShopStore'daki aynı desen: tüm bayileri
 // taramak yerine tek bir prefix taramasıyla "bu partner kimleri getirdi"
@@ -1592,6 +1597,7 @@ export async function generatePartnerReferralCode(name: string): Promise<string>
 export async function createPartner(partner: Partner): Promise<void> {
   await partnersStore().setJSON(partner.id, partner);
   await partnersByReferralCodeStore().set(partner.referralCode.toLowerCase(), partner.id);
+  await partnersByPhoneStore().set(normalizePartnerPhone(partner.phone), partner.id);
 }
 
 export async function getPartnerById(id: string): Promise<Partner | null> {
@@ -1602,6 +1608,52 @@ export async function getPartnerByReferralCode(code: string): Promise<Partner | 
   const id = await partnersByReferralCodeStore().get(code.toLowerCase(), { type: "text" });
   if (!id) return null;
   return getPartnerById(id);
+}
+
+// Partnerin kendi paneline giriş yaparken kullandığı telefon numarasını
+// normalize eder — lib/whatsapp.ts buildWhatsAppLink'teki aynı kurallar
+// (10 haneli 5xx, başında 0 olan 11 hane, başında 90 olan 12 hane) ama sonuç
+// burada ülke koduSUZ 10 haneli biçimde tutulur (ör. "5551112233") — giriş
+// formunda kullanıcının "0555...", "555...", "+90 555..." gibi hangi biçimde
+// yazdığı önemli olmasın diye.
+function normalizePartnerPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10 && digits.startsWith("5")) return digits;
+  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(1);
+  if (digits.length === 12 && digits.startsWith("90")) return digits.slice(2);
+  return digits; // beklenmeyen bir biçim — yine de tutarlı bir anahtar üretir
+}
+
+export async function getPartnerByPhone(phone: string): Promise<Partner | null> {
+  const id = await partnersByPhoneStore().get(normalizePartnerPhone(phone), { type: "text" });
+  if (!id) return null;
+  return getPartnerById(id);
+}
+
+// 6 haneli, tamamen sayısal bir geçici şifre üretir — saha koşullarında
+// telefon numarik klavyesiyle kolay yazılsın, WhatsApp'tan iletilmesi kolay
+// olsun diye (bkz. app/api/admin/partnerler POST, .../sifre-sifirla). Yalnızca
+// burada, oluşturulduğu anda düz metin olarak döner — hemen hash'lenip
+// Partner.passwordHash'e yazılır, hiçbir yerde düz metin saklanmaz.
+export function generatePartnerTempPassword(): string {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+export async function verifyPartnerLogin(phone: string, password: string): Promise<Partner | null> {
+  const partner = await getPartnerByPhone(phone);
+  if (!partner) return null;
+  const valid = await verifyPassword(password, partner.passwordHash);
+  return valid ? partner : null;
+}
+
+// Admin'in "şifreyi sıfırla" işlemi için — yeni bir geçici şifre üretir,
+// hash'ini kaydeder, düz metni admin'e BİR KEZ döner (partnere WhatsApp'tan
+// iletilmesi için) — bkz. app/api/admin/partnerler/[id]/sifre-sifirla.
+export async function resetPartnerPassword(partnerId: string): Promise<string> {
+  const tempPassword = generatePartnerTempPassword();
+  const passwordHash = await hashPassword(tempPassword);
+  await updatePartnerFields(partnerId, (p) => ({ ...p, passwordHash }));
+  return tempPassword;
 }
 
 // Hacim büyüdükçe (bkz. kapasite-analizi.md) sayfalama eklenmesi gerekebilir —

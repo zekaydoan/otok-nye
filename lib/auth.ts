@@ -10,7 +10,11 @@ const DEV_FALLBACK_SECRET = "otohafiza-gelistirme-anahtari-2026";
 // çalışmak, herhangi birinin geçerli bir oturum jetonu sahtelemesine izin verir. Bu
 // yüzden üretim ortamında (NODE_ENV=production) AUTH_SECRET tanımlı değilse uygulama
 // isteği reddeder; yalnızca yerel geliştirmede sessizce yedek anahtara düşer.
-function getSecretBytes(): Uint8Array {
+// Dışa açık: lib/partnerAuth.ts, Saha Partneri oturumları için AYRI bir çerez/
+// JWT kullanır ama aynı imzalama anahtarını paylaşır — iki farklı AUTH_SECRET
+// yönetmek yerine (bkz. lib/iyzico.ts buildAuthHeaders'ın da lib/iyzicoSubscription.ts
+// tarafından aynı gerekçeyle yeniden kullanılması).
+export function getSecretBytes(): Uint8Array {
   const secret = process.env.AUTH_SECRET;
   if (!secret) {
     if (process.env.NODE_ENV === "production") {

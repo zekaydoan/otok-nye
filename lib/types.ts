@@ -455,7 +455,8 @@ export type AdminAuditAction =
   | "partner_olusturuldu"
   | "partner_durum_degisti"
   | "partner_atandi"
-  | "partner_komisyon_odendi";
+  | "partner_komisyon_odendi"
+  | "partner_sifre_sifirlandi";
 
 export interface AdminAuditLogEntry {
   id: string;
@@ -535,10 +536,20 @@ export interface Partner {
   name: string;
   phone: string;
   email?: string;
+  // Saha Partneri kendi panelinde (bkz. app/partner) giriş yapabilsin diye —
+  // telefon numarasıyla giriş yapar (bkz. lib/partnerAuth.ts,
+  // app/api/partner/giris). Admin partneri oluştururken otomatik üretilen
+  // geçici bir şifre ile başlar (bkz. blobStore.generatePartnerTempPassword),
+  // asla düz metin saklanmaz.
+  passwordHash: string;
   // Kayıt linkinde kullanılan benzersiz, URL-güvenli kod — ?ref=KOD parametresiyle
   // kayıt formuna taşınır (bkz. app/kayit/page.tsx, app/api/auth/signup).
   referralCode: string;
   status: PartnerStatus;
+  // Admin'in belirlediği aylık işletme kayıt hedefi — partner kendi panelinde
+  // "bu ay X/Y işletme" ilerlemesini görür (bkz. app/partner). Belirlenmemişse
+  // ilerleme çubuğu gösterilmez, ham sayılar yeterli olur.
+  monthlyTarget?: number;
   category?: PartnerCategory;
   region?: string; // serbest metin, ör. "Merter Oto Sanayi Sitesi, İstanbul"
   // Hiyerarşi hazırlığı: bu partneri sisteme kendisi getiren bir "üst partner"

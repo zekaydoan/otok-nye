@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { hashPassword } from "@/lib/auth";
 import { getCurrentAdminEmail, getCurrentAdminShopId } from "@/lib/adminAuth";
-import { createPartner, generatePartnerReferralCode, recordAdminAuditLog } from "@/lib/blobStore";
+import {
+  createPartner,
+  generatePartnerReferralCode,
+  generatePartnerTempPassword,
+  getPartnerByPhone,
+  recordAdminAuditLog,
+} from "@/lib/blobStore";
 import { PARTNER_CATEGORY_LABELS, type Partner, type PartnerCategory } from "@/lib/types";
 
 const MAX_NAME_LEN = 150;
@@ -42,13 +49,24 @@ export async function POST(req: NextRequest) {
   if (notes && notes.length > MAX_NOTES_LEN) {
     return NextResponse.json({ error: "Not çok uzun." }, { status: 400 });
   }
+  // Aynı telefonla ikinci bir partner oluşturulursa telefon->id indeksi
+  // sessizce üzerine yazılır ve giriş karışır — baştan engellenir.
+  const existingByPhone = await getPartnerByPhone(trimmedPhone);
+  if (existingByPhone) {
+    return NextResponse.json({ error: "Bu telefon numarasıyla zaten bir partner var." }, { status: 409 });
+  }
 
   const referralCode = await generatePartnerReferralCode(trimmedName);
+  // Partner kendi paneline (bkz. app/partner-girisi) bu geçici şifreyle giriş
+  // yapar — düz metin yalnızca bu API yanıtında BİR KEZ döner, admin WhatsApp'tan
+  // iletir; sistemde yalnızca hash'i saklanır.
+  const tempPassword = generatePartnerTempPassword();
   const partner: Partner = {
     id: randomUUID(),
     name: trimmedName,
     phone: trimmedPhone,
     email: email?.trim() || undefined,
+    passwordHash: await hashPassword(tempPassword),
     referralCode,
     status: "aktif",
     category: category || undefined,
@@ -68,5 +86,5 @@ export async function POST(req: NextRequest) {
     detail: `Referans kodu: ${partner.referralCode}`,
   });
 
-  return NextResponse.json({ partner });
+  return NextResponse.json({ partner, tempPassword });
 }

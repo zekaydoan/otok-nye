@@ -16,7 +16,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!partner) return NextResponse.json({ error: "Partner bulunamadı." }, { status: 404 });
 
   const body = await req.json();
-  const { status, notes } = body as { status?: PartnerStatus; notes?: string };
+  const { status, notes, monthlyTarget } = body as {
+    status?: PartnerStatus;
+    notes?: string;
+    monthlyTarget?: number | null;
+  };
 
   if (status !== undefined && !(status in PARTNER_STATUS_LABELS)) {
     return NextResponse.json({ error: "Geçersiz durum." }, { status: 400 });
@@ -24,11 +28,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (notes !== undefined && notes.length > 1000) {
     return NextResponse.json({ error: "Not çok uzun." }, { status: 400 });
   }
+  if (
+    monthlyTarget !== undefined &&
+    monthlyTarget !== null &&
+    (!Number.isFinite(monthlyTarget) || monthlyTarget < 0 || monthlyTarget > 10000)
+  ) {
+    return NextResponse.json({ error: "Geçersiz hedef." }, { status: 400 });
+  }
 
   const updated = await updatePartnerFields(params.id, (p) => ({
     ...p,
     status: status ?? p.status,
     notes: notes !== undefined ? notes.trim() || undefined : p.notes,
+    monthlyTarget: monthlyTarget !== undefined ? monthlyTarget ?? undefined : p.monthlyTarget,
   }));
 
   if (status && status !== partner.status) {

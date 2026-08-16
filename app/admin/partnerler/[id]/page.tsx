@@ -10,6 +10,7 @@ import {
 import PartnerReferralLink from "@/components/PartnerReferralLink";
 import PartnerStatusToggle from "@/components/PartnerStatusToggle";
 import PartnerCommissionsTable from "@/components/PartnerCommissionsTable";
+import PartnerAdminTools from "@/components/PartnerAdminTools";
 
 export default async function AdminPartnerDetailPage({ params }: { params: { id: string } }) {
   const adminShopId = await getCurrentAdminShopId();
@@ -78,6 +79,10 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
             {summary.paidCommissionTry.toLocaleString("tr-TR")} TL
           </p>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <PartnerAdminTools partnerId={partner.id} initialTarget={partner.monthlyTarget} />
       </div>
 
       {partner.notes && (

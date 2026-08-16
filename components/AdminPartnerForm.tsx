@@ -32,6 +32,9 @@ export default function AdminPartnerForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(initialPartners.length === 0);
+  const [created, setCreated] = useState<{ name: string; referralCode: string; tempPassword: string } | null>(
+    null
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,7 +63,12 @@ export default function AdminPartnerForm({
         setError(data.error || "Partner eklenemedi.");
         return;
       }
-      showToast(`Partner eklendi — referans kodu: ${data.partner.referralCode}`);
+      showToast("Partner eklendi.");
+      setCreated({
+        name: data.partner.name,
+        referralCode: data.partner.referralCode,
+        tempPassword: data.tempPassword,
+      });
       setName("");
       setPhone("");
       setEmail("");
@@ -77,6 +85,34 @@ export default function AdminPartnerForm({
 
   return (
     <div className="mt-6 space-y-6">
+      {created && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-semibold text-amber-900">
+                {created.name} eklendi — giriş bilgilerini WhatsApp&apos;tan iletin
+              </p>
+              <p className="mt-1 text-amber-800">
+                Telefon: partnerin girdiği numara · Geçici şifre:{" "}
+                <span className="font-mono font-bold">{created.tempPassword}</span>
+              </p>
+              <p className="mt-1 text-amber-800">
+                Referans linki: partner detay sayfasından kopyalanabilir (kod: {created.referralCode})
+              </p>
+              <p className="mt-2 text-xs text-amber-700">
+                Bu şifre yalnızca şimdi gösteriliyor, tekrar görüntülenemez — kaydetmeden kapatmayın.
+              </p>
+            </div>
+            <button
+              onClick={() => setCreated(null)}
+              className="shrink-0 text-xs font-medium text-amber-700 hover:text-amber-900"
+            >
+              Kapat
+            </button>
+          </div>
+        </div>
+      )}
+
       {formOpen ? (
         <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
           <div className="grid gap-3 sm:grid-cols-2">

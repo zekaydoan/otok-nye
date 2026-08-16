@@ -1,0 +1,38 @@
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getCurrentPartnerId } from "@/lib/partnerAuth";
+import { getPartnerById } from "@/lib/blobStore";
+import Logo from "@/components/Logo";
+import PartnerLogoutButton from "@/components/PartnerLogoutButton";
+
+// Saha Partneri paneli — bkz. app/partner-girisi, lib/partnerAuth.ts. Bayi
+// panelinden (app/dashboard) TAMAMEN AYRI bir bölüm: farklı oturum, farklı
+// veri modeli (Partner, Shop değil), farklı görsel dil (marka rengi
+// korunuyor ama içerik partnere özel).
+export default async function PartnerLayout({ children }: { children: React.ReactNode }) {
+  const partnerId = await getCurrentPartnerId();
+  if (!partnerId) redirect("/partner-girisi");
+
+  const partner = await getPartnerById(partnerId);
+  if (!partner) redirect("/partner-girisi");
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="border-b bg-white">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
+          <Link href="/partner" className="flex items-center gap-2">
+            <Logo size="sm" />
+            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-brand-600">
+              Partner
+            </span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <span className="hidden text-sm font-medium text-slate-600 sm:inline">{partner.name}</span>
+            <PartnerLogoutButton />
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+    </div>
+  );
+}

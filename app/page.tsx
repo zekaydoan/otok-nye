@@ -1023,6 +1023,11 @@ export default function HomePage() {
         <div className="mt-4 flex justify-center">
           <PaymentBadges />
         </div>
+        <p className="mt-4 text-xs text-slate-400">
+          <Link href="/partner-girisi" className="underline hover:text-slate-500">
+            Saha Partneri Girişi
+          </Link>
+        </p>
         <p className="mx-auto mt-4 max-w-2xl text-xs text-slate-400">
           OtoHafıza;{" "}
           <a
