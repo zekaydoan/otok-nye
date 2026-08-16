@@ -6,7 +6,6 @@ import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
 import FaqAccordion from "@/components/FaqAccordion";
 import MobileNavMenu from "@/components/MobileNavMenu";
-import MobileLoginSplit from "@/components/MobileLoginSplit";
 import { buildBusinessWhatsAppLink } from "@/lib/whatsappBusiness";
 import {
   BellIcon,
@@ -235,6 +234,27 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
+      {/* Kurumsal "üst bar" deseni — banka/B2B portal sitelerinde yaygın:
+          ana header'ın üstünde, görsel olarak tamamen ayrı (koyu zemin, küçük
+          yazı), ikincil kitleler (burada saha partnerleri) için tek bir link.
+          Önce "Giriş Yap" butonunu tıklayınca bayi/partner diye ikiye ayrılan
+          bir açılır menü vardı (bkz. artık kullanılmayan
+          components/MobileLoginSplit.tsx) — ama bu, esas kitle olan bayi/
+          ustanın her seferinde bir seçim yapmasını zorunlu kılıyordu ve
+          kafa karışıklığına yol açabiliyordu. Şimdi iki giriş tamamen ayrı
+          görsel dilde: aşağıdaki asıl header'da SADECE bayi girişi var, saha
+          partnerleri bu ince üst barı kullanıyor. */}
+      <div className="border-b border-slate-800 bg-slate-900">
+        <div className="mx-auto flex max-w-6xl items-center justify-end px-4 py-1.5 text-xs sm:px-6">
+          <Link
+            href="/partner-girisi"
+            className="font-medium text-slate-400 transition hover:text-white"
+          >
+            Saha Partneri misiniz?{" "}
+            <span className="font-semibold text-accent-400">Partner Girişi →</span>
+          </Link>
+        </div>
+      </div>
       <header className="relative border-b bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <Link href="/" className="text-xl">
@@ -253,13 +273,15 @@ export default function HomePage() {
             <Link href="/blog" className="hidden hover:text-brand-700 sm:inline">
               Blog
             </Link>
-            {/* Tek "Giriş Yap" butonu, her ekran boyutunda — dokunulduğunda/
-                tıklandığında "Kullanıcı Girişi"/"Saha Partneri Girişi" diye
-                ikiye ayrılan bir menü açar (bkz. MobileLoginSplit.tsx). Önce
-                masaüstünde ayrı bir "Saha Partneri Girişi" linki de vardı,
-                ama iki ayrı öğe yer kaplayıp düzeni kalabalıklaştırdığından
-                kaldırıldı — artık tek bir buton, iki hedef. */}
-            <MobileLoginSplit />
+            {/* Bayi/usta girişi — direkt tek tıkla /giris'e gider, seçim
+                menüsü yok. Saha partneri girişi artık yukarıdaki ayrı üst
+                barda. */}
+            <Link
+              href="/giris"
+              className="rounded-lg bg-accent-500 px-3 py-2 font-semibold text-white hover:bg-accent-600 sm:px-4"
+            >
+              Giriş Yap
+            </Link>
             <Link
               href="/kayit"
               className="hidden rounded-lg bg-brand-600 px-3 py-2 text-white hover:bg-brand-700 sm:inline-block sm:px-4"
@@ -1018,14 +1040,10 @@ export default function HomePage() {
         <div className="mt-4 flex justify-center">
           <PaymentBadges />
         </div>
-        <div className="mt-4 flex justify-center">
-          <Link
-            href="/partner-girisi"
-            className="rounded-full bg-brand-50 px-4 py-1.5 text-xs font-semibold text-brand-700 transition hover:bg-brand-100"
-          >
-            Saha Partneri Girişi
-          </Link>
-        </div>
+        {/* Saha Partneri Girişi artık sayfanın en üstündeki ayrı kurumsal
+            bar'da (bkz. header'ın üstü) — burada tekrar etmiyoruz, aynı
+            linkin iki farklı görünümde iki yerde durması karışıklık
+            yaratabilir. */}
         <p className="mx-auto mt-4 max-w-2xl text-xs text-slate-400">
           OtoHafıza;{" "}
           <a
