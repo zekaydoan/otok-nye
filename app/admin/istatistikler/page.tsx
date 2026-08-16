@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import {
-  getActiveVisitorCount,
+  getActiveVisitorStats,
   getChurnStats,
   getCityVisits,
   getCityVisitsRange,
@@ -64,7 +64,7 @@ export default async function AdminStatsPage() {
     getCityVisits(today),
     getCityVisitsRange(dayOfMonth),
     getCityVisitsRange(dayOfYear),
-    getActiveVisitorCount(),
+    getActiveVisitorStats(),
     getChurnStats(),
   ]);
 
@@ -108,7 +108,7 @@ export default async function AdminStatsPage() {
 
       {/* Özet kartları */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <ActiveVisitorsCard initialCount={activeVisitors} />
+        <ActiveVisitorsCard initialCount={activeVisitors.count} initialByProvince={activeVisitors.byProvince} />
         <StatCard icon={<ChartBarIcon />} color="blue" label="Bugünkü Ziyaret" value={todayViews.toString()} />
         <StatCard
           icon={<UsersIcon />}

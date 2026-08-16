@@ -1174,25 +1174,37 @@ export async function getCityVisitsRange(days: number): Promise<Record<string, n
 // için tek bir blob tutulur ve üzerine yazılır (aynı sekme tekrar tekrar aynı
 // key'i günceller) — Netlify Blobs'ta TTL olmadığından, sekme kapatıldıktan
 // sonra kalan "hayalet" kayıtları temizlemek için okuma anında (bkz.
-// getActiveVisitorCount) süresi geçmiş olanlar ayrıca silinir.
+// getActiveVisitorStats) süresi geçmiş olanlar ayrıca silinir. province, o an
+// için Netlify'ın x-nf-geo header'ından çıkarılan kaba il adıdır (bkz.
+// lib/geo.ts getProvinceFromRequest) — admin panelinde "1 Kişi Manisa" gibi
+// bir döküm gösterebilmek için; belirlenemezse null olarak saklanır ve
+// dökümde görünmez ama toplam sayacı etkilemez.
 const HEARTBEAT_STALE_MS = 5 * 60 * 1000; // 5 dakikadan eski kayıtlar tamamen silinir
 
-export async function recordHeartbeat(sessionId: string): Promise<void> {
-  await activeVisitorsStore().setJSON(sessionId, { lastSeen: Date.now() });
+export async function recordHeartbeat(sessionId: string, province: string | null): Promise<void> {
+  await activeVisitorsStore().setJSON(sessionId, { lastSeen: Date.now(), province });
 }
 
-// windowMs içinde nabız göndermiş sekme sayısını döner. Aynı taramada, bu
-// pencerenin dışına düşmüş (ama silme eşiğinin altında kalan) "hayalet"
-// kayıtları da fırsattan yararlanıp temizler — ayrı bir zamanlanmış görev
-// gerektirmez, admin paneli her açıldığında store kendiliğinden küçülür.
-export async function getActiveVisitorCount(windowMs = 90 * 1000): Promise<number> {
+export interface ActiveVisitorStats {
+  count: number;
+  byProvince: { province: string; count: number }[]; // en yüksekten en düşüğe sıralı
+}
+
+// windowMs içinde nabız göndermiş sekme sayısını ve il bazlı dökümünü döner.
+// Aynı taramada, bu pencerenin dışına düşmüş (ama silme eşiğinin altında
+// kalan) "hayalet" kayıtları da fırsattan yararlanıp temizler — ayrı bir
+// zamanlanmış görev gerektirmez, admin paneli her açıldığında store
+// kendiliğinden küçülür.
+export async function getActiveVisitorStats(windowMs = 90 * 1000): Promise<ActiveVisitorStats> {
   const { blobs } = await activeVisitorsStore().list();
   const now = Date.now();
-  let activeCount = 0;
+  let count = 0;
+  const provinceCounts: Record<string, number> = {};
   await Promise.all(
     blobs.map(async (b) => {
       const entry = (await activeVisitorsStore().get(b.key, { type: "json" })) as {
         lastSeen: number;
+        province?: string | null;
       } | null;
       if (!entry) return;
       const age = now - entry.lastSeen;
@@ -1200,10 +1212,16 @@ export async function getActiveVisitorCount(windowMs = 90 * 1000): Promise<numbe
         await activeVisitorsStore().delete(b.key).catch(() => {});
         return;
       }
-      if (age <= windowMs) activeCount++;
+      if (age <= windowMs) {
+        count++;
+        if (entry.province) provinceCounts[entry.province] = (provinceCounts[entry.province] ?? 0) + 1;
+      }
     })
   );
-  return activeCount;
+  const byProvince = Object.entries(provinceCounts)
+    .map(([province, count]) => ({ province, count }))
+    .sort((a, b) => b.count - a.count);
+  return { count, byProvince };
 }
 
 // Son `days` günün (bugün dahil) günlük sayfa görüntüleme sayılarını, en eskiden en

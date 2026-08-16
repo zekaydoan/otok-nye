@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { TR_PROVINCES } from "./types";
 
 // Admin istatistik panelindeki "hangi şehirden kaç ziyaret" haritası
@@ -171,6 +172,27 @@ export function normalizeProvinceName(raw: string | undefined | null): string | 
   if (!raw) return null;
   const folded = foldTurkish(raw);
   return FOLDED_PROVINCE_LOOKUP[folded] ?? PROVINCE_ALIASES[folded] ?? null;
+}
+
+// Netlify, her isteğe CDN seviyesinde eklediği x-nf-geo header'ında IP tabanlı
+// (yaklaşık) coğrafi konum bilgisini base64 + JSON olarak taşır — ayrı bir
+// ücretli servise veya IP'nin herhangi bir yerde saklanmasına gerek kalmadan
+// "hangi ilden" bilgisini buradan çıkarabiliyoruz. Header yoksa (yerel
+// geliştirme, header'ı desteklemeyen bir ortam vb.) sessizce null döner.
+// Hem sayfa görüntüleme (app/api/analytics/pageview) hem "şu an sitede"
+// nabız (app/api/analytics/heartbeat) uç noktaları bu tek fonksiyonu paylaşır.
+export function getProvinceFromRequest(req: NextRequest): string | null {
+  const raw = req.headers.get("x-nf-geo");
+  if (!raw) return null;
+  try {
+    const geo = JSON.parse(Buffer.from(raw, "base64").toString("utf-8")) as {
+      subdivision?: { name?: string };
+      city?: string;
+    };
+    return normalizeProvinceName(geo.subdivision?.name) ?? normalizeProvinceName(geo.city);
+  } catch {
+    return null;
+  }
 }
 
 // "İstanbul'dan" ama "Kayseri'den" — Türkçe -dan/-den (ayrılma hâli) eki, ilin

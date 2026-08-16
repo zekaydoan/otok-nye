@@ -1,26 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { incrementCityVisit, incrementDailyPageview } from "@/lib/blobStore";
-import { normalizeProvinceName } from "@/lib/geo";
+import { getProvinceFromRequest } from "@/lib/geo";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-
-// Netlify, her isteğe CDN seviyesinde eklediği x-nf-geo header'ında IP tabanlı
-// (yaklaşık) coğrafi konum bilgisini base64 + JSON olarak taşır — ayrı bir
-// ücretli servise veya IP'nin herhangi bir yerde saklanmasına gerek kalmadan
-// "hangi ilden" bilgisini buradan çıkarabiliyoruz. Header yoksa (yerel
-// geliştirme, header'ı desteklemeyen bir ortam vb.) sessizce null döner.
-function getProvinceFromRequest(req: NextRequest): string | null {
-  const raw = req.headers.get("x-nf-geo");
-  if (!raw) return null;
-  try {
-    const geo = JSON.parse(Buffer.from(raw, "base64").toString("utf-8")) as {
-      subdivision?: { name?: string };
-      city?: string;
-    };
-    return normalizeProvinceName(geo.subdivision?.name) ?? normalizeProvinceName(geo.city);
-  } catch {
-    return null;
-  }
-}
 
 // Herkese açık, kimlik doğrulaması gerektirmeyen bir uç nokta — client tarafı
 // bkz. components/PageviewTracker.tsx. Kişisel veri (IP, kullanıcı kimliği vb.)

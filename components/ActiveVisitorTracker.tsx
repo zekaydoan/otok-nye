@@ -23,7 +23,7 @@ function getOrCreateSessionId(): string | null {
 // app/api/admin/active-visitors, components/ActiveVisitorsCard.tsx). Sekme açık
 // olduğu sürece her 30 saniyede bir sunucuya "hâlâ buradayım" sinyali gönderir;
 // sekme kapanınca (ya da 5 dakika sinyal gelmeyince) sunucu tarafında otomatik
-// düşer (bkz. lib/blobStore.ts getActiveVisitorCount). Sekme arka plandayken
+// düşer (bkz. lib/blobStore.ts getActiveVisitorStats). Sekme arka plandayken
 // gereksiz istek atmamak için document.visibilityState kontrol edilir.
 export default function ActiveVisitorTracker() {
   useEffect(() => {
