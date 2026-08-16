@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/Toast";
+import IconBadge from "@/components/IconBadge";
 import { CheckIcon, DocumentIcon } from "@/components/icons";
 
 export default function ShareReportButton({ vehicleId }: { vehicleId: string }) {
@@ -44,22 +45,25 @@ export default function ShareReportButton({ vehicleId }: { vehicleId: string }) 
       <button
         onClick={handleClick}
         disabled={loading}
-        className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+        className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
       >
         {loading ? (
           "Oluşturuluyor..."
         ) : url ? (
           copied ? (
             <>
-              <CheckIcon className="h-4 w-4 text-green-600" />
+              <IconBadge icon={<CheckIcon />} color="green" size="sm" />
               Kopyalandı
             </>
           ) : (
-            "Linki Kopyala"
+            <>
+              <IconBadge icon={<DocumentIcon />} color="blue" size="sm" />
+              Linki Kopyala
+            </>
           )
         ) : (
           <>
-            <DocumentIcon className="h-4 w-4" />
+            <IconBadge icon={<DocumentIcon />} color="blue" size="sm" />
             Satış Raporu Oluştur
           </>
         )}

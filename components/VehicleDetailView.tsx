@@ -16,7 +16,8 @@ import ScoreBadge from "@/components/ScoreBadge";
 import EmptyState from "@/components/EmptyState";
 import VehicleKmUpdate from "@/components/VehicleKmUpdate";
 import WhatsAppReminderButton from "@/components/WhatsAppReminderButton";
-import { CheckIcon, DocumentIcon, PencilIcon, WarningIcon } from "@/components/icons";
+import IconBadge from "@/components/IconBadge";
+import { CarIcon, CheckIcon, DocumentIcon, PencilIcon, QrIcon, WarningIcon } from "@/components/icons";
 import type { FavoriteOil, OilRecord, Vehicle } from "@/lib/types";
 
 export default function VehicleDetailView({
@@ -92,8 +93,9 @@ export default function VehicleDetailView({
           </span>
           <Link
             href={`/dashboard/araclar/${vehicle.id}/etiket`}
-            className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+            className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
           >
+            <QrIcon className="h-3.5 w-3.5" />
             Yeni Etiket Yazdır
           </Link>
         </div>
@@ -181,26 +183,30 @@ export default function VehicleDetailView({
           </div>
         </div>
 
+        {/* Eylem butonları — dashboard ve admin panelindeki "isim + renkli IconBadge"
+            görsel diliyle tutarlı (bkz. components/IconBadge). */}
         <div className="mt-5 grid grid-cols-2 gap-2 border-t border-slate-100 pt-4 sm:flex sm:flex-wrap">
           <Link
             href={`/dashboard/araclar/${vehicle.id}/duzenle`}
-            className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-600 hover:bg-slate-50"
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            <PencilIcon className="h-4 w-4" />
+            <IconBadge icon={<PencilIcon />} color="amber" size="sm" />
             Düzenle
           </Link>
           <ShareReportButton vehicleId={vehicle.id} />
           <Link
             href={`/dashboard/araclar/${vehicle.id}/etiket`}
-            className="rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-center text-sm font-semibold text-brand-700 hover:bg-brand-100"
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
+            <IconBadge icon={<QrIcon />} color="brand" size="sm" />
             QR Etiketi Yazdır
           </Link>
           <Link
             href={`/arac/${vehicle.id}`}
             target="_blank"
-            className="rounded-lg border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-600 hover:bg-slate-50"
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
+            <IconBadge icon={<CarIcon />} color="indigo" size="sm" />
             Genel Görünüm
           </Link>
         </div>
