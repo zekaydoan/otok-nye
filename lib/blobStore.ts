@@ -15,6 +15,7 @@ import type {
   Shop,
   StaffAccount,
   StickerOrder,
+  StickerSelfPrint,
   StickerToken,
   Suggestion,
   SuggestionStatus,
@@ -101,6 +102,9 @@ const announcementsStore = () => getStore("announcements");
 
 // ---------- Admin İşlem Günlüğü (Audit Log) ----------
 const adminAuditLogStore = () => getStore("admin_audit_log");
+
+// ---------- Kendi Yazıcısından Etiket Basma Kaydı ----------
+const stickerSelfPrintsStore = () => getStore("sticker_self_prints");
 
 export function normalizePlate(plate: string): string {
   return plate.toUpperCase().replace(/[^A-Z0-9ÇĞİÖŞÜ]/g, "");
@@ -962,6 +966,34 @@ export async function listAdminAuditLog(): Promise<AdminAuditLogEntry[]> {
     .filter((e): e is AdminAuditLogEntry => !!e)
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
     .slice(0, 200);
+}
+
+// ---------- Kendi Yazıcısından Etiket Basma Kaydı ----------
+export async function recordStickerSelfPrint(entry: {
+  shopId: string;
+  shopName: string;
+  vehicleId: string;
+  plateDisplay: string;
+}): Promise<void> {
+  const full: StickerSelfPrint = {
+    id: randomUUID(),
+    createdAt: new Date().toISOString(),
+    ...entry,
+  };
+  await stickerSelfPrintsStore().setJSON(full.id, full);
+}
+
+// Bekleyen İşler sayfası için (bkz. app/admin/bekleyen-isler) — bilgi amaçlı,
+// aksiyon gerektirmediğinden yalnızca en yeni `limit` kayıt gösterilir.
+export async function listRecentStickerSelfPrints(limit: number): Promise<StickerSelfPrint[]> {
+  const { blobs } = await stickerSelfPrintsStore().list();
+  const entries = await Promise.all(
+    blobs.map((b) => stickerSelfPrintsStore().get(b.key, { type: "json" }) as Promise<StickerSelfPrint | null>)
+  );
+  return entries
+    .filter((e): e is StickerSelfPrint => !!e)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .slice(0, limit);
 }
 
 // Bayinin panelinde henüz "görmediği" (lastSeenAnnouncementAt'ten sonra

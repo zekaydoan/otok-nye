@@ -29,6 +29,14 @@ export default function StickerEditor({
 
   const url = origin ? `${origin}/arac/${vehicleId}` : "";
 
+  // Yazdırma işleminin kendisini engellemeyen, sonucunu beklemeyen bir bildirim
+  // — admin panelinde bilgi amaçlı görünür (bkz. app/admin/bekleyen-isler).
+  // Ağ hatası olursa sessizce yutulur, kullanıcı bunu asla görmemeli.
+  function handlePrint() {
+    fetch(`/api/vehicles/${vehicleId}/etiket-yazdirildi`, { method: "POST" }).catch(() => {});
+    window.print();
+  }
+
   return (
     <div>
       <div className="no-print mb-6 grid grid-cols-1 gap-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100 sm:flex sm:flex-wrap sm:items-end">
@@ -61,7 +69,7 @@ export default function StickerEditor({
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-2">
           <button
-            onClick={() => window.print()}
+            onClick={handlePrint}
             className="rounded-lg bg-brand-600 px-5 py-2.5 font-semibold text-white hover:bg-brand-700"
           >
             Yazdır / PDF Kaydet

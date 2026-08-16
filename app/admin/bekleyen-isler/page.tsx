@@ -6,10 +6,12 @@ import {
   listAllStickerOrders,
   listAllSuggestions,
   listAllDataRequests,
+  listRecentStickerSelfPrints,
+  listVehiclesByShop,
 } from "@/lib/blobStore";
 import { PLAN_LIMITS } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
-import { BellIcon, LightbulbIcon, LockIcon, PackageIcon, UsersIcon } from "@/components/icons";
+import { BellIcon, CarIcon, DocumentIcon, LightbulbIcon, LockIcon, PackageIcon, UsersIcon } from "@/components/icons";
 import IconBadge from "@/components/IconBadge";
 
 // Admin, önceden her kategoriyi (Bayiler, Öneriler, Veri Talepleri) tek tek
@@ -52,12 +54,25 @@ export async function getPendingCounts() {
   };
 }
 
+// Ücretsiz plandaki VE hiç araç eklememiş bayilerin isim listesi — yalnızca bir
+// sayı (bkz. lib/blobStore.ts getChurnStats noVehicleShopCount) değil, kimin
+// olduğunu görebilmek istendiği için ayrı bir liste (bkz. app/admin/bekleyen-isler
+// sayfa açıklaması). Diğer dört kategorinin aksine bu bir "aksiyon" değil, sürekli
+// izlenmesi istenen bir görünürlük listesi — bu yüzden getPendingCounts'un
+// (nav rozetindeki) toplamına dahil edilmez, sayfada ayrı ve her zaman görünür.
+async function getNoVehicleFreeShops() {
+  const shops = await listAllShops();
+  const freeShops = shops.filter((s) => s.plan === "free");
+  const vehicleCounts = await Promise.all(freeShops.map((s) => listVehiclesByShop(s.id)));
+  return freeShops.filter((_, i) => vehicleCounts[i].length === 0);
+}
+
 export default async function AdminPendingPage() {
   const adminShopId = await getCurrentAdminShopId();
   if (!adminShopId) notFound();
 
-  const { pendingPlanShops, refundPendingOrders, unreadSuggestions, pendingDataRequests, total } =
-    await getPendingCounts();
+  const [{ pendingPlanShops, refundPendingOrders, unreadSuggestions, pendingDataRequests, total }, noVehicleFreeShops, recentSelfPrints] =
+    await Promise.all([getPendingCounts(), getNoVehicleFreeShops(), listRecentStickerSelfPrints(20)]);
 
   const fmtTry = (n: number) => n.toLocaleString("tr-TR", { maximumFractionDigits: 0 }) + "₺";
 
@@ -159,6 +174,60 @@ export default async function AdminPendingPage() {
           </div>
         </section>
       )}
+
+      {/* Aksiyon gerektirmeyen, sürekli izleme amaçlı iki bölüm — bu yüzden
+          diğerlerinin aksine count>0 şartına bağlı değil, her zaman görünür. */}
+      <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <div className="flex items-center gap-2">
+          <IconBadge icon={<CarIcon />} color="slate" />
+          <h2 className="font-bold text-slate-900">Ücretsiz Plan — Hiç Araç Eklememiş ({noVehicleFreeShops.length})</h2>
+        </div>
+        <p className="mt-1 text-xs text-slate-400">
+          Kayıt olmuş ama henüz onboarding'i tamamlamamış bayiler — bir hatırlatma
+          araması/mesajı işe yarayabilir.
+        </p>
+        <div className="mt-4 space-y-2">
+          {noVehicleFreeShops.length === 0 && (
+            <p className="text-sm text-slate-400">Şu an bu durumda bayi yok.</p>
+          )}
+          {noVehicleFreeShops.map((s) => (
+            <Link
+              key={s.id}
+              href={`/admin/bayiler/${s.id}`}
+              className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm hover:bg-slate-100"
+            >
+              <span className="font-medium text-slate-800">{s.name}</span>
+              <span className="text-slate-500">
+                {s.phone} · Kayıt: {s.createdAt.slice(0, 10)}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <div className="flex items-center gap-2">
+          <IconBadge icon={<DocumentIcon />} color="purple" />
+          <h2 className="font-bold text-slate-900">Kendi Yazıcısından Basılan Etiketler ({recentSelfPrints.length})</h2>
+        </div>
+        <p className="mt-1 text-xs text-slate-400">
+          Bir bayi, dayanıklı etiket sipariş etmek yerine kendi yazıcısından QR etiket
+          bastığında burada görünür — bilgi amaçlıdır, son 20 kayıt.
+        </p>
+        <div className="mt-4 space-y-2">
+          {recentSelfPrints.length === 0 && (
+            <p className="text-sm text-slate-400">Henüz kimse kendi yazıcısından etiket basmadı.</p>
+          )}
+          {recentSelfPrints.map((p) => (
+            <div key={p.id} className="flex items-center justify-between rounded-lg bg-purple-50 px-3 py-2 text-sm">
+              <span className="font-medium text-slate-800">
+                {p.shopName} — {p.plateDisplay}
+              </span>
+              <span className="text-purple-700">{new Date(p.createdAt).toLocaleString("tr-TR")}</span>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

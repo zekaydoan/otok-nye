@@ -408,6 +408,20 @@ export interface DataRequest {
   createdAt: string;
 }
 
+// ---------- Kendi Yazıcısından Etiket Basma Kaydı ----------
+// Bayi, ücretli/dayanıklı etiket sipariş etmek yerine components/StickerEditor
+// üzerinden kendi yazıcısından QR etiket bastığında (app/dashboard/araclar/[id]/etiket)
+// burada bir kayıt düşer — admin bunu Bekleyen İşler'de (bkz. app/admin/bekleyen-isler)
+// bilgi amaçlı görebilsin diye (aksiyon gerektirmez, yalnızca görünürlük).
+export interface StickerSelfPrint {
+  id: string;
+  shopId: string;
+  shopName: string;
+  vehicleId: string;
+  plateDisplay: string;
+  createdAt: string;
+}
+
 // ---------- Admin İşlem Günlüğü (Audit Log) ----------
 // "Bu planı kim aktive etti, ne zaman?" gibi sorulara cevap verebilmek için —
 // bkz. app/admin/aktivite. Şimdilik yalnızca plan yükseltme onayı ve sipariş
