@@ -5,12 +5,10 @@ import { WhatsAppIcon } from "@/components/icons";
 // butonu — bu sektörde (usta/esnaf) telefon/WhatsApp her zaman e-postadan daha
 // çok tercih edildiği için, bir form doldurmadan doğrudan mesaj atabilme.
 //
-// NUMARA HENÜZ YOK: Zeki'nin kurumsal WhatsApp Business numarasını iletmesi
-// bekleniyor (bkz. sohbet). Numara gelince aşağıdaki WHATSAPP_NUMBER sabitine
-// başında ülke koduyla, boşluksuz olarak eklenmesi yeterli — ör. "905XXXXXXXXX".
-// Sabit boşken bileşen hiçbir şey render etmiyor (kırık/boş bir link
-// göstermemek için), yani numara eklenene kadar sitede görünmez.
-const WHATSAPP_NUMBER = ""; // TODO: numara gelince doldur, ör. "905XXXXXXXXX"
+// Kurumsal WhatsApp Business numarası — ülke koduyla, boşluksuz (ör.
+// "905XXXXXXXXX"). Sabit boşken bileşen hiçbir şey render etmiyor (kırık/boş
+// bir link göstermemek için); bu artık geçerli değil, numara tanımlı.
+const WHATSAPP_NUMBER = "905425756918";
 const DEFAULT_MESSAGE = "Merhaba, OtoHafıza hakkında bilgi almak istiyorum.";
 
 export default function WhatsAppFloatButton() {

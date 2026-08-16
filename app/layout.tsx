@@ -133,8 +133,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <ScrollToTop />
         {/* ScrollToTop sağ altta olduğu için çakışmasın diye sol altta —
-            bkz. WhatsAppFloatButton.tsx (numara gelene kadar hiçbir şey
-            render etmez). */}
+            bkz. WhatsAppFloatButton.tsx. */}
         <WhatsAppFloatButton />
       </body>
     </html>
