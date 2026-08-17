@@ -1,20 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AuthSidePanel from "@/components/AuthSidePanel";
 import Logo from "@/components/Logo";
+import { CheckCircleIcon } from "@/components/icons";
 import { PARTNER_CATEGORY_LABELS, type PartnerCategory } from "@/lib/types";
 
-// Saha Partnerinin kendi kendine, admin beklemeden hesap açtığı sayfa — bkz.
+// Saha Partnerinin kendi kendine başvuru formunu doldurduğu sayfa — bkz.
 // app/api/partner/basvuru. Önceden tek yol admin'in AdminPartnerForm ile elle
-// partner eklemesiydi (geçici şifre üretip WhatsApp'tan iletmesi gerekiyordu);
-// bu artık istisnai bir yedek yol, asıl akış burası. app/partner-girisi'nden
+// partner eklemesiydi; bu artık asıl akış, ama ARTIK anında hesap AÇMIYOR —
+// başvuru "onay_bekliyor" durumunda kaydediliyor, admin app/admin/partnerler'da
+// (özellikle aynı bölgeden gelen başvuruları karşılaştırıp) onaylayana kadar
+// giriş yapılamıyor. Bu yüzden başarılı gönderimde /partner'a yönlendirmek
+// yerine (oturum açtırılmıyor artık, bkz. route dosyasındaki yorum) burada bir
+// "başvurunuz alındı" onay ekranı gösteriliyor. app/partner-girisi'nden
 // (giriş) BİLİNÇLİ olarak ayrı bir sayfa — biri giriş, biri kayıt, aynı forma
 // karıştırılmadı.
 export default function PartnerBasvuruPage() {
-  const router = useRouter();
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -26,6 +29,7 @@ export default function PartnerBasvuruPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,8 +59,7 @@ export default function PartnerBasvuruPage() {
         setError(data.error || "Başvuru gönderilemedi.");
         return;
       }
-      router.push("/partner");
-      router.refresh();
+      setSubmitted(true);
     } catch {
       setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
     } finally {
@@ -71,12 +74,32 @@ export default function PartnerBasvuruPage() {
           <Link href="/" className="inline-block">
             <Logo withText />
           </Link>
-          <h1 className="mt-6 text-2xl font-bold text-slate-900">Saha Partneri Ol</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Formu doldurun, hesabınız anında açılsın — admin onayı beklemenize gerek yok.
-          </p>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          {submitted ? (
+            <div className="mt-6 rounded-xl bg-emerald-50 p-5">
+              <div className="flex items-start gap-3">
+                <CheckCircleIcon className="mt-0.5 h-6 w-6 shrink-0 text-emerald-600" />
+                <div>
+                  <h1 className="text-lg font-bold text-slate-900">Başvurunuz alındı</h1>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Ekibimiz başvurunuzu inceleyip kısa sürede onaylayacak. Onaylandığında
+                    girdiğiniz telefon numarasıyla{" "}
+                    <Link href="/partner-girisi" className="font-medium text-brand-600 hover:underline">
+                      giriş yapabilirsiniz
+                    </Link>
+                    .
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h1 className="mt-6 text-2xl font-bold text-slate-900">Saha Partneri Ol</h1>
+              <p className="mt-1 text-sm text-slate-500">
+                Formu doldurun, ekibimiz kısa sürede inceleyip onaylasın.
+              </p>
+
+              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-slate-700">Ad Soyad</label>
@@ -171,23 +194,25 @@ export default function PartnerBasvuruPage() {
               disabled={loading}
               className="w-full rounded-lg bg-brand-600 py-2.5 font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
             >
-              {loading ? "Hesap açılıyor..." : "Hesabımı Aç"}
+              {loading ? "Gönderiliyor..." : "Başvuruyu Gönder"}
             </button>
-          </form>
+              </form>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
-            Zaten hesabınız var mı?{" "}
-            <Link href="/partner-girisi" className="font-medium text-brand-600 hover:underline">
-              Giriş yapın
-            </Link>
-          </p>
+              <p className="mt-6 text-center text-sm text-slate-500">
+                Zaten hesabınız var mı?{" "}
+                <Link href="/partner-girisi" className="font-medium text-brand-600 hover:underline">
+                  Giriş yapın
+                </Link>
+              </p>
+            </>
+          )}
         </div>
 
         <AuthSidePanel
           tagline="Getirdiğin her işletme, kazancın."
           points={[
-            "Formu doldurun, hesabınız anında açılsın",
-            "Kendi referans linkinizle işletmeleri kaydedin",
+            "Formu doldurun, başvurunuz kısa sürede incelensin",
+            "Onaylandığında kendi referans linkinizle işletmeleri kaydedin",
             "Kazandığınız komisyonu panelde anında görün",
           ]}
         />

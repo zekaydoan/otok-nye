@@ -37,6 +37,17 @@ export async function POST(req: NextRequest) {
   if (!partner || !passwordMatches) {
     return NextResponse.json({ error: "Telefon veya şifre hatalı." }, { status: 401 });
   }
+  // "onay_bekliyor" ve "pasif" için ayrı mesajlar — biri henüz hiç
+  // onaylanmamış yeni bir başvuru (bkz. app/partner-basvuru), diğeri daha
+  // önce aktifken sonradan durdurulmuş bir hesap. İkisini aynı mesajla
+  // karıştırmak, yeni başvuran birine "hesabınız pasif" deyip kafasını
+  // karıştırırdı.
+  if (partner.status === "onay_bekliyor") {
+    return NextResponse.json(
+      { error: "Başvurunuz henüz onaylanmadı. İnceleme tamamlanınca giriş yapabilirsiniz." },
+      { status: 403 }
+    );
+  }
   if (partner.status !== "aktif") {
     return NextResponse.json(
       { error: "Hesabınız şu anda pasif durumda. OtoHafıza ile iletişime geçin." },

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { listAllPartnerSummaries } from "@/lib/blobStore";
 import AdminPartnerForm from "@/components/AdminPartnerForm";
+import AdminPendingPartners from "@/components/AdminPendingPartners";
 
 // Saha Partner Ağı — bkz. pazarlama/Saha_Partner_Agi_Analiz.docx. Bu sayfa
 // yalnızca ADMIN_EMAILS'teki hesaplara açıktır (bkz. app/admin/duyurular ile
@@ -10,8 +11,28 @@ export default async function AdminPartnersPage() {
   const adminShopId = await getCurrentAdminShopId();
   if (!adminShopId) notFound();
 
-  const summaries = await listAllPartnerSummaries();
+  const allSummaries = await listAllPartnerSummaries();
+  // "onay_bekliyor" durumundaki başvurular ayrı, bölgeye göre gruplanmış bir
+  // bölümde gösteriliyor (bkz. AdminPendingPartners) — aşağıdaki asıl
+  // tablo/form yalnızca zaten onaylanmış (aktif/pasif) partnerleri listeler,
+  // henüz karar verilmemiş bir başvuru "normal partner" gibi görünüp
+  // karıştırılmasın diye.
+  const summaries = allSummaries.filter((s) => s.partner.status !== "onay_bekliyor");
+  const pendingSummaries = allSummaries.filter((s) => s.partner.status === "onay_bekliyor");
   const totalPending = summaries.reduce((sum, s) => sum + s.pendingCommissionTry, 0);
+
+  // Bölgeye göre gruplama — kullanıcının isteği "aynı şehirden birden fazla
+  // başvuruyu karşılaştırarak değerlendirelim" idi. En çok başvurulu bölge en
+  // üstte gösterilir ki olası bölge çakışmaları admin'in gözünden kaçmasın.
+  const pendingByRegion = new Map<string, typeof pendingSummaries>();
+  for (const s of pendingSummaries) {
+    const key = s.partner.region?.trim() || "Bölge belirtilmedi";
+    if (!pendingByRegion.has(key)) pendingByRegion.set(key, []);
+    pendingByRegion.get(key)!.push(s);
+  }
+  const pendingGroups = [...pendingByRegion.entries()]
+    .map(([region, items]) => ({ region, items }))
+    .sort((a, b) => b.items.length - a.items.length || a.region.localeCompare(b.region, "tr"));
 
   return (
     <div>
@@ -25,10 +46,12 @@ export default async function AdminPartnersPage() {
       <p className="mt-2 text-sm text-slate-500">
         Partnerler artık genelde{" "}
         <span className="font-medium text-slate-700">/partner-basvuru</span>&apos;dan kendileri
-        başvurup hesap açıyor (siz onay vermeden anında aktif oluyorlar — aktivite geçmişinde
-        görürsünüz). Aşağıdaki form yalnızca istisnai durumlar (ör. siz elle eklemek isterseniz)
-        için duruyor.
+        başvuruyor, ama hesap SİZ ONAYLAYANA kadar aktif olmuyor — aşağıda bekleyen başvuruları
+        görüp onaylayabilir/reddedebilirsiniz. Formla elle ekleme yalnızca istisnai durumlar
+        (ör. siz doğrudan eklemek isterseniz) için hâlâ duruyor.
       </p>
+
+      <AdminPendingPartners groups={pendingGroups} />
 
       {summaries.length > 0 && (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">

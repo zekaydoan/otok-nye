@@ -7,7 +7,6 @@ import {
   getPartnerByPhone,
   recordAdminAuditLog,
 } from "@/lib/blobStore";
-import { createPartnerSessionToken, setPartnerSessionCookie } from "@/lib/partnerAuth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { PARTNER_CATEGORY_LABELS, type Partner, type PartnerCategory } from "@/lib/types";
 
@@ -22,19 +21,22 @@ const PASSWORD_REGEX = /^\d{6}$/;
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 60 * 60 * 1000; // 1 saat
 
-// Saha Partnerinin ADMİN BEKLEMEDEN kendi kendine hesap açabildiği uç nokta —
-// bkz. app/partner-basvuru (form) ve app/api/admin/partnerler/route.ts (bunun
-// admin tarafından elle ekleme karşılığı, hâlâ duruyor, istisnai durumlar için).
-// Kasıtlı tasarım kararı: yeni partner status="aktif" ile hemen başlar, "admin
-// onayı bekliyor" ara durumu YOK — kullanıcının talebi tam olarak buydu ("satıcı
-// partner kendisi üye olmalı, adminden bir şey beklememeli"). Bu güvenli, çünkü
-// partnere GERÇEK ödeme (bkz. types.ts Partner.passwordHash yorumu ve
-// pazarlama/Saha_Partner_Agi_Analiz.docx) sistemde otomatik değil, admin'in
-// "Bekleyen Komisyon" rakamını görüp elle yaptığı ayrı bir adım — yani sahte bir
-// başvuru, kimse elle para göndermediği sürece OtoHafıza'ya maliyet çıkarmaz.
-// Admin, aktivite günlüğünde (partner_kendi_basvurdu, bkz. app/admin/aktivite)
-// her yeni başvuruyu görür ve şüpheli bir hesabı PartnerStatusToggle ile
-// istediği an pasife çekebilir.
+// Saha Partnerinin kendi kendine BAŞVURU formu doldurabildiği uç nokta — bkz.
+// app/partner-basvuru (form) ve app/api/admin/partnerler/route.ts (bunun admin
+// tarafından elle ekleme karşılığı, hâlâ duruyor, istisnai durumlar için).
+// ÖNEMLİ (revize edilen tasarım kararı): yeni partner status="onay_bekliyor"
+// ile başlar, admin onaylamadan giriş yapamaz ve referans linki çalışmaz —
+// önceki sürümde "aktif" ile anında başlıyordu ama bu, özellikle AYNI
+// BÖLGEDEN/ŞEHİRDEN birden fazla kişi başvurduğunda (ör. aynı sanayi
+// sitesinde 3 kişi partner olmak isterse) admin'in hiçbirini karşılaştırıp
+// seçme şansı olmadan hepsinin otomatik aktif olması anlamına geliyordu — bu
+// yüzden geri alındı. Admin artık app/admin/partnerler'da bölgeye göre
+// gruplanmış "Onay Bekleyen Başvurular" listesinden başvuruları karşılaştırıp
+// onaylıyor/reddediyor (bkz. components/AdminPendingPartners.tsx). Bu yüzden
+// burada ARTIK oturum açtırılmıyor (createPartnerSessionToken/
+// setPartnerSessionCookie kaldırıldı) — onaylanmamış bir hesaba panel erişimi
+// vermenin anlamı yok, app/partner-basvuru sayfası "başvurunuz alındı" ekranı
+// gösteriyor.
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { name, phone, password, email, category, region } = body as {
@@ -95,7 +97,7 @@ export async function POST(req: NextRequest) {
     email: email?.trim() || undefined,
     passwordHash: await hashPassword(password),
     referralCode,
-    status: "aktif",
+    status: "onay_bekliyor",
     category: category || undefined,
     region: region?.trim() || undefined,
     createdAt: new Date().toISOString(),
@@ -112,11 +114,8 @@ export async function POST(req: NextRequest) {
     targetType: "partner",
     targetId: partner.id,
     targetLabel: partner.name,
-    detail: `Telefon: ${trimmedPhone} · Referans kodu: ${partner.referralCode}`,
+    detail: `Telefon: ${trimmedPhone} · Bölge: ${region?.trim() || "belirtilmedi"} · Onay bekliyor`,
   });
 
-  const token = await createPartnerSessionToken(partner.id);
-  setPartnerSessionCookie(token);
-
-  return NextResponse.json({ ok: true, referralCode: partner.referralCode });
+  return NextResponse.json({ ok: true, pending: true });
 }

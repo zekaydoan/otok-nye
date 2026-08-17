@@ -486,9 +486,17 @@ export interface AdminAuditLogEntry {
 // bu sistemin dışında, elle yürütülen bir süreç olmaya devam ediyor; sistem
 // yalnızca "ne kadar tahakkuk etti" ve "ödendi mi" bilgisini tutar.
 
-export type PartnerStatus = "aktif" | "pasif";
+// "onay_bekliyor": partner kendi başvurusuyla (bkz. app/partner-basvuru)
+// hesap oluşturdu ama admin henüz onaylamadı — giriş yapamaz, referans linki
+// çalışmaz. Admin özellikle AYNI BÖLGEDEN birden fazla başvuruyu karşılaştırıp
+// karar verebilsin diye eklendi (bkz. app/admin/partnerler, bölgeye göre
+// gruplanmış "Onay Bekleyen Başvurular" listesi). Admin'in kendisinin elle
+// eklediği partnerler (bkz. AdminPartnerForm) bu aşamayı atlayıp doğrudan
+// "aktif" ile başlar — admin zaten seçip eklediği için onay adımına gerek yok.
+export type PartnerStatus = "onay_bekliyor" | "aktif" | "pasif";
 
 export const PARTNER_STATUS_LABELS: Record<PartnerStatus, string> = {
+  onay_bekliyor: "Onay Bekliyor",
   aktif: "Aktif",
   pasif: "Pasif",
 };
