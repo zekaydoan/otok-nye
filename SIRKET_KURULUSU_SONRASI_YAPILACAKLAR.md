@@ -90,10 +90,19 @@ müşteride bile riskli.
    (iyzico'da ürün/ödeme planlarını BİR KEZ oluşturan admin aracı — nav'a
    eklenmedi, doğrudan URL'den açılır).
 
-   **UÇTAN UCA TEST EDİLMEDİ.** Özellikle `components/SubscriptionCheckoutForm.tsx`
-   — iyzico'nun `checkoutFormContent` olarak döndüğü `<script>` parçasının
-   sayfada gerçekten bir ödeme formu (iframe) render edip etmediği hiç
-   görülmedi, standart embed tekniğiyle yazıldı ama doğrulanmadı.
+   ✅ **Kısmen doğrulandı (18 Ağustos 2026):** Zeki `/admin/iyzico-abonelik`'ten
+   "Ürün + Ödeme Planlarını Oluştur"a tıkladı — gerçek iyzico sandbox'ında
+   ürün + 3 ödeme planı BAŞARIYLA oluşturuldu, referans kodları döndü ve
+   `settingsStore`'a kaydedildi. Bu, `lib/iyzico.ts`'teki HMAC imzalama
+   mantığının (`buildAuthHeaders`) gerçek bir sandbox'a karşı ilk kez
+   ÇALIŞTIĞINI kanıtlıyor — aynı fonksiyon tüm dosyada (checkout başlatma,
+   webhook doğrulama) kullanıldığından bu önemli bir risk azaltma.
+
+   **HÂLÂ UÇTAN UCA TEST EDİLMEDİ** olan tek parça: gerçek bir kart ödemesi
+   akışı. Özellikle `components/SubscriptionCheckoutForm.tsx` — iyzico'nun
+   `checkoutFormContent` olarak döndüğü `<script>` parçasının sayfada
+   gerçekten bir ödeme formu (iframe) render edip etmediği hiç görülmedi,
+   standart embed tekniğiyle yazıldı ama doğrulanmadı.
 
    **BİLİNEN RİSK — CSP (Content-Security-Policy):** `next.config.js`'teki CSP
    (`script-src`/frame kuralları) yalnızca `'self'` + Meta Pixel domain'lerine
