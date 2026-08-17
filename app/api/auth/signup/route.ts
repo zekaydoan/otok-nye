@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import {
   attributeShopToPartnerIfUnset,
+  claimFoundingServiceRank,
   createShop,
   getPartnerByReferralCode,
   getShopByEmail,
@@ -66,6 +67,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Bu e-posta ile zaten bir hesap var." }, { status: 409 });
   }
 
+  // Kurucu Servis kontenjanı (bkz. lib/planAvailability.ts) — kontenjan doluysa
+  // null döner ve kayıt normal şekilde devam eder, akış ASLA bloklanmaz.
+  let foundingServiceRank: number | undefined;
+  try {
+    foundingServiceRank = (await claimFoundingServiceRank()) ?? undefined;
+  } catch (err) {
+    console.error("[signup] Kurucu Servis sırası alınamadı (kayıt yine de tamamlandı):", err);
+  }
+
   const shop: Shop = {
     id: randomUUID(),
     name: name.trim(),
@@ -75,6 +85,7 @@ export async function POST(req: NextRequest) {
     plan: "free",
     city,
     createdAt: new Date().toISOString(),
+    ...(foundingServiceRank ? { foundingServiceRank } : {}),
   };
 
   await createShop(shop);

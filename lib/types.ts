@@ -74,6 +74,13 @@ export interface Shop {
   // bozmamalı).
   lastLoginAt?: string; // ISO
   createdAt: string;
+  // ---- Kurucu Servis kontenjanı (bkz. lib/planAvailability.ts) ----
+  // Kayıt anında sıradaki kurucu sayaç değeri FOUNDING_SERVICE_SLOTS'u aşmıyorsa
+  // buraya yazılır (bkz. blobStore.claimFoundingServiceRank, app/api/auth/signup).
+  // Kalıcıdır — sonradan asla değiştirilmez/silinmez. PAID_PLANS_ENABLED açılıp
+  // Pro fiyatlandırması devreye girdiğinde bu alanı taşıyan bayilere ömür boyu
+  // %50 indirim uygulanması gerekiyor (bkz. SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md).
+  foundingServiceRank?: number; // 1..FOUNDING_SERVICE_SLOTS arası, kurucu değilse undefined
   // ---- Saha Partner Ağı (bkz. aşağıdaki "Saha Partner Ağı" bölümü) ----
   // Bu bayi bir partnerin referans koduyla (?ref=KOD) kayıt olduysa partnerin
   // id'si buraya yazılır. İlk yazıldıktan sonra admin elle değiştirmediği

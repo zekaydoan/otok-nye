@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { PLAN_LIMITS } from "@/lib/types";
-import { PAID_PLANS_DISABLED_MESSAGE, PAID_PLANS_ENABLED } from "@/lib/planAvailability";
+import {
+  FOUNDING_SERVICE_DISCOUNT_PERCENT,
+  FOUNDING_SERVICE_SLOTS,
+  PAID_PLANS_ENABLED,
+} from "@/lib/planAvailability";
+import { getFoundingServiceCount } from "@/lib/blobStore";
 import { listBlogPosts } from "@/lib/blogPosts";
 import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
@@ -30,6 +35,13 @@ import {
   WhatsAppIcon,
   XCircleIcon,
 } from "@/components/icons";
+
+// Ana sayfa artık Kurucu Servis kontenjan sayısını okuyor (bkz. aşağıdaki
+// getFoundingServiceCount çağrısı) — bu, sayfayı tamamen statik build-time
+// render'dan çıkarır. Her istekte Netlify Blobs'a gitmemek için 5 dakikalık
+// ISR: sayaç bu aralıkta arka planda tazelenir, yüksek trafik altında bile
+// blob store'a gereksiz yük binmez.
+export const revalidate = 300;
 
 // Hero'daki koyu temalı "reklam görseli" hissindeki sol sütun özellik listesi
 // — kullanıcının referans gösterdiği görseldeki gibi ikon + kısa başlık +
@@ -221,8 +233,13 @@ const faqJsonLd = {
   })),
 };
 
-export default function HomePage() {
+export default async function HomePage() {
   const latestPosts = listBlogPosts().slice(0, 3);
+  // Kurucu Servis kontenjanı (bkz. lib/planAvailability.ts) — tek anahtarlı ucuz
+  // sayaç okuması, listAllShops() TARAMAZ (ana sayfa herkese açık ve sık ziyaret
+  // ediliyor).
+  const foundingServiceCount = await getFoundingServiceCount();
+  const foundingServiceRemaining = Math.max(0, FOUNDING_SERVICE_SLOTS - foundingServiceCount);
 
   return (
     <main className="min-h-screen">
@@ -865,9 +882,28 @@ export default function HomePage() {
             ))}
           </div>
           {!PAID_PLANS_ENABLED && (
-            <p className="mx-auto mt-8 max-w-2xl rounded-lg bg-white/10 px-4 py-3 text-center text-sm text-slate-100">
-              {PAID_PLANS_DISABLED_MESSAGE}
-            </p>
+            <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-accent-400/30 bg-white/5 px-5 py-4 text-center">
+              {foundingServiceRemaining > 0 ? (
+                <>
+                  <p className="text-xs font-bold uppercase tracking-wide text-accent-400">
+                    🚀 Kurucu Servis Kontenjanı — {foundingServiceRemaining} yer kaldı
+                  </p>
+                  <p className="mt-1.5 text-sm text-slate-200">
+                    Ücretli planlar henüz açılmadı — ama şimdi ücretsiz kayıt olan ilk{" "}
+                    {FOUNDING_SERVICE_SLOTS} servisten biri olursanız, Pro paketi açıldığında{" "}
+                    <strong className="text-white">
+                      ömür boyu %{FOUNDING_SERVICE_DISCOUNT_PERCENT} indirimli
+                    </strong>{" "}
+                    kullanırsınız.
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-slate-100">
+                  Kurucu Servis kontenjanımız doldu — ücretli planlar (Pro, İşletme) çok
+                  yakında herkese açılacak.
+                </p>
+              )}
+            </div>
           )}
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {(Object.keys(PLAN_LIMITS) as Array<keyof typeof PLAN_LIMITS>).map((key) => {
@@ -920,9 +956,24 @@ export default function HomePage() {
                     </li>
                   </ul>
                   {isLocked ? (
-                    <span className="mt-6 block cursor-not-allowed rounded-lg bg-white/10 py-2 text-center font-semibold text-white/60">
-                      Yakında
-                    </span>
+                    foundingServiceRemaining > 0 ? (
+                      <div className="mt-6">
+                        <Link
+                          href="/kayit"
+                          className="block rounded-lg bg-accent-500 py-2 text-center font-semibold text-white hover:bg-accent-600"
+                        >
+                          Kurucu Servis Ol
+                        </Link>
+                        <p className="mt-2 text-center text-xs text-white/60">
+                          Ücretsiz başlayın, Pro açılınca ömür boyu %
+                          {FOUNDING_SERVICE_DISCOUNT_PERCENT} indirim kazanın
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="mt-6 block cursor-not-allowed rounded-lg bg-white/10 py-2 text-center font-semibold text-white/60">
+                        Yakında
+                      </span>
+                    )
                   ) : (
                     <Link
                       href="/kayit"

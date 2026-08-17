@@ -127,6 +127,31 @@ Free plan dahil her bayiden fatura bilgisi zorunlu tutuluyor
 Bu kural şirket kuruluşundan bağımsız, kalıcı — burada bir değişiklik
 gerekmiyor, sadece bağlamı hatırlatmak için not düşüldü.
 
+## 7. Kurucu Servis kontenjanı — ömür boyu %50 Pro indirimi uygulanmalı
+
+- **Dosyalar:** `lib/planAvailability.ts` (`FOUNDING_SERVICE_SLOTS`,
+  `FOUNDING_SERVICE_DISCOUNT_PERCENT`), `lib/types.ts` (`Shop.foundingServiceRank`),
+  `lib/blobStore.ts` (`claimFoundingServiceRank`, `getFoundingServiceCount`),
+  `app/api/auth/signup/route.ts`.
+- **Bağlam:** "Ücretli planlar yakında açılacak" mesajı tek başına güven
+  kırıcı bulundu (16 Ağustos 2026), bunun yerine somut bir teklife çevrildi:
+  ilk `FOUNDING_SERVICE_SLOTS` (şu an 100) kayıt olan servis kalıcı olarak
+  `Shop.foundingServiceRank` alanını taşıyor. Bu, ana sayfa fiyatlandırma
+  bölümünde ve `/dashboard/plan`'da zaten gösteriliyor.
+- **Yapılması gereken:** `PAID_PLANS_ENABLED` `true` yapılıp Pro fiyatlandırması
+  (iyzico Abonelik ödeme planı, madde 1) devreye girdiğinde, `foundingServiceRank`
+  alanı DOLU olan bayiler için Pro fiyatı normalin (o an ne olursa olsun)
+  %`FOUNDING_SERVICE_DISCOUNT_PERCENT`'i olmalı — ÖMÜR BOYU, sadece ilk ay değil.
+  Bu muhtemelen iyzico'da bu bayiler için ayrı bir indirimli "Ödeme Planı"
+  (pricing plan) oluşturup `iyzicoPricingPlanReferenceCode`'u ona bağlamak
+  anlamına gelir. Kaç bayinin bu haktan yararlanacağını görmek için:
+  `listAllShops()` sonucunu `foundingServiceRank` alanına göre filtrelemek
+  yeterli (admin tarafında ayrı bir liste/rapor sayfası bu maddeyle birlikte
+  eklenebilir, henüz eklenmedi).
+- **Dikkat:** Bu, kontenjanı gerçekten dolduran (~100 kayıt) bir aciliyet
+  senaryosu düşünülerek tasarlandı — kontenjan hiç dolmazsa (ör. 10-20 bayide
+  kalırsa) bu madde yine de geçerli, sadece daha az kişiyi kapsar.
+
 ---
 Bu listeyi güncel tutmak için: yeni bir "şirket kuruluşunu bekliyor" durumu
 eklerken lütfen bu dosyaya da bir madde ekleyin.
