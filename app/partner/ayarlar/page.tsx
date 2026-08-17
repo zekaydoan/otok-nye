@@ -22,8 +22,15 @@ export default async function PartnerSettingsPage() {
           geri bildirimi) — sitedeki diğer alt sayfalarla aynı "← X" deseni
           (bkz. app/admin/partnerler/[id], app/admin/iyzico-abonelik) burada
           da uygulandı. Layout'a değil sayfaya özel tutuldu, çünkü /partner
-          panelinin kendisinde (bu linkin hedefi) tekrar görünmesi gereksizdi. */}
-      <Link href="/partner" className="text-sm font-medium text-brand-600 hover:underline">
+          panelinin kendisinde (bu linkin hedefi) tekrar görünmesi gereksizdi.
+          Kutucuk stili (bkz. yanındaki Ayarlar/Çıkış Yap butonları,
+          components/PlateSearch.tsx aynı border-brand-300/bg-brand-50/
+          text-brand-700 deseni) korunuyor — sayfaya taşınırken düz linke
+          dönmesin diye. */}
+      <Link
+        href="/partner"
+        className="inline-flex items-center rounded-lg border border-brand-300 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 hover:bg-brand-100"
+      >
         ← Panelim
       </Link>
       <h1 className="mt-4 text-2xl font-bold text-slate-900">Hesap Ayarları</h1>
