@@ -28,6 +28,12 @@ export default async function PartnerLayout({ children }: { children: React.Reac
           </Link>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm font-medium text-slate-600 sm:inline">{partner.name}</span>
+            <Link
+              href="/partner/ayarlar"
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+            >
+              Ayarlar
+            </Link>
             <PartnerLogoutButton />
           </div>
         </div>
