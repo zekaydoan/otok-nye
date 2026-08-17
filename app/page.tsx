@@ -37,11 +37,15 @@ import {
 } from "@/components/icons";
 
 // Ana sayfa artık Kurucu Servis kontenjan sayısını okuyor (bkz. aşağıdaki
-// getFoundingServiceCount çağrısı) — bu, sayfayı tamamen statik build-time
-// render'dan çıkarır. Her istekte Netlify Blobs'a gitmemek için 5 dakikalık
-// ISR: sayaç bu aralıkta arka planda tazelenir, yüksek trafik altında bile
-// blob store'a gereksiz yük binmez.
-export const revalidate = 300;
+// getFoundingServiceCount çağrısı). Netlify Blobs BUILD anında (statik
+// üretim aşamasında) kurulu değil — yalnızca çalışma zamanında (bir isteğe
+// yanıt verirken) erişilebilir. `revalidate` (ISR) bunu çözmez, çünkü ilk
+// statik üretim denemesi yine build sırasında yapılır ve MissingBlobsEnvironmentError
+// ile patlar (bkz. 17 Ağustos 2026 Netlify build hatası). Bu yüzden sayfa
+// tamamen dinamik/istek-anı render'a alınıyor — her istek Blobs'a tek bir
+// ucuz get() yapar (bkz. getFoundingServiceCount), bu düşük trafikli bir
+// pazarlama sayfası için sorun değil.
+export const dynamic = "force-dynamic";
 
 // Hero'daki koyu temalı "reklam görseli" hissindeki sol sütun özellik listesi
 // — kullanıcının referans gösterdiği görseldeki gibi ikon + kısa başlık +

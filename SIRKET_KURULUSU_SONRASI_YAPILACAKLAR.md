@@ -50,11 +50,24 @@ müşteride bile riskli.
 
 ### Yapılacaklar (şirket kuruluşu tamamlandığında sırayla)
 
-1. ⏳ **Bekliyor — Zeki'nin yapması gerekiyor.** iyzico hesabına kayıtlı
-   e-posta/üye işyeri no'yu entegrasyon@iyzico.com'a iletip sandbox'ta
-   Abonelik özelliğini (ve mümkünse webhook signature özelliğini) aktive
-   ettirmek. Bu adım kod değil — hesap sahipliği gerektiriyor, ben
-   gönderemem.
+1. ⏳ **Bekliyor — Zeki'nin yapması gerekiyor.** iyzico ile 17 Ağustos 2026'da
+   yazışıldı, sandbox kayıt süreci netleşti. Kod değil — hesap sahipliği
+   gerektiriyor, ben yapamam. Sıradaki adımlar:
+   1. **Sandbox hesabı aç:** https://sandbox-merchant.iyzipay.com/auth/register
+      — kayıt/girişte gerçek e-posta/SMS gönderilmiyor, SMS doğrulama kodu
+      olarak sabit `123456` kullanılır.
+   2. **API anahtarlarını al:** giriş yaptıktan sonra panelde **Ayarlar >
+      Firma Ayarları** — buradan `IYZICO_API_KEY`/`IYZICO_SECRET_KEY` alınıp
+      Netlify ortam değişkenlerine girilir (`IYZICO_BASE_URL` zaten
+      `https://sandbox-api.iyzipay.com` olarak `.env.example`'da tanımlı,
+      değişmesi gerekmiyor — bkz. `.env.example`).
+   3. **Test kartı edin:** ödeme akışını test ederken gerçek kart yerine
+      https://docs.iyzico.com/ek-bilgiler/test-kartlari sayfasındaki test
+      kartlarından biri kullanılmalı.
+   4. **Üye işyeri numarasını paylaş:** panelden alınan üye işyeri numarası
+      entegrasyon@iyzico.com'a iletilmeli (talep e-postası içinde) — bu adım
+      tamamlanınca iyzico hesapta Abonelik modülünü aktive ediyor. Bu olmadan
+      2. maddedeki `lib/iyzicoSubscription.ts` kodu sandbox'ta çağrılamaz.
 2. ✅ **Kod tarafı hazırlandı (17 Ağustos 2026):** `lib/iyzicoSubscription.ts`
    yazıldı — ürün oluşturma, ödeme planı oluşturma, Checkout Form ile abonelik
    başlatma, sonuç sorgulama (GET), webhook imza doğrulama. `lib/iyzico.ts`'teki
