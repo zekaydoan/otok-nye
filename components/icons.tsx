@@ -238,6 +238,18 @@ export function BellIcon(props: IconProps) {
   );
 }
 
+// Hakedişler/ödeme takibi ekranı (bkz. app/admin/hakedisler) için — basit
+// bir cüzdan silüeti.
+export function WalletIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.5 7.5A2.5 2.5 0 0 1 6 5h11a1 1 0 0 1 1 1v2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.5 7.5v9A2.5 2.5 0 0 0 6 19h13a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H6a2.5 2.5 0 0 1-2.5-2.5Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 13.2h.01" />
+    </svg>
+  );
+}
+
 // Bakım düzenliliği skoru / satış raporu gibi özet-istatistik özellikleri için.
 export function ChartBarIcon(props: IconProps) {
   return (

@@ -14,6 +14,7 @@ import {
   LightbulbIcon,
   LockIcon,
   UsersIcon,
+  WalletIcon,
 } from "@/components/icons";
 
 // Her sekmenin kendine özgü rengi var (bkz. components/IconBadge) — ne işe
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { href: "/admin/bekleyen-isler", label: "Bekleyen İşler", icon: <BellIcon />, color: "red" as const },
   { href: "/admin/bayiler", label: "Bayiler", icon: <UsersIcon />, color: "blue" as const },
   { href: "/admin/partnerler", label: "Partnerler", icon: <HandshakeIcon />, color: "teal" as const },
+  { href: "/admin/hakedisler", label: "Hakedişler", icon: <WalletIcon />, color: "indigo" as const },
   { href: "/admin/istatistikler", label: "İstatistikler", icon: <ChartBarIcon />, color: "purple" as const },
   { href: "/admin/duyurular", label: "Duyurular", icon: <ChatIcon />, color: "amber" as const },
   { href: "/admin/oneriler", label: "Öneriler", icon: <LightbulbIcon />, color: "yellow" as const },

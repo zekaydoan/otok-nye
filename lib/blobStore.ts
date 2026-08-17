@@ -1909,6 +1909,30 @@ export async function markPartnerCommissionPaid(id: string): Promise<PartnerComm
   return updated;
 }
 
+// Hakedişler ekranından (bkz. app/admin/hakedisler) tek tıkla, bir partnerin
+// O ANA KADAR tahakkuk etmiş TÜM bekleyen komisyonlarını "ödendi" işaretler —
+// partner sayısı arttıkça her partnerin detay sayfasına tek tek girip
+// komisyon komisyon işaretlemek sürdürülebilir değil (bkz. kullanıcı talebi).
+// Elden/EFT ile ödeme fiilen yapıldıktan SONRA çağrılmalı; burada gerçek para
+// transferi yapılmaz, yalnızca "ödendi" kaydı düşülür (aynı markPartnerCommissionPaid
+// deseni, bkz. yukarıdaki yorum).
+export async function markAllPendingCommissionsPaidForPartner(
+  partnerId: string
+): Promise<{ count: number; totalTry: number }> {
+  const commissions = await listCommissionsForPartner(partnerId);
+  const pending = commissions.filter((c) => c.status === "tahakkuk_etti");
+  const paidAt = new Date().toISOString();
+  await Promise.all(
+    pending.map((c) =>
+      partnerCommissionsStore().setJSON(c.id, { ...c, status: "odendi", paidAt } as PartnerCommissionEntry)
+    )
+  );
+  return {
+    count: pending.length,
+    totalTry: pending.reduce((sum, c) => sum + c.amountTry, 0),
+  };
+}
+
 // Bir bayi için, henüz aktivasyon primi tahakkuk etmemişse ve koşul (partnerin
 // koduyla geldi + PARTNER_ACTIVATION_WINDOW_DAYS içinde en az 1 bakım kaydı)
 // karşılandıysa tek seferlik aktivasyon primini tahakkuk ettirir.
@@ -2050,4 +2074,82 @@ export async function listAllPartnerSummaries(): Promise<PartnerSummary[]> {
   const partners = await listAllPartners();
   const summaries = await Promise.all(partners.map((p) => getPartnerSummary(p.id)));
   return summaries.filter((s): s is PartnerSummary => !!s);
+}
+
+// ---- Hakedişler (ödeme takip) ekranı — bkz. app/admin/hakedisler ----
+//
+// Partner sayısı arttıkça "kim ne kadar hak ediyor, en son ne zaman ödendi"
+// sorusu artık her partnerin detay sayfasını tek tek açarak takip
+// edilemiyor (bkz. kullanıcı talebi). Bu, tüm partnerleri BEKLEYEN
+// BAKİYESİ olanlar önde olacak şekilde tek ekranda toplar. "Ne zaman
+// ödenmesi gerektiği" için ayrı bir alan tutmuyoruz — en eski tahakkuk
+// tarihinden bugüne geçen gün sayısını hesaplıyoruz; ödeme politikası ayda
+// 1 kez olduğundan (bkz. app/partner/ayarlar, Ödeme Bilgileri) 30 günü
+// aşan bekleyen bakiye "ödeme zamanı geldi" sayılır (bkz. PARTNER_PAYOUT_DUE_DAYS).
+export const PARTNER_PAYOUT_DUE_DAYS = 30;
+
+export interface PartnerPayoutQueueItem {
+  partner: Partner;
+  tier: PartnerTier;
+  pendingCommissionTry: number;
+  paidCommissionTry: number;
+  pendingCount: number;
+  oldestPendingAt: string | null; // en eski "tahakkuk_etti" kaydının createdAt'i
+  daysSinceOldestPending: number | null;
+  isDue: boolean; // daysSinceOldestPending >= PARTNER_PAYOUT_DUE_DAYS
+  hasPaymentInfo: boolean;
+}
+
+export async function listPartnerPayoutQueue(): Promise<PartnerPayoutQueueItem[]> {
+  const partners = await listAllPartners();
+  const now = Date.now();
+
+  const items = await Promise.all(
+    partners.map(async (partner) => {
+      const [commissions, shops] = await Promise.all([
+        listCommissionsForPartner(partner.id),
+        listShopsForPartner(partner.id),
+      ]);
+      const vehicleCounts = await Promise.all(shops.map((s) => listVehiclesByShop(s.id)));
+      const activeShopCount = vehicleCounts.filter((v) => v.length > 0).length;
+
+      const pending = commissions.filter((c) => c.status === "tahakkuk_etti");
+      const paidCommissionTry = commissions
+        .filter((c) => c.status === "odendi")
+        .reduce((sum, c) => sum + c.amountTry, 0);
+      const pendingCommissionTry = pending.reduce((sum, c) => sum + c.amountTry, 0);
+
+      const oldestPendingAt = pending.length
+        ? pending.reduce((oldest, c) => (c.createdAt < oldest ? c.createdAt : oldest), pending[0].createdAt)
+        : null;
+      const daysSinceOldestPending = oldestPendingAt
+        ? Math.floor((now - new Date(oldestPendingAt).getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+
+      const item: PartnerPayoutQueueItem = {
+        partner,
+        tier: computePartnerTier(activeShopCount),
+        pendingCommissionTry,
+        paidCommissionTry,
+        pendingCount: pending.length,
+        oldestPendingAt,
+        daysSinceOldestPending,
+        isDue: (daysSinceOldestPending ?? 0) >= PARTNER_PAYOUT_DUE_DAYS,
+        hasPaymentInfo: !!partner.paymentInfo,
+      };
+      return item;
+    })
+  );
+
+  // Bekleyen bakiyesi olanlar önde, aralarında en eski tahakkuk en üstte —
+  // admin ilk açtığında "en acil kim" sorusunun cevabını hemen görsün diye.
+  return items.sort((a, b) => {
+    if (a.pendingCommissionTry !== b.pendingCommissionTry) {
+      if (a.pendingCommissionTry === 0) return 1;
+      if (b.pendingCommissionTry === 0) return -1;
+    }
+    const aTime = a.oldestPendingAt ? new Date(a.oldestPendingAt).getTime() : Infinity;
+    const bTime = b.oldestPendingAt ? new Date(b.oldestPendingAt).getTime() : Infinity;
+    return aTime - bTime;
+  });
 }

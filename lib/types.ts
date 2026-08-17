@@ -463,6 +463,7 @@ export type AdminAuditAction =
   | "partner_durum_degisti"
   | "partner_atandi"
   | "partner_komisyon_odendi"
+  | "partner_hakedis_toplu_odendi"
   | "partner_sifre_sifirlandi"
   | "partner_kendi_basvurdu";
 
