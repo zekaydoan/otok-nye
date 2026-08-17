@@ -46,20 +46,39 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <ToastProvider>
       <div className="min-h-screen bg-slate-50">
+        {/* Admin paneli yalnızca Zeki'nin kullandığı, kalabalık bir iç araç —
+            önceden logo + 8 nav öğesi + "Panelime dön" + "Çıkış Yap" hepsi
+            max-w-5xl (dar) bir tek satıra sıkıştırılmaya çalışılıyor, sonuçta
+            2-3 satıra bölünüp birbirine giriyordu. Şimdi iki ayrı satır:
+            üstte marka/hesap satırı, altında NAV_ITEMS kendi geniş satırında
+            — ayrıca konteyner max-w-5xl'den max-w-7xl'e çıkarıldı (hem header
+            hem main) ki geniş ekranda gerçekten daha fazla yatay alan
+            kullanılsın, sıkışıklık azalsın. */}
         <header className="border-b bg-white">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
-            <Link href="/admin/siparisler" className="flex items-center gap-2 text-base font-bold text-brand-700 sm:text-lg">
-              <Logo size="sm" />
-              <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-brand-600">
-                Admin
-              </span>
-            </Link>
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Link
+                href="/admin/siparisler"
+                className="flex items-center gap-2 text-base font-bold text-brand-700 sm:text-lg"
+              >
+                <Logo size="sm" />
+                <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-brand-600">
+                  Admin
+                </span>
+              </Link>
+              <div className="flex items-center gap-4">
+                <Link href="/dashboard" className="text-sm font-medium text-slate-500 hover:text-slate-700">
+                  ← Panelime dön
+                </Link>
+                <LogoutButton />
+              </div>
+            </div>
+            <nav className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="relative flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                  className="relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
                 >
                   <IconBadge icon={item.icon} color={item.color} />
                   <span>{item.label}</span>
@@ -70,14 +89,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                   )}
                 </Link>
               ))}
-              <Link href="/dashboard" className="text-sm font-medium text-slate-500 hover:text-slate-700">
-                ← Panelime dön
-              </Link>
-              <LogoutButton />
-            </div>
+            </nav>
           </div>
         </header>
-        <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
       </div>
     </ToastProvider>
   );
