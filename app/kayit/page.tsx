@@ -1,12 +1,13 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AuthSidePanel from "@/components/AuthSidePanel";
 import Logo from "@/components/Logo";
 import { trackConversionEvent } from "@/components/AdPixels";
 import { TR_PROVINCES } from "@/lib/types";
+import { CheckCircleIcon } from "@/components/icons";
 
 function SignupForm() {
   const router = useRouter();
@@ -17,11 +18,33 @@ function SignupForm() {
   // Bilinmeyen/geçersiz bir kod sessizce yok sayılır — kayıt akışını bloklamaz.
   const searchParams = useSearchParams();
   const referralCode = searchParams.get("ref");
+  // Linki paylaşan partnerin adını gösterip "rastgele bir link değil, tanıdık
+  // biri üzerinden geldim" güvenini vermek için — bkz.
+  // app/api/partner/kod/[code]/route.ts (yalnızca ad döner, başka hiçbir
+  // partner bilgisi bu public uç noktadan sızmaz). Bilinmeyen/pasif bir kod
+  // için sessizce null kalır, kayıt akışını hiçbir şekilde etkilemez.
+  const [partnerName, setPartnerName] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", password: "" });
   const [consent, setConsent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!referralCode) return;
+    let cancelled = false;
+    fetch(`/api/partner/kod/${encodeURIComponent(referralCode)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setPartnerName(data.name ?? null);
+      })
+      .catch(() => {
+        // sessizce yok say — rozet gösterilmez, kayıt akışı etkilenmez
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [referralCode]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,7 +77,17 @@ function SignupForm() {
 
   return (
     <>
-      <h1 className="mt-6 text-2xl font-bold text-slate-900">Firma Hesabı Oluştur</h1>
+      {partnerName && (
+        <div className="mt-6 flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          <CheckCircleIcon className="h-5 w-5 shrink-0 text-emerald-600" />
+          <span>
+            <span className="font-semibold">{partnerName}</span> (OtoHafıza Saha Partneri) sizi davet etti.
+          </span>
+        </div>
+      )}
+      <h1 className={`${partnerName ? "mt-4" : "mt-6"} text-2xl font-bold text-slate-900`}>
+        Firma Hesabı Oluştur
+      </h1>
       <p className="mt-1 text-sm text-slate-500">
         Oto tamir/servis firmanız için ücretsiz hesap açın.
       </p>

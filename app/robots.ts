@@ -15,7 +15,27 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/dashboard", "/admin", "/api", "/giris", "/kayit/dogrula", "/sifre-sifirla"],
+      disallow: [
+        "/dashboard",
+        "/admin",
+        "/api",
+        "/giris",
+        "/kayit/dogrula",
+        "/sifre-sifirla",
+        // Saha partnerlerinin paylaştığı kişisel kısa yönlendirme linkleri
+        // (bkz. app/p/[code], components/PartnerReferralLink.tsx) — içerik
+        // değeri yok, sadece /kayit?ref=KOD'a yönlendiriyor, taranmasına gerek yok.
+        // DİKKAT: robots.txt disallow eşleşmesi düz ÖNEK (prefix) eşleşmesidir,
+        // "/p" ya da "/partner" gibi SONU "/" OLMAYAN girişler yazarsak
+        // "/partner-basvuru" ve "/partner-girisi" gibi tamamen ayrı, kasıtlı
+        // olarak indekslenebilir kalması gereken sayfaları da yanlışlıkla
+        // engeller (aynı harflerle başlıyorlar diye). Bu yüzden bilinçli
+        // olarak sondaki "/" ile sadece o klasörün ALTINDAKİ path'ler
+        // engelleniyor, kardeş sayfalara dokunulmuyor.
+        "/p/",
+        "/partner/",
+        "/partner-girisi",
+      ],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

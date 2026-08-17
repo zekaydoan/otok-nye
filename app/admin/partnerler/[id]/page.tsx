@@ -45,10 +45,10 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
         <PartnerStatusToggle partnerId={partner.id} status={partner.status} />
       </div>
 
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mt-4">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Referans Linki</p>
         <div className="mt-1.5">
-          <PartnerReferralLink code={partner.referralCode} />
+          <PartnerReferralLink code={partner.referralCode} name={partner.name} />
         </div>
       </div>
 

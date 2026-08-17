@@ -79,13 +79,13 @@ export default async function PartnerDashboardPage() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mt-6">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Kayıt Linkiniz</p>
         <p className="mt-1 text-xs text-slate-500">
-          Bu linki gittiğiniz servislerle paylaşın — üzerinden kaydolan her işletme size bağlanır.
+          Bu linki/QR kodu gittiğiniz servislerle paylaşın — üzerinden kaydolan her işletme size bağlanır.
         </p>
         <div className="mt-2">
-          <PartnerReferralLink code={partner.referralCode} />
+          <PartnerReferralLink code={partner.referralCode} name={partner.name} />
         </div>
       </div>
 
