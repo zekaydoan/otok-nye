@@ -12,6 +12,7 @@ import {
   PARTNER_TIER_LABELS,
   PARTNER_TIER_THRESHOLDS,
   PLAN_LIMITS,
+  type PartnerCommissionType,
 } from "@/lib/types";
 import PartnerReferralLink from "@/components/PartnerReferralLink";
 
@@ -36,6 +37,26 @@ export default async function PartnerDashboardPage() {
   const activatedShopIds = new Set(
     commissions.filter((c) => c.type === "aktivasyon").map((c) => c.shopId)
   );
+
+  // Tür bazında döküm — "bu kadar param var" derken bunun tam olarak neyin
+  // karşılığı olduğunu (kaç aktivasyon primi, kaç dönüşüm bonusu, kaç aylık
+  // komisyon) partnerin kendisinin de görebilmesi için (bkz. admin tarafındaki
+  // aynı bölüm, app/admin/partnerler/[id]) — ikisi aynı hesaptan geldiğinden
+  // ileride "ben bu kadar getirmiştim" tartışmasına yer kalmasın diye.
+  const breakdown: Record<PartnerCommissionType, { count: number; pendingTry: number; paidTry: number }> = {
+    aktivasyon: { count: 0, pendingTry: 0, paidTry: 0 },
+    donusum: { count: 0, pendingTry: 0, paidTry: 0 },
+    recurring: { count: 0, pendingTry: 0, paidTry: 0 },
+  };
+  for (const c of commissions) {
+    breakdown[c.type].count += 1;
+    if (c.status === "odendi") breakdown[c.type].paidTry += c.amountTry;
+    else breakdown[c.type].pendingTry += c.amountTry;
+  }
+  const earningsByShop = new Map<string, number>();
+  for (const c of commissions) {
+    earningsByShop.set(c.shopId, (earningsByShop.get(c.shopId) ?? 0) + c.amountTry);
+  }
 
   const { partner } = summary;
 
@@ -145,6 +166,32 @@ export default async function PartnerDashboardPage() {
       </div>
 
       <div className="mt-6">
+        <h2 className="text-sm font-bold text-slate-900">Komisyon Dökümü</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          Toplam kazancınızın nereden geldiği — kaç aktivasyon primi, kaç dönüşüm bonusu, kaç aylık
+          komisyon kaydı olduğu.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {(Object.keys(PARTNER_COMMISSION_TYPE_LABELS) as PartnerCommissionType[]).map((type) => {
+            const b = breakdown[type];
+            return (
+              <div key={type} className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  {PARTNER_COMMISSION_TYPE_LABELS[type]} ({b.count} kayıt)
+                </p>
+                <p className="mt-1 text-xl font-bold text-slate-900">
+                  {(b.pendingTry + b.paidTry).toLocaleString("tr-TR")} TL
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {b.pendingTry.toLocaleString("tr-TR")} TL bekliyor · {b.paidTry.toLocaleString("tr-TR")} TL ödendi
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-6">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Kayıt Linkiniz</p>
         <p className="mt-1 text-xs text-slate-500">
           Bu linki/QR kodu gittiğiniz servislerle paylaşın — üzerinden kaydolan her işletme size bağlanır.
@@ -160,7 +207,7 @@ export default async function PartnerDashboardPage() {
           <p className="mt-2 text-sm text-slate-500">Henüz kaydolan bir işletme yok.</p>
         ) : (
           <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table className="w-full min-w-[600px] text-left text-sm">
+            <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-4 py-3">İşletme</th>
@@ -168,6 +215,7 @@ export default async function PartnerDashboardPage() {
                   <th className="px-4 py-3">Plan</th>
                   <th className="px-4 py-3">Tarih</th>
                   <th className="px-4 py-3">Durum</th>
+                  <th className="px-4 py-3">Bu İşletmeden Kazancınız</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -204,6 +252,9 @@ export default async function PartnerDashboardPage() {
                         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status.cls}`}>
                           {status.label}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 font-medium text-slate-900">
+                        {(earningsByShop.get(s.id) ?? 0).toLocaleString("tr-TR")} TL
                       </td>
                     </tr>
                   );
