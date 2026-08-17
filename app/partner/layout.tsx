@@ -31,11 +31,15 @@ export default async function PartnerLayout({ children }: { children: React.Reac
                 girildiğinde, sol üstteki logo+"Partner" rozeti tıklanabilir
                 olsa da bunu bir "geri dön" kontrolü olarak fark etmeyen
                 kullanıcılar sıkışmış hissediyordu (bkz. kullanıcı geri
-                bildirimi, /partner/ayarlar). Admin panelindeki "← Panelime
-                dön" deseniyle aynı açık, metinli link burada da eklendi. */}
+                bildirimi, /partner/ayarlar). Sitedeki "← X" geri dön
+                linklerinin ezici çoğunluğu (bkz. app/admin/partnerler/[id],
+                app/admin/iyzico-abonelik, app/dashboard/araclar/yeni vb.)
+                text-brand-600 kullanıyor — admin/layout.tsx'teki tek istisna
+                (slate-500) yerine site geneliyle tutarlı renk burada da
+                uygulandı. */}
             <Link
               href="/partner"
-              className="hidden text-sm font-medium text-slate-500 hover:text-slate-700 sm:inline"
+              className="hidden text-sm font-medium text-brand-600 hover:underline sm:inline"
             >
               ← Panelim
             </Link>
