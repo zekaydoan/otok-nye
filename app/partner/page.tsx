@@ -6,6 +6,7 @@ import {
   listCommissionsForPartner,
   listShopsForPartner,
   listVehiclesByShop,
+  PARTNER_PAYOUT_DUE_DAYS,
 } from "@/lib/blobStore";
 import {
   PARTNER_ACTIVATION_WINDOW_DAYS,
@@ -59,6 +60,35 @@ export default async function PartnerDashboardPage() {
     earningsByShop.set(c.shopId, (earningsByShop.get(c.shopId) ?? 0) + c.amountTry);
   }
 
+  // Hakediş ödeme durumu rozeti — partner "param nerede" diye admin'e sormak
+  // zorunda kalmasın diye, admin'in Hakedişler ekranındaki (bkz.
+  // app/admin/hakedisler, PARTNER_PAYOUT_DUE_DAYS) aynı "ne zamandır bekliyor"
+  // mantığını burada da uyguluyoruz. IBAN kayıtlı değilse zaten yukarıdaki IBAN
+  // uyarısı gösteriliyor, "bankaya gönderilecek" mesajı karışıklık yaratmasın
+  // diye isDue rozeti yalnızca IBAN varsa gösterilir.
+  const pendingEntries = commissions.filter((c) => c.status === "tahakkuk_etti");
+  const oldestPendingAt = pendingEntries.length
+    ? pendingEntries.reduce((oldest, c) => (c.createdAt < oldest ? c.createdAt : oldest), pendingEntries[0].createdAt)
+    : null;
+  const daysSinceOldestPending = oldestPendingAt
+    ? Math.floor((Date.now() - new Date(oldestPendingAt).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  const payoutIsDue = (daysSinceOldestPending ?? 0) >= PARTNER_PAYOUT_DUE_DAYS;
+
+  // Son ödenen toplu hakediş — bulk ödeme (bkz. markAllPendingCommissionsPaidForPartner)
+  // aynı partiye ait tüm kayıtlara aynı paidAt değerini yazıyor, bu yüzden en
+  // son paidAt'e eşit kayıtları toplayarak "az önce ödenen X TL"yi buluyoruz.
+  const paidEntries = commissions.filter((c) => c.status === "odendi" && c.paidAt);
+  const latestPaidAt = paidEntries.length
+    ? paidEntries.reduce((latest, c) => (c.paidAt! > latest ? c.paidAt! : latest), paidEntries[0].paidAt!)
+    : null;
+  const latestPaidBatchTry = latestPaidAt
+    ? paidEntries.filter((c) => c.paidAt === latestPaidAt).reduce((sum, c) => sum + c.amountTry, 0)
+    : 0;
+  const recentlyPaid =
+    latestPaidAt !== null &&
+    Date.now() - new Date(latestPaidAt).getTime() <= 7 * 24 * 60 * 60 * 1000;
+
   const { partner } = summary;
 
   // Bu ay bağlanan işletme sayısı — aylık hedef ilerlemesi için (bkz.
@@ -94,6 +124,22 @@ export default async function PartnerDashboardPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Merhaba, {partner.name.split(" ")[0]}</h1>
+
+      {recentlyPaid && latestPaidAt && (
+        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <span className="font-semibold">✅ Hakedişiniz ödendi —</span>{" "}
+          {latestPaidBatchTry.toLocaleString("tr-TR")} TL,{" "}
+          {new Date(latestPaidAt).toLocaleDateString("tr-TR")} tarihinde IBAN&apos;ınıza gönderildi.
+        </div>
+      )}
+
+      {partner.paymentInfo && !recentlyPaid && payoutIsDue && (
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          <span className="font-semibold">⏳ Hakedişiniz bankada bekliyor —</span>{" "}
+          {summary.pendingCommissionTry.toLocaleString("tr-TR")} TL ödeme sırasında, yakında
+          IBAN&apos;ınıza gönderilecek.
+        </div>
+      )}
 
       {!partner.paymentInfo && (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-accent-200 bg-accent-50 px-4 py-3">
