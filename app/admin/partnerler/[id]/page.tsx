@@ -9,6 +9,7 @@ import {
   PLAN_LIMITS,
   type PartnerCommissionType,
 } from "@/lib/types";
+import { formatIban } from "@/lib/paymentInfo";
 import PartnerReferralLink from "@/components/PartnerReferralLink";
 import PartnerStatusToggle from "@/components/PartnerStatusToggle";
 import PartnerCommissionsTable from "@/components/PartnerCommissionsTable";
@@ -137,6 +138,34 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
 
       <div className="mt-4">
         <PartnerAdminTools partnerId={partner.id} initialTarget={partner.monthlyTarget} />
+      </div>
+
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          Ödeme Bilgileri (Hakediş, ayda 1 kez bu IBAN'a ödenir)
+        </p>
+        {partner.paymentInfo ? (
+          <dl className="mt-2 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="text-xs text-slate-400">Hesap Sahibi</dt>
+              <dd className="font-medium text-slate-900">{partner.paymentInfo.fullName}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">IBAN</dt>
+              <dd className="font-mono font-medium text-slate-900">
+                {formatIban(partner.paymentInfo.iban)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Banka</dt>
+              <dd className="font-medium text-slate-900">{partner.paymentInfo.bankName}</dd>
+            </div>
+          </dl>
+        ) : (
+          <p className="mt-1 text-sm text-slate-500">
+            Partner henüz IBAN bilgisini kaydetmedi — ödeme günü kendi panelinden (Ayarlar) girmesi gerekir.
+          </p>
+        )}
       </div>
 
       {partner.notes && (

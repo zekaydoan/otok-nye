@@ -492,6 +492,24 @@ export interface AdminAuditLogEntry {
 // doğru tutulsun diye. Partnere GERÇEKTEN ödeme yapmak (banka transferi vb.)
 // bu sistemin dışında, elle yürütülen bir süreç olmaya devam ediyor; sistem
 // yalnızca "ne kadar tahakkuk etti" ve "ödendi mi" bilgisini tutar.
+//
+// Ödeme günü/yöntemi: hakedişler ayda 1 kez, partnerin kendi panelinde
+// (bkz. app/partner/ayarlar, "Ödeme Bilgileri") kaydettiği IBAN'a elden/EFT
+// ile ödenir — bkz. PartnerPaymentInfo. Bu alan sayesinde admin her ödeme
+// döneminde partnere ayrı ayrı "IBAN'ınız nedir?" sormak zorunda kalmaz;
+// aşağıdaki Partner.paymentInfo'ya bakması yeterli.
+
+// Partnerin kendi girdiği ödeme/IBAN bilgisi — bkz. app/partner/ayarlar
+// (PartnerPaymentInfoForm) ve lib/paymentInfo.ts (biçim + IBAN checksum
+// doğrulaması, hem istemci hem app/api/partner/odeme-bilgileri tarafından
+// kullanılır). fullName IBAN hesap sahibinin adı — partnerin kendisiyle aynı
+// kişi olmak zorunda değil (ör. aile/şirket hesabı) diye ayrı bir alan.
+export interface PartnerPaymentInfo {
+  fullName: string;
+  iban: string; // "TR" + 24 rakam, boşluksuz saklanır — gösterimde 4'erli gruplanır (bkz. lib/paymentInfo.ts formatIban)
+  bankName: string;
+  updatedAt: string; // ISO
+}
 
 // "onay_bekliyor": partner kendi başvurusuyla (bkz. app/partner-basvuru)
 // hesap oluşturdu ama admin henüz onaylamadı — giriş yapamaz, referans linki
@@ -584,6 +602,10 @@ export interface Partner {
   // (bkz. analiz raporu Bölüm 2). Şimdilik yalnızca bilgi amaçlı gösteriliyor,
   // otomatik bir aksiyon (bölge önceliğini düşürme) tetiklemiyor.
   lastAttributionAt?: string;
+  // Hakedişlerin ayda 1 kez ödeneceği IBAN — partner kendi panelinden girer/
+  // günceller (bkz. yukarıdaki kapsam notu, app/partner/ayarlar). Yoksa admin
+  // ödeme gününde partnerden IBAN istemek zorunda kalır.
+  paymentInfo?: PartnerPaymentInfo;
 }
 
 // ---- Komisyon kademeleri (bkz. Saha_Partner_Agi_Analiz.docx Bölüm 2 ve 3) ----

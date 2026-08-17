@@ -24,6 +24,7 @@ import type {
   OilRecord,
   Partner,
   PartnerCommissionEntry,
+  PartnerPaymentInfo,
   PartnerTier,
   Plan,
   Shop,
@@ -1771,6 +1772,17 @@ export async function updatePartnerFields(
   const updated = mutate(existing);
   await partnersStore().setJSON(id, updated);
   return updated;
+}
+
+// bkz. updateShopBillingInfo aynı desen — partnerin kendi girdiği IBAN/banka
+// bilgisini kaydeder (app/api/partner/odeme-bilgileri). Aylık hakediş ödemesi
+// yapılırken admin bu alana bakar, partnere ayrıca sormaz (bkz. types.ts
+// PartnerPaymentInfo yorumu).
+export async function updatePartnerPaymentInfo(
+  id: string,
+  paymentInfo: PartnerPaymentInfo
+): Promise<Partner> {
+  return updatePartnerFields(id, (partner) => ({ ...partner, paymentInfo }));
 }
 
 // Bir bayiyi bir partnere bağlar — YALNIZCA henüz partnersiz bir bayi için

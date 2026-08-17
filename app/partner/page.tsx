@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentPartnerId } from "@/lib/partnerAuth";
 import {
   getPartnerSummary,
@@ -93,6 +94,20 @@ export default async function PartnerDashboardPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900">Merhaba, {partner.name.split(" ")[0]}</h1>
+
+      {!partner.paymentInfo && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-accent-200 bg-accent-50 px-4 py-3">
+          <p className="text-sm font-medium text-accent-600">
+            Hakedişlerinizin ödenebilmesi için IBAN bilginizi henüz kaydetmediniz.
+          </p>
+          <Link
+            href="/partner/ayarlar"
+            className="shrink-0 rounded-lg bg-accent-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-accent-700"
+          >
+            Ödeme Bilgilerini Ekle
+          </Link>
+        </div>
+      )}
 
       <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
         <div className="flex items-center justify-between text-sm">
