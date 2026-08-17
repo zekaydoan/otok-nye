@@ -16,15 +16,16 @@
 // (18 Ağustos 2026, etiket sipariş akışı sandbox'ta uçtan uca başarıyla
 // tamamlandı).
 //
-// GEÇİCİ TEST AÇMASI (18 Ağustos 2026): Zeki'nin Abonelik Checkout Form
-// akışını (/dashboard/plan/odeme) da iyzico sandbox test kartıyla uçtan uca
-// deneyebilmesi için bu bayrak geçici olarak true yapıldı. Şirket kuruluşu
-// HÂLÂ tamamlanmadı — fatura kesme yeterliliği yok. Test tamamlanır
-// tamamlanmaz bu değer false'a geri alınmalı (bkz. commit geçmişi); aksi
-// hâlde gerçek ziyaretçiler ücretli planı "satın alınabilir" görür ve bu,
-// şirketin henüz fatura kesemediği bir üründe yanıltıcı ticari uygulama
-// riskine yol açar (bkz. hukuki/00_INDEKS_ve_RISK_ANALIZI.md, risk #20).
-export const PAID_PLANS_ENABLED = true;
+// 18 Ağustos 2026 GÜNCELLEMESİ: Abonelik Checkout Form akışı (/dashboard/plan/
+// odeme) sandbox'ta uçtan uca başarıyla test edildi — sorun iyzico'nun CDN'i
+// değil, next.config.js'teki CSP'nin *.iyzipay.com'a izin vermemesiydi, bu
+// düzeltildi (bkz. next.config.js script-src/connect-src/frame-src). Test
+// için bu bayrak geçici olarak true yapılmıştı, test tamamlandığı için
+// tekrar false'a alındı. Şirket kuruluşu HÂLÂ tamamlanmadı — fatura kesme
+// yeterliliği yok, bu yüzden ücretli planlar gerçek kullanıcılara hâlâ
+// kapalı kalmalı. Kuruluş tamamlandığında bu değeri true yapmak (ve
+// hukuki/ klasöründeki sözleşme paketini yayına almak) yeterli.
+export const PAID_PLANS_ENABLED = false;
 
 // ---- Kurucu Servis kontenjanı ----
 // "Ücretli planlar yakında açılacak" tek başına güven kırıcı ve belirsiz —
