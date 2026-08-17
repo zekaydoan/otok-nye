@@ -6,7 +6,15 @@
 // Şirket kuruluşu tamamlandığında bu değeri true yapmak yeterli — hem sunucu
 // tarafı engel (app/api/shop/plan) hem arayüz (components/PlanSelector) buradan
 // okur, başka hiçbir yerin değiştirilmesi gerekmez.
-export const PAID_PLANS_ENABLED = false;
+//
+// GEÇİCİ TEST MODU (18 Ağustos 2026): iyzico Abonelik Checkout Form'unu
+// sandbox'ta uçtan uca test etmek için true yapıldı — IYZICO_BASE_URL hâlâ
+// sandbox-api.iyzipay.com olduğundan gerçek para hareketi YOK, ama bu
+// pencerede canlı sitedeki HERHANGİ bir bayi de Pro/İşletme'yi "seçip"
+// ödeme formunu görebilir (sandbox olduğu için gerçek kartları işlemez,
+// başarısız olur). Test biter bitmez false'a geri alınmalı — bkz.
+// SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md madde 1/5.
+export const PAID_PLANS_ENABLED = true;
 
 // ---- Kurucu Servis kontenjanı ----
 // "Ücretli planlar yakında açılacak" tek başına güven kırıcı ve belirsiz —
