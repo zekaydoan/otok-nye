@@ -17,6 +17,7 @@ const ACTION_LABELS: Record<AdminAuditAction, string> = {
   partner_komisyon_odendi: "Partner komisyonu ödendi",
   partner_sifre_sifirlandi: "Partner şifresi sıfırlandı",
   partner_kendi_basvurdu: "Partner kendi başvurusuyla katıldı",
+  partner_hakedis_toplu_odendi: "Partner hakedişi toplu ödendi",
 };
 
 // Record<AdminAuditLogEntry["targetType"], ...> ile (Record<string, ...>
