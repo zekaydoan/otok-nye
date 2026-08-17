@@ -31,15 +31,16 @@ export default async function PartnerLayout({ children }: { children: React.Reac
                 girildiğinde, sol üstteki logo+"Partner" rozeti tıklanabilir
                 olsa da bunu bir "geri dön" kontrolü olarak fark etmeyen
                 kullanıcılar sıkışmış hissediyordu (bkz. kullanıcı geri
-                bildirimi, /partner/ayarlar). Sitedeki "← X" geri dön
-                linklerinin ezici çoğunluğu (bkz. app/admin/partnerler/[id],
-                app/admin/iyzico-abonelik, app/dashboard/araclar/yeni vb.)
-                text-brand-600 kullanıyor — admin/layout.tsx'teki tek istisna
-                (slate-500) yerine site geneliyle tutarlı renk burada da
-                uygulandı. */}
+                bildirimi, /partner/ayarlar). Yanındaki "Ayarlar"/"Çıkış Yap"
+                ile aynı kutucuk boyutunu (rounded-lg border, px-3 py-1.5,
+                text-sm font-medium) kullanıyor ki üçü tek bir buton grubu
+                gibi okunsun; rengi ise sitedeki "← X" geri dön linklerinin
+                ezici çoğunluğuyla aynı marka mavisi (bkz. components/
+                PlateSearch.tsx, components/AppointmentsSection.tsx aynı
+                border-brand-300/bg-brand-50/text-brand-700 deseni). */}
             <Link
               href="/partner"
-              className="hidden text-sm font-medium text-brand-600 hover:underline sm:inline"
+              className="hidden items-center rounded-lg border border-brand-300 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 hover:bg-brand-100 sm:inline-flex"
             >
               ← Panelim
             </Link>
