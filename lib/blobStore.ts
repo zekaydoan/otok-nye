@@ -1009,10 +1009,9 @@ export async function bindStickerToken(token: string, vehicleId: string): Promis
   return updated;
 }
 
-// ---------- iyzico Abonelik — hazırlık aşaması ----------
-// bkz. lib/iyzicoSubscription.ts, app/api/webhooks/iyzico-abonelik. Henüz
-// /api/shop/plan'e bağlanmadı (bkz. SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md
-// madde 1) — bu fonksiyonlar altyapı hazırlığı, canlı akışta kullanılmıyor.
+// ---------- iyzico Abonelik ----------
+// bkz. lib/iyzicoSubscription.ts, app/api/webhooks/iyzico-abonelik,
+// app/api/shop/plan (18 Ağustos 2026'da gerçek akışa bağlandı).
 export async function linkSubscriptionToShop(
   subscriptionReferenceCode: string,
   shopId: string,
@@ -1027,6 +1026,52 @@ export async function getSubscriptionShopLink(
   return (await subscriptionShopLinksStore().get(subscriptionReferenceCode, {
     type: "json",
   })) as { shopId: string; plan: Plan } | null;
+}
+
+// Abonelik Checkout Form başlatılırken dönen token'ı hangi bayinin hangi plana
+// geçmek istediğiyle eşler — iyzico'nun callbackUrl'e yaptığı POST isteği
+// yalnızca token içerir (subscriptionReferenceCode henüz o an oluşmamıştır,
+// yalnızca ödeme formu sonucu sorgulandığında (retrieveSubscriptionCheckoutFormResult)
+// öğrenilir) — sticker_order_tokens ile aynı desen (bkz. linkStickerOrderToken).
+const subscriptionCheckoutTokensStore = () => getStore("subscription_checkout_tokens");
+
+export async function linkSubscriptionCheckoutToken(
+  token: string,
+  shopId: string,
+  plan: Plan
+): Promise<void> {
+  await subscriptionCheckoutTokensStore().setJSON(token, { shopId, plan });
+}
+
+export async function getSubscriptionCheckoutTokenLink(
+  token: string
+): Promise<{ shopId: string; plan: Plan } | null> {
+  return (await subscriptionCheckoutTokensStore().get(token, {
+    type: "json",
+  })) as { shopId: string; plan: Plan } | null;
+}
+
+// iyzico'da bir kez oluşturulan "OtoHafıza Abonelik" ürününün ve her ücretli
+// plana (Pro/İşletme/İşletme Yıllık) karşılık gelen "ödeme planı" referans
+// kodlarının saklandığı yer — bkz. app/api/admin/iyzico-abonelik-kurulum
+// (bu kodları bir kez oluşturan admin aracı) ve app/api/shop/plan (bir bayi
+// abone olmak istediğinde ilgili plan kodunu buradan okur). settingsStore
+// zaten sticker_unit_price_try için aynı basit anahtar-değer deseniyle
+// kullanılıyor, aynısı tekrarlanıyor.
+export async function getIyzicoSubscriptionProductCode(): Promise<string | null> {
+  return await settingsStore().get("iyzico_subscription_product_code", { type: "text" });
+}
+
+export async function setIyzicoSubscriptionProductCode(code: string): Promise<void> {
+  await settingsStore().set("iyzico_subscription_product_code", code);
+}
+
+export async function getIyzicoPricingPlanCode(plan: Plan): Promise<string | null> {
+  return await settingsStore().get(`iyzico_pricing_plan_${plan}`, { type: "text" });
+}
+
+export async function setIyzicoPricingPlanCode(plan: Plan, code: string): Promise<void> {
+  await settingsStore().set(`iyzico_pricing_plan_${plan}`, code);
 }
 
 // Etiket birim fiyatı henüz kesinleşmedi (baskı tedarikçisi araştırması sürüyor) —

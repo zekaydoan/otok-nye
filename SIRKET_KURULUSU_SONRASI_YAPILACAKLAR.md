@@ -50,24 +50,15 @@ müşteride bile riskli.
 
 ### Yapılacaklar (şirket kuruluşu tamamlandığında sırayla)
 
-1. ⏳ **Bekliyor — Zeki'nin yapması gerekiyor.** iyzico ile 17 Ağustos 2026'da
-   yazışıldı, sandbox kayıt süreci netleşti. Kod değil — hesap sahipliği
-   gerektiriyor, ben yapamam. Sıradaki adımlar:
-   1. **Sandbox hesabı aç:** https://sandbox-merchant.iyzipay.com/auth/register
-      — kayıt/girişte gerçek e-posta/SMS gönderilmiyor, SMS doğrulama kodu
-      olarak sabit `123456` kullanılır.
-   2. **API anahtarlarını al:** giriş yaptıktan sonra panelde **Ayarlar >
-      Firma Ayarları** — buradan `IYZICO_API_KEY`/`IYZICO_SECRET_KEY` alınıp
-      Netlify ortam değişkenlerine girilir (`IYZICO_BASE_URL` zaten
-      `https://sandbox-api.iyzipay.com` olarak `.env.example`'da tanımlı,
-      değişmesi gerekmiyor — bkz. `.env.example`).
-   3. **Test kartı edin:** ödeme akışını test ederken gerçek kart yerine
-      https://docs.iyzico.com/ek-bilgiler/test-kartlari sayfasındaki test
-      kartlarından biri kullanılmalı.
-   4. **Üye işyeri numarasını paylaş:** panelden alınan üye işyeri numarası
-      entegrasyon@iyzico.com'a iletilmeli (talep e-postası içinde) — bu adım
-      tamamlanınca iyzico hesapta Abonelik modülünü aktive ediyor. Bu olmadan
-      2. maddedeki `lib/iyzicoSubscription.ts` kodu sandbox'ta çağrılamaz.
+1. ✅ **Tamamlandı (17-18 Ağustos 2026).** Zeki sandbox hesabı açtı, API
+   anahtarlarını (`IYZICO_API_KEY`/`IYZICO_SECRET_KEY`) Netlify ortam
+   değişkenlerine ekleyip deploy etti, üye işyeri numarasını
+   entegrasyon@iyzico.com'a iletti — **iyzico Abonelik modülünü sandbox
+   hesabında aktive ettiğini onayladı.** `IYZICO_BASE_URL` zaten
+   `https://sandbox-api.iyzipay.com` olarak `.env.example`'da tanımlı. Test
+   kartları: https://docs.iyzico.com/ek-bilgiler/test-kartlari (gerçek kart
+   bilgisi ASLA kullanılmamalı/girilmemeli, sandbox'ta yalnızca bu test
+   kartları geçerli).
 2. ✅ **Kod tarafı hazırlandı (17 Ağustos 2026):** `lib/iyzicoSubscription.ts`
    yazıldı — ürün oluşturma, ödeme planı oluşturma, Checkout Form ile abonelik
    başlatma, sonuç sorgulama (GET), webhook imza doğrulama. `lib/iyzico.ts`'teki
@@ -87,9 +78,57 @@ müşteride bile riskli.
    Firma Ayarları > İşyeri Bildirimleri" altındaki abonelik bildirim URL'sine
    bu endpoint tanımlanmalı — `IYZICO_MERCHANT_ID` ortam değişkeni de gerekli
    (bkz. `.env.example`).
-5. ⏳ **Henüz yapılmadı — asıl kalan iş:** `/api/shop/plan` mevcut "talep → admin onayı" akışından, doğrudan
-   abonelik başlatan bir akışa geçirilir.
-6. ⏳ `PAID_PLANS_ENABLED` en son, her şey test edildikten sonra `true` yapılır.
+5. ✅ **Kod tarafı hazırlandı (18 Ağustos 2026):** `/api/shop/plan` artık ücretli
+   bir plan seçildiğinde admin'e "onay bekliyor" e-postası atmıyor — doğrudan
+   iyzico Abonelik Checkout Form'unu başlatıp `checkoutFormContent`'i döner.
+   Yeni dosyalar: `app/dashboard/plan/odeme` (T.C. Kimlik No toplayan sayfa),
+   `components/SubscriptionCheckoutStarter`/`SubscriptionCheckoutForm`
+   (checkout form'u embed eden bileşenler), `app/api/shop/plan/callback`
+   (ödeme tamamlanınca planı aktive eden, webhook'la aynı mantığı içeren uç
+   nokta — komisyon fonksiyonları idempotent olduğundan webhook'la çakışma
+   riski yok), `app/api/admin/iyzico-abonelik-kurulum` + `/admin/iyzico-abonelik`
+   (iyzico'da ürün/ödeme planlarını BİR KEZ oluşturan admin aracı — nav'a
+   eklenmedi, doğrudan URL'den açılır).
+
+   **UÇTAN UCA TEST EDİLMEDİ.** Özellikle `components/SubscriptionCheckoutForm.tsx`
+   — iyzico'nun `checkoutFormContent` olarak döndüğü `<script>` parçasının
+   sayfada gerçekten bir ödeme formu (iframe) render edip etmediği hiç
+   görülmedi, standart embed tekniğiyle yazıldı ama doğrulanmadı.
+
+   **BİLİNEN RİSK — CSP (Content-Security-Policy):** `next.config.js`'teki CSP
+   (`script-src`/frame kuralları) yalnızca `'self'` + Meta Pixel domain'lerine
+   izin veriyor, iyzico'nun checkout form script'i/iframe'i için HERHANGİ bir
+   izin YOK. iyzico'nun tam olarak hangi domain'den script/iframe yüklediği
+   bu ortamdan doğrulanamadı (dokümantasyonda net bir örnek bulunamadı) —
+   bu yüzden CSP'ye tahmini bir domain EKLENMEDİ (yanlış domain eklemek, hiç
+   eklememekten daha kötü bir yanlış güvenlik hissi verir). Test sırasında
+   ödeme formu görünmezse İLK BAKILACAK YER burası: tarayıcı geliştirici
+   konsolunda "Refused to load/frame ... because it violates the following
+   Content Security Policy directive" hatası olup olmadığına bakılmalı, hata
+   varsa raporladığı domain(ler) `next.config.js`'teki `csp` dizisine
+   `script-src`/`frame-src` (frame-src şu an hiç tanımlı değil, eklenmesi
+   gerekebilir) altına eklenmeli.
+
+   Test sırası:
+   1. `/admin/iyzico-abonelik`'ten "Ürün + Ödeme Planlarını Oluştur"a bas.
+   2. `lib/planAvailability.ts`'te `PAID_PLANS_ENABLED`'ı GEÇİCİ olarak `true`
+      yap, deploy et.
+   3. Bir test bayi hesabıyla `/dashboard/plan`'dan Pro'ya geçmeyi dene, test
+      kartıyla (https://docs.iyzico.com/ek-bilgiler/test-kartlari) ödemeyi
+      tamamla. Ödeme formu hiç görünmezse yukarıdaki CSP notuna bak.
+   4. `/dashboard/plan/sonuc` sayfasının "Aboneliğiniz başladı" gösterdiğini ve
+      bayinin planının gerçekten değiştiğini doğrula.
+   5. Sorun yoksa `PAID_PLANS_ENABLED`'ı gerçek lansmana kadar tekrar `false`'a
+      al (ya da lansmana hazırsa öyle bırak — bu Zeki'nin kararı).
+
+   **Küçük, düşük önemli not:** `recordPlanStart` (yalnızca istatistik amaçlı,
+   admin "Plan Dağılımı" grafiği) şu an yalnızca callback'te çağrılıyor,
+   webhook'ta değil — normal senaryoda (callback her zaman tamamlanır) sorun
+   yok, ama callback hiç tamamlanmayıp yalnızca webhook bu aboneliği
+   işleyebildiği o nadir durumda o dönüşüm istatistiklerde görünmez (planın
+   kendisi yine de doğru güncellenir, yalnızca bir grafik eksik kalır).
+6. ⏳ Yukarıdaki test tamamlanana kadar `PAID_PLANS_ENABLED` `false` kalmalı —
+   şu an hiçbir gerçek bayi bu akışa erişemiyor, güvenli.
 
 Sandbox'ta geliştirme, gerçek şirket kuruluşunu beklemeden 1. adım
 tamamlanınca başlayabilir — üretim/gerçek tahsilat için ise gerçek iyzico

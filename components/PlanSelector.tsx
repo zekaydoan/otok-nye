@@ -27,35 +27,38 @@ export default function PlanSelector({
   const [loading, setLoading] = useState<Plan | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function choosePlan(plan: Plan) {
-    setLoading(plan);
+  // free'ye dönüş risksiz — anında uygulanır, burada kalıyor. Ücretli bir plana
+  // geçiş artık burada YAPILMIYOR (18 Ağustos 2026 öncesi admin-onay akışıydı)
+  // — gerçek ödeme/T.C. Kimlik No toplama app/dashboard/plan/odeme'de,
+  // handlePlanClick aşağıda oraya yönlendiriyor.
+  async function chooseFreePlan() {
+    setLoading("free");
     setError(null);
     try {
       const res = await fetch("/api/shop/plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan: "free" }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        if (data.requiresBilling) {
-          router.push(`/dashboard/fatura-bilgileri?returnTo=${encodeURIComponent("/dashboard/plan")}`);
-          return;
-        }
         setError(data.error || "Plan değiştirilemedi, lütfen tekrar deneyin.");
         return;
       }
-      const data = await res.json().catch(() => ({}));
-      showToast(
-        data.pending
-          ? "Talebiniz alındı — ödemeniz onaylandıktan sonra planınız aktif edilecek."
-          : "Plan güncellendi."
-      );
+      showToast("Plan güncellendi.");
       router.refresh();
     } catch {
       setError("Bağlantı hatası, lütfen internetinizi kontrol edip tekrar deneyin.");
     } finally {
       setLoading(null);
+    }
+  }
+
+  function handlePlanClick(plan: Plan) {
+    if (plan === "free") {
+      chooseFreePlan();
+    } else {
+      router.push(`/dashboard/plan/odeme?plan=${plan}`);
     }
   }
 
@@ -110,7 +113,7 @@ export default function PlanSelector({
             </p>
             <button
               disabled={active || isPending || isLocked || loading !== null}
-              onClick={() => choosePlan(key)}
+              onClick={() => handlePlanClick(key)}
               className={`mt-4 w-full rounded-lg py-2 text-sm font-semibold ${
                 active
                   ? "bg-slate-100 text-slate-400"

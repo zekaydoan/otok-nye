@@ -45,13 +45,20 @@ export async function POST(req: NextRequest) {
 
   const link = await getSubscriptionShopLink(payload.subscriptionReferenceCode);
   if (!link) {
-    // Bilinmeyen bir abonelik referansı — eşleşme kaydı bizde yoksa (ör. henüz
-    // /api/shop/plan bu akışa bağlanmadan test amaçlı gönderilmiş bir bildirim)
-    // işlenecek bir şey yok; yine de 200 dönülür ki iyzico tekrar denemesin.
+    // subscriptionReferenceCode -> {shopId, plan} eşlemesi YALNIZCA
+    // app/api/shop/plan/callback'te (kullanıcının tarayıcısı iyzico'dan geri
+    // döndüğünde) yazılır — bu webhook ise sunucudan sunucuya, ASENKRON ve
+    // callback'ten ÖNCE gelebilir (hatta callback hiç tamamlanmayabilir, ör.
+    // ödeme sonrası kullanıcı sekmeyi kapatırsa). Böyle bir durumda 200
+    // dönmek iyzico'nun 15dk arayla 3 kez deneyen retry mekanizmasını
+    // DURDURUR — eşleme birkaç dakika içinde callback tarafından yazılsa bile
+    // bu bildirim bir daha asla işlenmez, bayinin planı hiç güncellenmez.
+    // Bu yüzden burada BİLEREK 2xx DIŞI bir kod dönülüyor ki iyzico tekrar
+    // denesin (callback'in araya girip eşlemeyi yazmasına zaman tanınır).
     console.warn(
-      `[iyzico-abonelik-webhook] Bilinmeyen subscriptionReferenceCode: ${payload.subscriptionReferenceCode}`
+      `[iyzico-abonelik-webhook] Bilinmeyen subscriptionReferenceCode (henüz eşlenmemiş olabilir, tekrar denenecek): ${payload.subscriptionReferenceCode}`
     );
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ error: "Eşleşme bulunamadı, tekrar denenecek." }, { status: 404 });
   }
 
   try {
