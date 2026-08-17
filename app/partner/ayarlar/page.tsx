@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentPartnerId } from "@/lib/partnerAuth";
 import { getPartnerById } from "@/lib/blobStore";
@@ -17,7 +18,15 @@ export default async function PartnerSettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900">Hesap Ayarları</h1>
+      {/* Bu sayfaya girildiğinde geri dönüş yolu belirsizdi (bkz. kullanıcı
+          geri bildirimi) — sitedeki diğer alt sayfalarla aynı "← X" deseni
+          (bkz. app/admin/partnerler/[id], app/admin/iyzico-abonelik) burada
+          da uygulandı. Layout'a değil sayfaya özel tutuldu, çünkü /partner
+          panelinin kendisinde (bu linkin hedefi) tekrar görünmesi gereksizdi. */}
+      <Link href="/partner" className="text-sm font-medium text-brand-600 hover:underline">
+        ← Panelim
+      </Link>
+      <h1 className="mt-4 text-2xl font-bold text-slate-900">Hesap Ayarları</h1>
       <p className="mt-1 text-sm text-slate-500">
         Giriş şifrenizi ve hakediş ödemelerinizin yapılacağı IBAN'ı buradan güncelleyebilirsiniz.
       </p>

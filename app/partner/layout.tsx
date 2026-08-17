@@ -27,23 +27,6 @@ export default async function PartnerLayout({ children }: { children: React.Reac
             </span>
           </Link>
           <div className="flex items-center gap-3">
-            {/* Ayarlar sayfasına (veya ileride eklenecek başka alt sayfalara)
-                girildiğinde, sol üstteki logo+"Partner" rozeti tıklanabilir
-                olsa da bunu bir "geri dön" kontrolü olarak fark etmeyen
-                kullanıcılar sıkışmış hissediyordu (bkz. kullanıcı geri
-                bildirimi, /partner/ayarlar). Yanındaki "Ayarlar"/"Çıkış Yap"
-                ile aynı kutucuk boyutunu (rounded-lg border, px-3 py-1.5,
-                text-sm font-medium) kullanıyor ki üçü tek bir buton grubu
-                gibi okunsun; rengi ise sitedeki "← X" geri dön linklerinin
-                ezici çoğunluğuyla aynı marka mavisi (bkz. components/
-                PlateSearch.tsx, components/AppointmentsSection.tsx aynı
-                border-brand-300/bg-brand-50/text-brand-700 deseni). */}
-            <Link
-              href="/partner"
-              className="hidden items-center rounded-lg border border-brand-300 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 hover:bg-brand-100 sm:inline-flex"
-            >
-              ← Panelim
-            </Link>
             <span className="hidden text-sm font-medium text-slate-600 sm:inline">{partner.name}</span>
             <Link
               href="/partner/ayarlar"
