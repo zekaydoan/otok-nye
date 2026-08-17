@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { incrementCityVisit, incrementDailyPageview } from "@/lib/blobStore";
+import { incrementCityVisit, incrementDailyPageview, turkeyDateISO } from "@/lib/blobStore";
 import { getProvinceFromRequest } from "@/lib/geo";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
@@ -16,7 +16,10 @@ export async function POST(req: NextRequest) {
     return new NextResponse("rate_limited", { status: 429 });
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Türkiye takvim gününe göre — bkz. lib/blobStore.ts turkeyDateISO (Netlify
+  // Functions UTC'de çalıştığı için önceki UTC bazlı hesap, günü TR gece
+  // yarısında değil 03:00'te sıfırlıyordu).
+  const today = turkeyDateISO();
   try {
     await incrementDailyPageview(today);
     const province = getProvinceFromRequest(req);

@@ -600,7 +600,7 @@ export interface TodayActivitySummary {
 // edilebilir maliyette — bir bayinin araç sayısı plan limitleriyle (15/250/∞)
 // sınırlı.
 export async function getTodayActivitySummary(shopId: string): Promise<TodayActivitySummary> {
-  const todayISO = new Date().toISOString().slice(0, 10);
+  const todayISO = turkeyDateISO();
   const vehicles = await listVehiclesByShop(shopId);
 
   const newVehicles = vehicles.filter(
@@ -1248,6 +1248,24 @@ export async function markAnnouncementsSeen(shopId: string): Promise<void> {
 
 // ---------- Admin İstatistik Paneli ----------
 
+// Netlify Functions UTC'de çalışır; önceden bu dosyadaki "bugün" hesapları
+// `new Date().toISOString().slice(0,10)` ile UTC gece yarısını gün sınırı
+// kabul ediyordu — bu da TR saatiyle (UTC+3, DST yok) gece yarısı değil 03:00'te
+// yeni "gün"ün başlamasına yol açıyordu (admin istatistikleri TR gece yarısında
+// değil 3 saat gecikmeli sıfırlanıyordu). Bu iki yardımcı, Türkiye takvim gününü
+// esas alır — tüm "bugün/son N gün" hesapları bunları kullanmalı.
+export function turkeyDateISO(date: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul" }).format(date);
+}
+
+// Türkiye takvim gününü, UTC öğlen saatine sabitlenmiş bir Date olarak döner —
+// bu sayede gün ekleme/çıkarma (setUTCDate) DST/saat dilimi kaymasından
+// etkilenmeden güvenle yapılabilir (Türkiye'de DST olmasa da bu genel/güvenli
+// bir örüntüdür).
+function turkeyDateAnchor(dateISO: string): Date {
+  return new Date(`${dateISO}T12:00:00Z`);
+}
+
 // Bir sayfa görüntülemesini bugünün tarihine ekler. Kimlik/IP saklanmaz — yalnızca
 // günlük toplam sayaç tutulur (gizlilik dostu, kişisel veri değil). Client tarafı
 // bkz. components/PageviewTracker.tsx, uç nokta bkz. app/api/analytics/pageview.
@@ -1297,12 +1315,11 @@ export async function getCityVisits(dateISO: string): Promise<Record<string, num
 // gezip client tarafında topluyoruz — admin panelinde nadiren, düşük trafikle
 // çağrıldığı için performans sorun değil.
 export async function getCityVisitsRange(days: number): Promise<Record<string, number>> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = turkeyDateAnchor(turkeyDateISO());
   const totals: Record<string, number> = {};
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today);
-    d.setDate(d.getDate() - i);
+    d.setUTCDate(d.getUTCDate() - i);
     const dateISO = d.toISOString().slice(0, 10);
     const dayCounts = (await cityVisitsStore().get(dateISO, { type: "json" })) as Record<
       string,
@@ -1379,12 +1396,11 @@ export async function getActiveVisitorStats(windowMs = 90 * 1000): Promise<Activ
 // Son `days` günün (bugün dahil) günlük sayfa görüntüleme sayılarını, en eskiden en
 // yeniye sıralı döner — hiç görüntülenmemiş günler 0 olarak gelir.
 export async function getDailyPageviews(days: number): Promise<DailyPageviewStat[]> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = turkeyDateAnchor(turkeyDateISO());
   const results: DailyPageviewStat[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today);
-    d.setDate(d.getDate() - i);
+    d.setUTCDate(d.getUTCDate() - i);
     const dateISO = d.toISOString().slice(0, 10);
     const entry = (await siteAnalyticsStore().get(dateISO, { type: "json" })) as {
       count: number;
@@ -1462,8 +1478,7 @@ async function listAllPlanEvents(): Promise<PlanEvent[]> {
 export async function getPlanStartStats(): Promise<PlanStartStats> {
   const events = await listAllPlanEvents();
 
-  const now = new Date();
-  const todayISO = now.toISOString().slice(0, 10);
+  const todayISO = turkeyDateISO();
   const monthPrefix = todayISO.slice(0, 7); // YYYY-MM
   const yearPrefix = todayISO.slice(0, 4); // YYYY
 

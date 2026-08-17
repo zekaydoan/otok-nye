@@ -11,6 +11,7 @@ import {
   getShopCountsByPlan,
   getStickerOrderStats,
   listAllShops,
+  turkeyDateISO,
 } from "@/lib/blobStore";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 import { CarIcon, ChartBarIcon, GiftIcon, PackageIcon, StarIcon, UsersIcon, WarningIcon, XCircleIcon } from "@/components/icons";
@@ -32,15 +33,19 @@ export default async function AdminStatsPage() {
   const adminShopId = await getCurrentAdminShopId();
   if (!adminShopId) notFound();
 
-  const now = new Date();
-  const today = now.toISOString().slice(0, 10);
+  // Türkiye takvim gününe göre (bkz. lib/blobStore.ts turkeyDateISO) — sunucu
+  // (Netlify Functions) UTC'de çalıştığı için önceki `new Date()` bazlı hesap
+  // "bugün"ü TR gece yarısında değil 03:00'te değiştiriyordu.
+  const today = turkeyDateISO();
   // Bu ay / bu yıl toplamları için getCityVisitsRange'e kaç gün geriye
   // gidileceğini hesaplıyoruz: ayın kaçıncı günündeyiz (1 Ağustos'ta 1, 15
   // Ağustos'ta 15...) ve yılın kaçıncı günündeyiz — böylece takvim ayı/yılı
   // başlangıcından bugüne kadarki (ay/yıl-başı - bugün) aralık toplanır.
-  const dayOfMonth = now.getDate();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / 86400000) + 1;
+  const dayOfMonth = Number(today.slice(8, 10));
+  const [todayYear] = today.split("-");
+  const todayAnchor = new Date(`${today}T12:00:00Z`);
+  const startOfYearAnchor = new Date(`${todayYear}-01-01T12:00:00Z`);
+  const dayOfYear = Math.floor((todayAnchor.getTime() - startOfYearAnchor.getTime()) / 86400000) + 1;
 
   const [
     pageviews,
