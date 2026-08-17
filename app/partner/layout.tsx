@@ -27,6 +27,18 @@ export default async function PartnerLayout({ children }: { children: React.Reac
             </span>
           </Link>
           <div className="flex items-center gap-3">
+            {/* Ayarlar sayfasına (veya ileride eklenecek başka alt sayfalara)
+                girildiğinde, sol üstteki logo+"Partner" rozeti tıklanabilir
+                olsa da bunu bir "geri dön" kontrolü olarak fark etmeyen
+                kullanıcılar sıkışmış hissediyordu (bkz. kullanıcı geri
+                bildirimi, /partner/ayarlar). Admin panelindeki "← Panelime
+                dön" deseniyle aynı açık, metinli link burada da eklendi. */}
+            <Link
+              href="/partner"
+              className="hidden text-sm font-medium text-slate-500 hover:text-slate-700 sm:inline"
+            >
+              ← Panelim
+            </Link>
             <span className="hidden text-sm font-medium text-slate-600 sm:inline">{partner.name}</span>
             <Link
               href="/partner/ayarlar"
