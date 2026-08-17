@@ -6,27 +6,42 @@ import {
   listAllStickerOrders,
   listAllSuggestions,
   listAllDataRequests,
+  listAllPartnerSummaries,
   listRecentStickerSelfPrints,
   listVehiclesByShop,
 } from "@/lib/blobStore";
 import { PLAN_LIMITS } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
-import { BellIcon, CarIcon, DocumentIcon, LightbulbIcon, LockIcon, PackageIcon, UsersIcon } from "@/components/icons";
+import {
+  BellIcon,
+  CarIcon,
+  DocumentIcon,
+  HandshakeIcon,
+  LightbulbIcon,
+  LockIcon,
+  PackageIcon,
+  UsersIcon,
+} from "@/components/icons";
 import IconBadge from "@/components/IconBadge";
 
 // Admin, önceden her kategoriyi (Bayiler, Öneriler, Veri Talepleri) tek tek
 // gezerek "bekleyen bir şey var mı" diye kontrol etmek zorundaydı — özellikle
 // bekleyen plan talepleri (bkz. app/api/shop/plan/route.ts H1 düzeltmesi) yalnızca
-// ilgili bayinin kendi detay sayfasında görünüyordu. Bu sayfa dört kategoriyi
+// ilgili bayinin kendi detay sayfasında görünüyordu. Bu sayfa beş kategoriyi
 // (bekleyen plan talepleri, iade bekleyen iptaller, okunmamış öneriler, bekleyen
-// KVKK veri talepleri) tek bir yerde toplar; nav'daki rozet sayısı (bkz.
-// app/admin/layout.tsx) buradaki toplamla aynı fonksiyonları kullanır.
+// KVKK veri talepleri, onay bekleyen partner başvuruları) tek bir yerde toplar;
+// nav'daki rozet sayısı (bkz. app/admin/layout.tsx) buradaki toplamla aynı
+// fonksiyonları kullanır. "Onay bekleyen partner başvuruları" sonradan eklendi
+// (bkz. app/admin/partnerler'daki bölgeye göre gruplanmış onay akışı) — o
+// akış kurulduğunda buraya eklenmesi unutulmuştu, admin yeni bir başvuru
+// geldiğinde bunu ancak Partnerler sayfasını elle ziyaret ederse görüyordu.
 export async function getPendingCounts() {
-  const [shops, orders, suggestions, dataRequests] = await Promise.all([
+  const [shops, orders, suggestions, dataRequests, partnerSummaries] = await Promise.all([
     listAllShops(),
     listAllStickerOrders(),
     listAllSuggestions(),
     listAllDataRequests(),
+    listAllPartnerSummaries(),
   ]);
 
   const pendingPlanShops = shops.filter((s) => s.pendingPlan);
@@ -40,17 +55,20 @@ export async function getPendingCounts() {
   );
   const unreadSuggestions = suggestions.filter((s) => s.status === "yeni");
   const pendingDataRequests = dataRequests.filter((r) => r.status === "yeni");
+  const pendingPartners = partnerSummaries.filter((s) => s.partner.status === "onay_bekliyor");
 
   return {
     pendingPlanShops,
     refundPendingOrders,
     unreadSuggestions,
     pendingDataRequests,
+    pendingPartners,
     total:
       pendingPlanShops.length +
       refundPendingOrders.length +
       unreadSuggestions.length +
-      pendingDataRequests.length,
+      pendingDataRequests.length +
+      pendingPartners.length,
   };
 }
 
@@ -71,8 +89,11 @@ export default async function AdminPendingPage() {
   const adminShopId = await getCurrentAdminShopId();
   if (!adminShopId) notFound();
 
-  const [{ pendingPlanShops, refundPendingOrders, unreadSuggestions, pendingDataRequests, total }, noVehicleFreeShops, recentSelfPrints] =
-    await Promise.all([getPendingCounts(), getNoVehicleFreeShops(), listRecentStickerSelfPrints(20)]);
+  const [
+    { pendingPlanShops, refundPendingOrders, unreadSuggestions, pendingDataRequests, pendingPartners, total },
+    noVehicleFreeShops,
+    recentSelfPrints,
+  ] = await Promise.all([getPendingCounts(), getNoVehicleFreeShops(), listRecentStickerSelfPrints(20)]);
 
   const fmtTry = (n: number) => n.toLocaleString("tr-TR", { maximumFractionDigits: 0 }) + "₺";
 
@@ -88,9 +109,27 @@ export default async function AdminPendingPage() {
           <EmptyState
             icon={<BellIcon className="h-6 w-6" />}
             title="Her şey güncel"
-            description="Bekleyen plan talebi, iade veya okunmamış öneri/veri talebi yok."
+            description="Bekleyen plan talebi, iade, okunmamış öneri/veri talebi ya da onay bekleyen partner başvurusu yok."
           />
         </div>
+      )}
+
+      {pendingPartners.length > 0 && (
+        <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+          <div className="flex items-center gap-2">
+            <IconBadge icon={<HandshakeIcon />} color="teal" />
+            <h2 className="font-bold text-slate-900">Onay Bekleyen Partner Başvuruları ({pendingPartners.length})</h2>
+          </div>
+          <p className="mt-1 text-xs text-slate-400">
+            Saha partnerleri kendi başvurup hesap açtı, siz onaylayana kadar giriş yapamıyorlar — aynı
+            bölgeden birden fazla başvuru varsa karşılaştırıp karar verin.
+          </p>
+          <div className="mt-4">
+            <Link href="/admin/partnerler" className="text-sm font-semibold text-brand-600 underline">
+              Başvuruları incele →
+            </Link>
+          </div>
+        </section>
       )}
 
       {pendingPlanShops.length > 0 && (
