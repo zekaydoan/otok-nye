@@ -98,25 +98,26 @@ müşteride bile riskli.
    ÇALIŞTIĞINI kanıtlıyor — aynı fonksiyon tüm dosyada (checkout başlatma,
    webhook doğrulama) kullanıldığından bu önemli bir risk azaltma.
 
-   **HÂLÂ UÇTAN UCA TEST EDİLMEDİ** olan tek parça: gerçek bir kart ödemesi
-   akışı. Özellikle `components/SubscriptionCheckoutForm.tsx` — iyzico'nun
-   `checkoutFormContent` olarak döndüğü `<script>` parçasının sayfada
-   gerçekten bir ödeme formu (iframe) render edip etmediği hiç görülmedi,
-   standart embed tekniğiyle yazıldı ama doğrulanmadı.
-
-   **BİLİNEN RİSK — CSP (Content-Security-Policy):** `next.config.js`'teki CSP
-   (`script-src`/frame kuralları) yalnızca `'self'` + Meta Pixel domain'lerine
-   izin veriyor, iyzico'nun checkout form script'i/iframe'i için HERHANGİ bir
-   izin YOK. iyzico'nun tam olarak hangi domain'den script/iframe yüklediği
-   bu ortamdan doğrulanamadı (dokümantasyonda net bir örnek bulunamadı) —
-   bu yüzden CSP'ye tahmini bir domain EKLENMEDİ (yanlış domain eklemek, hiç
-   eklememekten daha kötü bir yanlış güvenlik hissi verir). Test sırasında
-   ödeme formu görünmezse İLK BAKILACAK YER burası: tarayıcı geliştirici
-   konsolunda "Refused to load/frame ... because it violates the following
-   Content Security Policy directive" hatası olup olmadığına bakılmalı, hata
-   varsa raporladığı domain(ler) `next.config.js`'teki `csp` dizisine
-   `script-src`/`frame-src` (frame-src şu an hiç tanımlı değil, eklenmesi
-   gerekebilir) altına eklenmeli.
+   ❌ **UÇTAN UCA TEST EDİLDİ, SORUN BULUNDU (17 Ağustos 2026):**
+   `PAID_PLANS_ENABLED` geçici olarak `true` yapılıp `/dashboard/plan/odeme?plan=business`
+   denendi — hem otomasyon üzerinden hem Zeki'nin kendi gerçek tarayıcısından
+   (ikisi de aynı sonuç). `POST /api/shop/plan` sorunsuz çalışıyor,
+   `checkoutFormContent` doğru dönüyor ve `SubscriptionCheckoutForm.tsx`
+   script'i sayfaya doğru şekilde enjekte ediyor — ama iyzico'nun ödeme
+   iframe'ini fiilen çizen dosya (`https://sandbox-static.iyzipay.com/
+   checkoutform/v2/bundle.js`) tarayıcıdan istendiğinde **HTTP 503** dönüyor.
+   Aynı URL sunucu tarafından (tarayıcı dışı bir HTTP isteğiyle) çekildiğinde
+   sorunsuz, tam içerikle dönüyor — yani dosya var ve erişilebilir, sorun
+   tarayıcı bağlamındaki istekte. Konsolda CSP ihlali hatası YOK (CSP'nin
+   engellediği bir istek "blocked" görünür, gerçek bir 503 değil) — bu yüzden
+   **CSP nedeni ekarte edildi**, aşağıdaki CSP riski notu artık geçerli değil.
+   En olası açıklama: iyzico'nun sandbox statik CDN'i tarayıcı kaynaklı
+   isteklerde bir domain doğrulama/whitelist kontrolü yapıyor ve
+   otohafiza.com henüz yetkili domain listesinde değil — ya da sandbox CDN'de
+   geçici bir sorun var. **Sonraki adım: entegrasyon@iyzico.com'a (zaten
+   iletişimde olunan kanal) bu teknik detaylarla bildirilmesi** — Zeki'ye
+   hazır bir taslak mesaj verildi. Çözülene kadar `PAID_PLANS_ENABLED` false'ta
+   tutuluyor.
 
    Test sırası:
    1. `/admin/iyzico-abonelik`'ten "Ürün + Ödeme Planlarını Oluştur"a bas.

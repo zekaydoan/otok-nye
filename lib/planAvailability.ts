@@ -7,14 +7,17 @@
 // tarafı engel (app/api/shop/plan) hem arayüz (components/PlanSelector) buradan
 // okur, başka hiçbir yerin değiştirilmesi gerekmez.
 //
-// GEÇİCİ TEST MODU (18 Ağustos 2026): iyzico Abonelik Checkout Form'unu
-// sandbox'ta uçtan uca test etmek için true yapıldı — IYZICO_BASE_URL hâlâ
-// sandbox-api.iyzipay.com olduğundan gerçek para hareketi YOK, ama bu
-// pencerede canlı sitedeki HERHANGİ bir bayi de Pro/İşletme'yi "seçip"
-// ödeme formunu görebilir (sandbox olduğu için gerçek kartları işlemez,
-// başarısız olur). Test biter bitmez false'a geri alınmalı — bkz.
+// 17 Ağustos 2026 uçtan uca test sonucu: iyzico Abonelik Checkout Form API
+// çağrısı (initializeSubscriptionCheckoutForm) başarılı — token ve
+// checkoutFormContent doğru dönüyor. Ancak tarayıcıda ödeme iframe'ini çizen
+// iyzico'nun kendi statik dosyası (sandbox-static.iyzipay.com/checkoutform/
+// v2/bundle.js) HEM otomasyon HEM gerçek kullanıcı tarayıcısından istendiğinde
+// HTTP 503 dönüyor — aynı URL sunucudan (tarayıcı dışı) çekildiğinde sorunsuz.
+// Bu, bizim kodumuzdan değil iyzico'nun sandbox CDN'inden kaynaklanan bir
+// sorun (muhtemelen domain doğrulama/whitelist). iyzico'ya (entegrasyon@
+// iyzico.com) bildirilip çözülene kadar false'ta kalmalı — bkz.
 // SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md madde 1/5.
-export const PAID_PLANS_ENABLED = true;
+export const PAID_PLANS_ENABLED = false;
 
 // ---- Kurucu Servis kontenjanı ----
 // "Ücretli planlar yakında açılacak" tek başına güven kırıcı ve belirsiz —
