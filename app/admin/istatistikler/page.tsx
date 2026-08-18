@@ -50,14 +50,39 @@ export default async function AdminStatsPage() {
   const startOfYearAnchor = new Date(`${todayYear}-01-01T12:00:00Z`);
   const dayOfYear = Math.floor((todayAnchor.getTime() - startOfYearAnchor.getTime()) / 86400000) + 1;
 
-  // Haftalık/aylık ziyaret bölümü (bkz. PageviewsRangeExplorer) için bu
-  // haftanın Pazartesi'si ve bu ayın 1'i — Türkiye takvim gününe göre (aynı
-  // turkeyDateAnchor tabanlı desen, yukarıdaki dayOfYear hesabıyla tutarlı).
+  // Haftalık/aylık/yıllık ziyaret bölümü (bkz. PageviewsRangeExplorer) için bu
+  // haftanın Pazartesi'si, bu ayın 1'i ve bu yılın 1 Ocak'ı — Türkiye takvim
+  // gününe göre (aynı turkeyDateAnchor tabanlı desen, yukarıdaki dayOfYear
+  // hesabıyla tutarlı). Toplamlar hâlâ "başlangıç → bugün" aralığında
+  // hesaplanır (henüz yaşanmamış günler için boş sorgu yapmaya gerek yok),
+  // ancak admin panelinde gösterilen ETİKET (ör. "01.08 - 31.08") kullanıcının
+  // "hangi tarih aralığından bahsediyoruz" sorusuna netlik getirmesi için
+  // takvim döneminin TAMAMINI (haftanın Pazar'ı, ayın son günü, yılın 31
+  // Aralık'ı) gösterir — bkz. fmtRangeDM aşağıda.
   const weekdayMon0 = (turkeyDateAnchor(today).getUTCDay() + 6) % 7; // Pazartesi=0
   const weekStartAnchor = new Date(todayAnchor);
   weekStartAnchor.setUTCDate(weekStartAnchor.getUTCDate() - weekdayMon0);
   const weekStartISO = weekStartAnchor.toISOString().slice(0, 10);
+  const weekEndAnchor = new Date(weekStartAnchor);
+  weekEndAnchor.setUTCDate(weekEndAnchor.getUTCDate() + 6);
+  const weekEndISO = weekEndAnchor.toISOString().slice(0, 10);
+
   const monthStartISO = `${today.slice(0, 7)}-01`;
+  const monthEndAnchor = new Date(`${today.slice(0, 7)}-01T12:00:00Z`);
+  monthEndAnchor.setUTCMonth(monthEndAnchor.getUTCMonth() + 1);
+  monthEndAnchor.setUTCDate(0); // önceki ayın son günü = geçerli ayın son günü
+  const monthEndISO = monthEndAnchor.toISOString().slice(0, 10);
+
+  const yearStartISO = `${todayYear}-01-01`;
+  const yearEndISO = `${todayYear}-12-31`;
+
+  // "01.08 - 31.08" gibi gün.ay etiketi (yıl aynı olduğu için tekrar
+  // yazılmaz) — admin panelindeki hafta/ay/yıl kartlarının altında gösterilir.
+  const fmtRangeDM = (startISO: string, endISO: string) => {
+    const [, sm, sd] = startISO.split("-");
+    const [, em, ed] = endISO.split("-");
+    return `${sd}.${sm} - ${ed}.${em}`;
+  };
 
   const [
     pageviews,
@@ -73,6 +98,7 @@ export default async function AdminStatsPage() {
     churnStats,
     pageviewsThisWeek,
     pageviewsThisMonth,
+    pageviewsThisYear,
   ] = await Promise.all([
     getDailyPageviews(14),
     getShopCountsByPlan(),
@@ -87,6 +113,7 @@ export default async function AdminStatsPage() {
     getChurnStats(),
     getPageviewsInRange(weekStartISO, today),
     getPageviewsInRange(monthStartISO, today),
+    getPageviewsInRange(yearStartISO, today),
   ]);
 
   // Bir şehir sayacı içinden en yüksek değere sahip olanı ("Belirtilmemiş"
@@ -133,8 +160,27 @@ export default async function AdminStatsPage() {
           <ActiveVisitorsCard initialCount={activeVisitors.count} initialByProvince={activeVisitors.byProvince} />
         </div>
         <StatCard icon={<ChartBarIcon />} color="blue" label="Bugünkü Ziyaret" value={todayViews.toString()} />
-        <StatCard icon={<CalendarIcon />} color="blue" label="Bu Hafta Ziyaret" value={pageviewsThisWeek.total.toString()} />
-        <StatCard icon={<CalendarIcon />} color="indigo" label="Bu Ay Ziyaret" value={pageviewsThisMonth.total.toString()} />
+        <StatCard
+          icon={<CalendarIcon />}
+          color="blue"
+          label="Bu Hafta Ziyaret"
+          value={pageviewsThisWeek.total.toString()}
+          sub={fmtRangeDM(weekStartISO, weekEndISO)}
+        />
+        <StatCard
+          icon={<CalendarIcon />}
+          color="indigo"
+          label="Bu Ay Ziyaret"
+          value={pageviewsThisMonth.total.toString()}
+          sub={fmtRangeDM(monthStartISO, monthEndISO)}
+        />
+        <StatCard
+          icon={<CalendarIcon />}
+          color="purple"
+          label="Bu Yıl Ziyaret"
+          value={pageviewsThisYear.total.toString()}
+          sub={fmtRangeDM(yearStartISO, yearEndISO)}
+        />
         <StatCard
           icon={<UsersIcon />}
           color="indigo"
@@ -181,16 +227,17 @@ export default async function AdminStatsPage() {
         </div>
       </section>
 
-      {/* Haftalık / Aylık Ziyaret — tarih seçerek */}
+      {/* Haftalık / Aylık / Yıllık Ziyaret — tarih seçerek */}
       <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
         <div className="flex items-center gap-2">
           <IconBadge icon={<CalendarIcon />} color="blue" />
-          <h2 className="font-bold text-slate-900">Haftalık / Aylık Ziyaret</h2>
+          <h2 className="font-bold text-slate-900">Haftalık / Aylık / Yıllık Ziyaret</h2>
         </div>
         <p className="mt-1 text-xs text-slate-400">
-          Tarih aralığı seçerek (veya hazır kısayollardan biriyle) istediğiniz dönemin
-          toplam ziyaretini görün — günlük sayaçlar süresiz saklandığı için geçmişe
-          dönük her aralık sorgulanabilir.
+          Tarih aralığı seçerek (veya "Bu Hafta / Bu Ay / Bu Yıl" gibi hazır
+          kısayollardan biriyle) istediğiniz dönemin toplam ziyaretini görün —
+          günlük sayaçlar süresiz saklandığı için geçmişe dönük her aralık
+          sorgulanabilir.
         </p>
         <div className="mt-4">
           <PageviewsRangeExplorer

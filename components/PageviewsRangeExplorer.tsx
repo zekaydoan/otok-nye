@@ -81,15 +81,32 @@ export default function PageviewsRangeExplorer({
     d.setMonth(d.getMonth() + offsetMonths + 1, 0);
     return d.toISOString().slice(0, 10);
   };
+  const startOfYear = (offsetYears = 0) => {
+    const d = new Date();
+    return `${d.getFullYear() + offsetYears}-01-01`;
+  };
+  const endOfYear = (offsetYears = 0) => {
+    const d = new Date();
+    return `${d.getFullYear() + offsetYears}-12-31`;
+  };
 
   const presets: { label: string; start: string; end: string }[] = [
     { label: "Bu Hafta", start: startOfWeek(0), end: todayISO() },
     { label: "Geçen Hafta", start: startOfWeek(-1), end: endOfWeek(-1) },
     { label: "Bu Ay", start: startOfMonth(0), end: todayISO() },
     { label: "Geçen Ay", start: startOfMonth(-1), end: endOfMonth(-1) },
+    { label: "Bu Yıl", start: startOfYear(0), end: todayISO() },
+    { label: "Geçen Yıl", start: startOfYear(-1), end: endOfYear(-1) },
     { label: "Son 7 Gün", start: daysAgoISO(6), end: todayISO() },
     { label: "Son 30 Gün", start: daysAgoISO(29), end: todayISO() },
   ];
+
+  // "2026-08-01" → "01.08.2026" — tarih girişleri (input[type=date]) ISO
+  // formatta kalmalı, yalnızca ekrandaki etiket okunaklı gün.ay.yıl'a çevrilir.
+  const fmtDMY = (iso: string) => {
+    const [y, m, d] = iso.split("-");
+    return `${d}.${m}.${y}`;
+  };
 
   const maxCount = Math.max(1, ...days.map((d) => d.count));
   const dailyAverage = days.length > 0 ? Math.round(total / days.length) : 0;
@@ -146,7 +163,7 @@ export default function PageviewsRangeExplorer({
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
           <p className="text-xs text-slate-500">
-            {start} – {end}
+            {fmtDMY(start)} – {fmtDMY(end)}
           </p>
           <p className="mt-1 text-2xl font-bold text-slate-900">{total.toLocaleString("tr-TR")}</p>
           <p className="mt-0.5 text-[11px] text-slate-400">toplam ziyaret</p>
