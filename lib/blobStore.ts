@@ -1262,7 +1262,7 @@ export function turkeyDateISO(date: Date = new Date()): string {
 // bu sayede gün ekleme/çıkarma (setUTCDate) DST/saat dilimi kaymasından
 // etkilenmeden güvenle yapılabilir (Türkiye'de DST olmasa da bu genel/güvenli
 // bir örüntüdür).
-function turkeyDateAnchor(dateISO: string): Date {
+export function turkeyDateAnchor(dateISO: string): Date {
   return new Date(`${dateISO}T12:00:00Z`);
 }
 
@@ -1408,6 +1408,45 @@ export async function getDailyPageviews(days: number): Promise<DailyPageviewStat
     results.push({ date: dateISO, count: entry?.count ?? 0 });
   }
   return results;
+}
+
+export interface PageviewRangeStats {
+  total: number;
+  days: DailyPageviewStat[];
+}
+
+// getDailyPageviews "bugünden geriye son N gün" ile sınırlıdır — admin
+// panelindeki haftalık/aylık ziyaret ekranı (bkz. app/admin/istatistikler/
+// page.tsx, components/PageviewsRangeExplorer.tsx) kullanıcının seçtiği
+// HERHANGİ bir başlangıç/bitiş tarihini sorgulayabilmeli. Günlük sayaçlar
+// zaten süresiz olarak saklandığından (bkz. incrementDailyPageview — hiçbir
+// silme/TTL mantığı yok) burada yeni bir depolama biçimine gerek yok,
+// yalnızca var olan günlük kayıtları istenen aralıkta okuyup topluyoruz.
+// Yanlışlıkla ya da kötüye kullanım amacıyla aşırı büyük bir aralık
+// istenmesini önlemek için aralık MAX_RANGE_DAYS ile sınırlandırılır.
+const MAX_RANGE_DAYS = 400;
+
+export async function getPageviewsInRange(startISO: string, endISO: string): Promise<PageviewRangeStats> {
+  const start = turkeyDateAnchor(startISO);
+  const end = turkeyDateAnchor(endISO);
+  const rawDaysCount = Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
+  if (rawDaysCount <= 0) return { total: 0, days: [] };
+  const daysCount = Math.min(rawDaysCount, MAX_RANGE_DAYS);
+
+  const days: DailyPageviewStat[] = [];
+  let total = 0;
+  for (let i = 0; i < daysCount; i++) {
+    const d = new Date(start);
+    d.setUTCDate(d.getUTCDate() + i);
+    const dateISO = d.toISOString().slice(0, 10);
+    const entry = (await siteAnalyticsStore().get(dateISO, { type: "json" })) as {
+      count: number;
+    } | null;
+    const count = entry?.count ?? 0;
+    days.push({ date: dateISO, count });
+    total += count;
+  }
+  return { total, days };
 }
 
 // Tüm bayileri döner — admin istatistik paneli dışında kullanılmamalı (tek tek

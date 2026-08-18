@@ -6,18 +6,21 @@ import {
   getCityVisits,
   getCityVisitsRange,
   getDailyPageviews,
+  getPageviewsInRange,
   getPlanRevenueStats,
   getPlanStartStats,
   getShopCountsByPlan,
   getStickerOrderStats,
   listAllShops,
+  turkeyDateAnchor,
   turkeyDateISO,
 } from "@/lib/blobStore";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
-import { CarIcon, ChartBarIcon, GiftIcon, PackageIcon, StarIcon, UsersIcon, WarningIcon, XCircleIcon } from "@/components/icons";
+import { CalendarIcon, CarIcon, ChartBarIcon, GiftIcon, PackageIcon, StarIcon, UsersIcon, WarningIcon, XCircleIcon } from "@/components/icons";
 import IconBadge, { type IconBadgeColor } from "@/components/IconBadge";
 import TurkeyVisitorMap from "@/components/TurkeyVisitorMap";
 import ActiveVisitorsCard from "@/components/ActiveVisitorsCard";
+import PageviewsRangeExplorer from "@/components/PageviewsRangeExplorer";
 
 // Yalnızca ADMIN_EMAILS ortam değişkeninde tanımlı hesaplara açık — bkz.
 // app/admin/siparisler/page.tsx ile aynı desen ve gerekçe.
@@ -47,6 +50,15 @@ export default async function AdminStatsPage() {
   const startOfYearAnchor = new Date(`${todayYear}-01-01T12:00:00Z`);
   const dayOfYear = Math.floor((todayAnchor.getTime() - startOfYearAnchor.getTime()) / 86400000) + 1;
 
+  // Haftalık/aylık ziyaret bölümü (bkz. PageviewsRangeExplorer) için bu
+  // haftanın Pazartesi'si ve bu ayın 1'i — Türkiye takvim gününe göre (aynı
+  // turkeyDateAnchor tabanlı desen, yukarıdaki dayOfYear hesabıyla tutarlı).
+  const weekdayMon0 = (turkeyDateAnchor(today).getUTCDay() + 6) % 7; // Pazartesi=0
+  const weekStartAnchor = new Date(todayAnchor);
+  weekStartAnchor.setUTCDate(weekStartAnchor.getUTCDate() - weekdayMon0);
+  const weekStartISO = weekStartAnchor.toISOString().slice(0, 10);
+  const monthStartISO = `${today.slice(0, 7)}-01`;
+
   const [
     pageviews,
     planCounts,
@@ -59,6 +71,8 @@ export default async function AdminStatsPage() {
     cityVisitsYear,
     activeVisitors,
     churnStats,
+    pageviewsThisWeek,
+    pageviewsThisMonth,
   ] = await Promise.all([
     getDailyPageviews(14),
     getShopCountsByPlan(),
@@ -71,6 +85,8 @@ export default async function AdminStatsPage() {
     getCityVisitsRange(dayOfYear),
     getActiveVisitorStats(),
     getChurnStats(),
+    getPageviewsInRange(weekStartISO, today),
+    getPageviewsInRange(monthStartISO, today),
   ]);
 
   // Bir şehir sayacı içinden en yüksek değere sahip olanı ("Belirtilmemiş"
@@ -117,6 +133,8 @@ export default async function AdminStatsPage() {
           <ActiveVisitorsCard initialCount={activeVisitors.count} initialByProvince={activeVisitors.byProvince} />
         </div>
         <StatCard icon={<ChartBarIcon />} color="blue" label="Bugünkü Ziyaret" value={todayViews.toString()} />
+        <StatCard icon={<CalendarIcon />} color="blue" label="Bu Hafta Ziyaret" value={pageviewsThisWeek.total.toString()} />
+        <StatCard icon={<CalendarIcon />} color="indigo" label="Bu Ay Ziyaret" value={pageviewsThisMonth.total.toString()} />
         <StatCard
           icon={<UsersIcon />}
           color="indigo"
@@ -160,6 +178,27 @@ export default async function AdminStatsPage() {
               <span className="text-[9px] text-slate-400">{d.date.slice(8, 10)}</span>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Haftalık / Aylık Ziyaret — tarih seçerek */}
+      <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <div className="flex items-center gap-2">
+          <IconBadge icon={<CalendarIcon />} color="blue" />
+          <h2 className="font-bold text-slate-900">Haftalık / Aylık Ziyaret</h2>
+        </div>
+        <p className="mt-1 text-xs text-slate-400">
+          Tarih aralığı seçerek (veya hazır kısayollardan biriyle) istediğiniz dönemin
+          toplam ziyaretini görün — günlük sayaçlar süresiz saklandığı için geçmişe
+          dönük her aralık sorgulanabilir.
+        </p>
+        <div className="mt-4">
+          <PageviewsRangeExplorer
+            initialStart={weekStartISO}
+            initialEnd={today}
+            initialTotal={pageviewsThisWeek.total}
+            initialDays={pageviewsThisWeek.days}
+          />
         </div>
       </section>
 
