@@ -11,6 +11,7 @@ const ACTION_LABELS: Record<AdminAuditAction, string> = {
   siparis_guncellendi: "Sipariş durumu güncellendi",
   iade_isaretlendi: "İade işaretlendi",
   siparis_silindi: "Sipariş kalıcı olarak silindi",
+  siparis_hediye_edildi: "Sipariş hediye edildi",
   partner_olusturuldu: "Partner eklendi",
   partner_durum_degisti: "Partner durumu değişti",
   partner_atandi: "Partner ataması değişti",
