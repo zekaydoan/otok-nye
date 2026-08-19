@@ -13,6 +13,7 @@ import {
   HandshakeIcon,
   LightbulbIcon,
   LockIcon,
+  PackageIcon,
   UsersIcon,
   WalletIcon,
 } from "@/components/icons";
@@ -20,7 +21,13 @@ import {
 // Her sekmenin kendine özgü rengi var (bkz. components/IconBadge) — ne işe
 // yaradığını isim + renk tekrarıyla pekiştirir, hepsi aynı gri metin olduğunda
 // gözle taranması zordu.
+//
+// "Siparişler" (etiket mağazası) daha önce NAV_ITEMS'te YOKTU — yalnızca sol
+// üstteki logoya tıklayınca ulaşılan örtük bir "ana sayfa"ydı, ayrı bir nav
+// sekmesi olmadığı için gözden kaçırılma riski vardı (Zeki'nin talebi, 19
+// Ağustos 2026). Şimdi listenin en başında, diğer sekmelerle aynı görünürlükte.
 const NAV_ITEMS = [
+  { href: "/admin/siparisler", label: "Siparişler", icon: <PackageIcon />, color: "pink" as const },
   { href: "/admin/bekleyen-isler", label: "Bekleyen İşler", icon: <BellIcon />, color: "red" as const },
   { href: "/admin/bayiler", label: "Bayiler", icon: <UsersIcon />, color: "blue" as const },
   { href: "/admin/partnerler", label: "Partnerler", icon: <HandshakeIcon />, color: "teal" as const },
