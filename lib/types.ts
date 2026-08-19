@@ -302,6 +302,14 @@ export interface StickerOrder {
   totalPriceTry: number;
   status: StickerOrderStatus;
   shippingAddress: StickerOrderAddress;
+  // Admin panelinden (bkz. app/api/admin/etiket-hediye, components/AdminGiftStickerForm)
+  // kart çekmeden, iyzico'ya hiç dokunmadan verilen ücretsiz/pilot etiket siparişi
+  // mi (ör. "İlk 20 Müşteri" sprintinde pilot dükkanlara hediye) — bkz.
+  // pazarlama/ETIKET_HEDIYE_KARARI_BEKLIYOR.md. totalPriceTry/unitPriceTry bu
+  // siparişlerde 0'dır; bu bayrak yalnızca admin listesinde ayırt edici bir
+  // rozet göstermek için, mali/iade mantığını etkilemez (zaten 0₺ olduğundan
+  // iade edilecek bir tutar yok).
+  isGift?: boolean;
   contractAcceptedAt: string; // Mesafeli Satış Sözleşmesi onay zamanı
   paymentToken?: string; // iyzico Checkout Form token
   paymentId?: string; // iyzico ödeme onaylandıktan sonra dönen ödeme kimliği
@@ -459,6 +467,7 @@ export type AdminAuditAction =
   | "siparis_guncellendi"
   | "iade_isaretlendi"
   | "siparis_silindi"
+  | "siparis_hediye_edildi"
   | "partner_olusturuldu"
   | "partner_durum_degisti"
   | "partner_atandi"

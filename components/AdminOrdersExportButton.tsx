@@ -20,6 +20,7 @@ export default function AdminOrdersExportButton({ orders }: { orders: StickerOrd
         "Takip No",
         "İade Edildi",
         "İade Tutarı (TRY)",
+        "Hediye",
         "Sipariş Tarihi",
       ],
       orders.map((o) => [
@@ -33,6 +34,7 @@ export default function AdminOrdersExportButton({ orders }: { orders: StickerOrd
         o.trackingNumber || "",
         o.refundedAt ? "Evet" : "Hayır",
         o.refundAmountTry ?? "",
+        o.isGift ? "Evet" : "Hayır",
         o.createdAt.slice(0, 10),
       ])
     );

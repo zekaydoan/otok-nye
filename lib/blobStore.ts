@@ -1612,7 +1612,12 @@ const PAID_STATUSES = new Set(["odendi", "hazirlaniyor", "kargoda", "teslim_edil
 // bunların hepsi ödeme onayından SONRA gelen aşamalardır (bkz. StickerOrderStatus).
 export async function getStickerOrderStats(): Promise<StickerOrderStats> {
   const orders = await listAllStickerOrders();
-  const paidOrders = orders.filter((o) => PAID_STATUSES.has(o.status));
+  // Hediye/pilot siparişler (bkz. isGift, app/api/admin/etiket-hediye) 0₺
+  // totalPriceTry ile "odendi" durumunda oluşur — matematiksel olarak ciroyu
+  // etkilemezler ama "ödenmiş sipariş" sayacına dahil edilmeleri yanıltıcı
+  // olur (gerçekte ödeme alınmadı), bu yüzden ciro/ödenmiş-sipariş
+  // istatistiklerinden bilerek dışlanır.
+  const paidOrders = orders.filter((o) => PAID_STATUSES.has(o.status) && !o.isGift);
 
   const cityMap = new Map<string, CityOrderStat>();
   for (const order of paidOrders) {

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
-import { getStickerUnitPriceTry, listAllStickerOrders } from "@/lib/blobStore";
+import { getStickerUnitPriceTry, listAllShops, listAllStickerOrders } from "@/lib/blobStore";
+import AdminGiftStickerForm from "@/components/AdminGiftStickerForm";
 import AdminOrderRow from "@/components/AdminOrderRow";
 import AdminOrdersExportButton from "@/components/AdminOrdersExportButton";
 import AdminPriceSetting from "@/components/AdminPriceSetting";
@@ -14,10 +15,14 @@ export default async function AdminOrdersPage() {
   const adminShopId = await getCurrentAdminShopId();
   if (!adminShopId) notFound();
 
-  const [orders, unitPriceTry] = await Promise.all([
+  const [orders, unitPriceTry, shops] = await Promise.all([
     listAllStickerOrders(),
     getStickerUnitPriceTry(),
+    listAllShops(),
   ]);
+  const shopOptions = shops
+    .map((s) => ({ id: s.id, name: s.name, email: s.email }))
+    .sort((a, b) => a.name.localeCompare(b.name, "tr"));
 
   return (
     <div>
@@ -27,8 +32,9 @@ export default async function AdminOrdersPage() {
         girip durumunu güncelleyin. Bu ekran yalnızca size görünür.
       </p>
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col items-start gap-3">
         <AdminPriceSetting currentPriceTry={unitPriceTry} />
+        <AdminGiftStickerForm shops={shopOptions} />
       </div>
 
       {orders.length > 0 && (

@@ -86,12 +86,21 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
     <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-slate-900">
-            {order.shopName} — {order.quantity} adet — {order.totalPriceTry.toFixed(2)}₺
+          <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-900">
+            {order.shopName} — {order.quantity} adet —{" "}
+            {order.isGift ? "Ücretsiz (hediye)" : `${order.totalPriceTry.toFixed(2)}₺`}
+            {order.isGift && (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                🎁 Hediye
+              </span>
+            )}
           </p>
           <p className="text-xs text-slate-500">
             {new Date(order.createdAt).toLocaleString("tr-TR")} · Sipariş #{order.id.slice(0, 8)}
           </p>
+          {order.adminNote && (
+            <p className="mt-1 text-xs italic text-slate-400">Not: {order.adminNote}</p>
+          )}
           <p className="mt-1 text-xs text-slate-500">
             {order.shippingAddress.fullName} · {order.shippingAddress.phone}
             <br />
