@@ -121,7 +121,14 @@ export default function StickerEditor({
 
             <div className="flex flex-col items-center px-4 pb-3 pt-4">
               <div className="rounded-lg border-2 border-slate-800 bg-white p-1.5">
-                {url && <QRCodeSVG value={url} size={130} level="M" />}
+                {url && (
+                  <QRCodeSVG
+                    value={url}
+                    size={130}
+                    level="H"
+                    imageSettings={{ src: "/icon-512.png", height: 26, width: 26, excavate: true }}
+                  />
+                )}
               </div>
 
               {/* Türkiye plakası görünümüne benzeyen etiket — okunabilirliği ve

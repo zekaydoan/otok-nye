@@ -83,7 +83,12 @@ export default function StickerTokenGrid({ tokens, baseUrl, labelName, labelPhon
 
               <div className="flex flex-col items-center px-4 pb-3 pt-4">
                 <div className="rounded-lg border-2 border-slate-800 bg-white p-1.5">
-                  <QRCodeSVG value={`${baseUrl}/e/${t.token}`} size={110} level="M" />
+                  <QRCodeSVG
+                    value={`${baseUrl}/e/${t.token}`}
+                    size={110}
+                    level="H"
+                    imageSettings={{ src: "/icon-512.png", height: 22, width: 22, excavate: true }}
+                  />
                 </div>
                 <p className="mt-2 text-[10px] text-slate-500">
                   QR kodu okutup aracınıza kaydedin
