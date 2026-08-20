@@ -238,7 +238,7 @@ function SignupForm() {
                   }
                 />
                 <span>
-                  <Link href="/kullanim-sartlari" target="_blank" className="font-medium text-brand-600 underline">
+                  <Link href="/saas-sozlesmesi" target="_blank" className="font-medium text-brand-600 underline">
                     SaaS Kullanım ve Lisans Sözleşmesi
                   </Link>
                   'ni ve{" "}

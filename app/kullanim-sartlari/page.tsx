@@ -19,7 +19,7 @@ export default function TermsPage() {
         <div className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
           İşbu Kullanım Koşulları, otohafiza.com sitesini ziyaret eden herkes için geçerli
           genel şartları düzenler. Platform'a kayıt olup hesap açan kullanıcılar için ayrıca{" "}
-          <Link href="/dashboard" className="underline">
+          <Link href="/saas-sozlesmesi" className="underline">
             SaaS Kullanım ve Lisans Sözleşmesi
           </Link>{" "}
           ve ekleri uygulanır; iki belge arasında çelişki olması hâlinde, hesap sahipleri

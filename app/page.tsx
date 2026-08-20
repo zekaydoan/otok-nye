@@ -1084,8 +1084,20 @@ export default async function HomePage() {
             KVKK Aydınlatma Metni
           </Link>
           <span className="text-slate-300">·</span>
+          <Link href="/saas-sozlesmesi" className="underline">
+            SaaS Kullanım ve Lisans Sözleşmesi
+          </Link>
+          <span className="text-slate-300">·</span>
           <Link href="/mesafeli-satis-sozlesmesi" className="underline">
             Mesafeli Satış Sözleşmesi
+          </Link>
+          <span className="text-slate-300">·</span>
+          <Link href="/iade-politikasi" className="underline">
+            İade Politikası
+          </Link>
+          <span className="text-slate-300">·</span>
+          <Link href="/abonelik-politikasi" className="underline">
+            Abonelik Politikası
           </Link>
           <span className="text-slate-300">·</span>
           <Link href="/kullanim-sartlari" className="underline">

@@ -238,7 +238,11 @@ export default function StickerOrderForm({
           <Link href="/mesafeli-satis-sozlesmesi" target="_blank" className="font-medium text-brand-600 underline">
             Mesafeli Satış Sözleşmesi
           </Link>
-          'ni okudum, onaylıyorum.
+          'ni ve{" "}
+          <Link href="/iade-politikasi" target="_blank" className="font-medium text-brand-600 underline">
+            İade Politikası
+          </Link>
+          'nı okudum, onaylıyorum.
         </label>
       </div>
 
