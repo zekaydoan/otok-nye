@@ -8,29 +8,21 @@ export default function MesafeliSatisSozlesmesiPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10">
       <div className="mx-auto max-w-3xl rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 sm:p-8">
-        <Link href="/dashboard/etiket-siparis" className="text-sm text-brand-600">
-          ← Etiket siparişine dön
+        <Link href="/" className="text-sm text-brand-600">
+          ← Ana sayfa
         </Link>
-        <h1 className="mt-4 text-2xl font-bold text-slate-900">
-          Mesafeli Satış Sözleşmesi (Dayanıklı QR Etiket Siparişi)
-        </h1>
-        <p className="mt-2 text-sm text-slate-500">Son güncelleme: Ağustos 2026</p>
+        <h1 className="mt-4 text-2xl font-bold text-slate-900">Mesafeli Satış Sözleşmesi</h1>
+        <p className="mt-2 text-sm text-slate-500">
+          Yürürlük tarihi: 20 Ağustos 2026 · Versiyon: v1.0
+        </p>
+        <p className="mt-2 text-sm text-slate-500">
+          Tek sözleşme, satın aldığınız ürün/hizmet türüne göre iki ek içerir: Ek-A
+          (fiziksel QR etiket) ve Ek-B (dijital abonelik hizmeti).
+        </p>
 
-        <div className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
-          Bu metin, fiziksel QR etiket siparişleri için hazırlanmış bir{" "}
-          <strong>taslak sözleşme şablonudur</strong>, hukuki tavsiye niteliği taşımaz.
-          Köşeli parantez içindeki alanları ([ ]) kendi işletme bilgilerinizle
-          doldurmanız ve yayına almadan önce mutlaka bir hukuk danışmanına
-          onaylatmanız gerekir. Ayrıca, alıcılarınız bu ürünü{" "}
-          <strong>ticari/mesleki amaçla</strong> (servis/tamirhane işletmeciliği)
-          satın aldığından, 6502 sayılı Tüketicinin Korunması Hakkında Kanun
-          anlamında "tüketici" sayılıp sayılmayacakları ve dolayısıyla aşağıdaki
-          cayma hakkı hükümlerinin yasal olarak zorunlu mu yoksa gönüllü bir
-          ticari politika mı olacağı, danışmanınızla netleştirilmesi gereken ayrı
-          bir husustur.
-        </div>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">Bölüm I — Genel Hükümler</h2>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">1. Taraflar</h2>
+        <h3 className="mt-4 font-semibold text-slate-800">Madde 1 — Taraflar</h3>
         <p className="mt-2 text-sm text-slate-600">
           <strong>Satıcı:</strong> Sarper Dijital Teknolojiler ve Kiralama A.Ş., Muradiye
           Mahallesi Zübeyde Hanım Cad. No:34/A Yunusemre/Manisa, Mesir Vergi Dairesi — VKN
@@ -38,73 +30,154 @@ export default function MesafeliSatisSozlesmesiPage() {
           +90 542 575 69 18 ("Satıcı").
         </p>
         <p className="mt-2 text-sm text-slate-600">
-          <strong>Alıcı:</strong> OtoHafıza panelinde oturum açmış, sipariş formunda
-          teslimat bilgilerini beyan eden bayi/işletme ("Alıcı"). Alıcı, siparişi
-          işletmesinin ticari faaliyeti kapsamında verdiğini kabul eder.
+          <strong>Alıcı:</strong> OtoHafıza panelinde oturum açmış, sipariş/satın alma
+          formunda beyanda bulunan Kullanıcı ("Alıcı").
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">2. Sözleşmenin Konusu</h2>
+        <h3 className="mt-4 font-semibold text-slate-800">Madde 2 — Sözleşmenin Konusu</h3>
         <p className="mt-2 text-sm text-slate-600">
-          İşbu sözleşmenin konusu, Alıcı'nın OtoHafıza panelinden elektronik
-          ortamda sipariş verdiği, motor bölmesi gibi zorlu koşullara dayanıklı
-          (su geçirmez, UV korumalı) profesyonel basılmış QR etiketin (“Ürün”)
-          satışı ve teslimine ilişkin tarafların hak ve yükümlülüklerinin
-          belirlenmesidir. Ürün adedi, birim fiyatı ve toplam bedel, sipariş
-          onayı sırasında Alıcı'ya gösterilen ve ödeme anında kart ekstresine
-          yansıyan tutarla aynıdır; fiyatlara KDV [dahildir/dahil değildir].
+          İşbu Sözleşme, Alıcı'nın Platform üzerinden elektronik ortamda satın aldığı (a)
+          fiziksel dayanıklı QR etiket ürünü veya (b) dijital abonelik hizmetine ilişkin
+          tarafların 6502 sayılı Kanun ve Mesafeli Sözleşmeler Yönetmeliği kapsamındaki hak
+          ve yükümlülüklerini düzenler. Satın alınan ürün/hizmet türüne göre Bölüm II (Ek-A)
+          veya Bölüm III (Ek-B) hükümleri uygulanır.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">3. Ödeme ve Teslimat</h2>
+        <h3 className="mt-4 font-semibold text-slate-800">Madde 3 — Ödeme</h3>
         <p className="mt-2 text-sm text-slate-600">
-          Ödeme, iyzico ödeme altyapısı üzerinden kredi/banka kartıyla, sipariş
-          anında tek seferde tahsil edilir. Kart bilgileri Satıcı'nın
-          sunucularında saklanmaz. Ürün, Alıcı'nın beyan ettiği teslimat
-          adresine, siparişin onaylanmasını (ödemenin başarıyla tamamlanmasını)
-          takip eden [X] iş günü içinde kargoya verilir. Kargo takip bilgisi
-          panelde "Siparişlerim" bölümünden görüntülenebilir.
+          Ödeme, iyzico ödeme altyapısı üzerinden, sipariş/satın alma onayı sırasında
+          gösterilen ve kart ekstresine yansıyan tutar üzerinden tahsil edilir. Fiyatlara KDV
+          dahildir. Kart bilgileri Satıcı sunucularında saklanmaz.
+        </p>
+        <p className="mt-2 text-sm text-slate-600">
+          Satıcı, ödemenin bankası/kart kuruluşu tarafından geri alınması (chargeback),
+          dolandırıcılık şüphesi veya ödeme kuruluşunun onay vermemesi hâllerinde, siparişi
+          iptal etme ve/veya teslimatı durdurma hakkını saklı tutar; bu durum Alıcı'ya
+          bildirilir.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">4. Cayma Hakkı</h2>
+        <h3 className="mt-4 font-semibold text-slate-800">
+          Madde 4 — Mücbir Sebep ve Sorumluluk
+        </h3>
         <p className="mt-2 text-sm text-slate-600">
-          Alıcı, Ürünü teslim aldığı tarihten itibaren 14 (on dört) gün içinde
-          herhangi bir gerekçe göstermeksizin ve cezai şart ödemeksizin
-          sözleşmeden cayma hakkına sahiptir. Cayma hakkının kullanılabilmesi
-          için Ürünün kullanılmamış, aracın üzerine yapıştırılmamış ve satışa
-          engel olacak şekilde tahrip edilmemiş olması gerekir. Cayma bildirimi
-          [e-posta adresi] adresine yazılı olarak iletilmelidir. İade kargo
-          bedeli [Alıcı/Satıcı] tarafından karşılanır.
-        </p>
-        <p className="mt-2 text-sm text-slate-600">
-          Yukarıdaki 14 günlük süre, Mesafeli Sözleşmeler Yönetmeliği'nin asgari
-          tüketici koruma standardı esas alınarak belirlenmiştir; Alıcı'nın
-          işbu Bölüm 1'de belirtilen nedenle "tüketici" sayılmadığı hukuki
-          danışmanlıkla teyit edilirse, Satıcı bu süreyi kendi ticari
-          politikasına göre değiştirebilir.
+          Doğal afet, yangın, grev, altyapı sağlayıcısı kesintisi gibi Satıcı'nın makul
+          kontrolü dışındaki hâllerde ifa süresi uzayabilir; Satıcı bu durumu Alıcı'ya
+          bildirir. Mücbir sebep hâlinin makul olmayan bir süre (Ek-A bakımından otuz (30)
+          günü aşan) devam etmesi hâlinde Alıcı sözleşmeyi feshedebilir; bu durumda ödenen
+          bedel, varsa ifa edilmemiş kısmıyla orantılı olarak Alıcı'ya iade edilir.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">5. Mücbir Sebep ve Sorumluluk</h2>
+        <h3 className="mt-4 font-semibold text-slate-800">
+          Madde 5 — Uyuşmazlıkların Çözümü
+        </h3>
         <p className="mt-2 text-sm text-slate-600">
-          Doğal afet, yangın, grev, ulaşım engelleri gibi Satıcı'nın makul
-          kontrolü dışındaki hâllerde teslimat süresi uzayabilir; Satıcı bu
-          durumu Alıcı'ya bildirir. Satıcı'nın Ürün bedeli dışında herhangi bir
-          dolaylı zarardan sorumlu tutulamayacağına ilişkin sınırlamalar,
-          yürürlükteki mevzuatın izin verdiği ölçüde geçerlidir.
+          İşbu Sözleşme'den doğan uyuşmazlıklarda, mevzuatta öngörülen parasal sınırlar
+          dahilinde Tüketici Hakem Heyetleri, bu sınırların üzerindeki uyuşmazlıklarda
+          Manisa Tüketici Mahkemeleri/Ticaret Mahkemeleri yetkilidir.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">6. Uyuşmazlıkların Çözümü</h2>
+        <h3 className="mt-4 font-semibold text-slate-800">Madde 6 — Ön Bilgilendirme</h3>
         <p className="mt-2 text-sm text-slate-600">
-          İşbu sözleşmeden doğan uyuşmazlıklarda, mevzuatta öngörülen parasal
-          sınırlar dahilinde Tüketici Hakem Heyetleri ile [Şehir] Tüketici
-          Mahkemeleri/Ticaret Mahkemeleri yetkilidir; bu yetki dağılımı,
-          Alıcı'nın tüketici veya tacir sıfatına göre değişebileceğinden hukuk
-          danışmanınızca teyit edilmelidir.
+          İşbu Sözleşme'nin kurulmasından önce Alıcı'ya, satın alma ekranında; ürün/hizmetin
+          temel nitelikleri, toplam bedeli, ödeme ve teslimat/ifa şekli, cayma hakkının
+          süresi ve kullanım şartları (varsa istisnaları) hakkında Mesafeli Sözleşmeler
+          Yönetmeliği m.5 uyarınca ön bilgilendirme yapılır ve Alıcı bu bilgilendirmeyi teyit
+          ettikten sonra ödeme adımına geçebilir.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">7. Yürürlük</h2>
+        <h3 className="mt-4 font-semibold text-slate-800">Madde 7 — Yürürlük</h3>
         <p className="mt-2 text-sm text-slate-600">
-          Alıcı, sipariş formundaki onay kutusunu işaretleyip ödemeyi
-          tamamladığında işbu sözleşmenin tüm hükümlerini elektronik ortamda
-          kabul etmiş sayılır.
+          Alıcı, ilgili satın alma ekranındaki onay kutusunu işaretleyip ödemeyi
+          tamamladığında, satın aldığı ürün/hizmete uygulanan ek (Ek-A veya Ek-B) dahil işbu
+          Sözleşme'nin tüm hükümlerini elektronik ortamda kabul etmiş sayılır.
+        </p>
+
+        <h2 className="mt-8 text-lg font-bold text-slate-900">
+          Bölüm II — Ek-A: Fiziksel Ürün Siparişi (Dayanıklı QR Etiket)
+        </h2>
+
+        <h3 className="mt-4 font-semibold text-slate-800">A.1 — Ürün ve Teslimat</h3>
+        <p className="mt-2 text-sm text-slate-600">
+          Ürün, motor bölmesi gibi zorlu koşullara dayanıklı (su geçirmez, UV korumalı)
+          profesyonel basılmış QR etikettir. Ürün, Alıcı'nın beyan ettiği teslimat adresine,
+          ödemenin onaylanmasını takip eden hedef olarak üç (3) iş günü içinde kargoya
+          verilir; yasal azami teslim süresi otuz (30) gündür.
+        </p>
+        <p className="mt-2 text-sm text-slate-600">
+          Alıcı'nın hatalı/eksik adres beyanı nedeniyle teslimatın gerçekleştirilememesi
+          hâlinde yeniden gönderim masrafı Alıcı'ya aittir. Kargo firması kaynaklı kayıp/hasar
+          hâllerinde Satıcı, makul süre içinde Ürün'ü yeniden gönderir veya bedeli iade eder.
+        </p>
+
+        <h3 className="mt-4 font-semibold text-slate-800">A.2 — Cayma Hakkı</h3>
+        <p className="mt-2 text-sm text-slate-600">
+          Alıcı, Ürünü teslim aldığı tarihten itibaren on dört (14) gün içinde, gerekçe
+          göstermeksizin cayma hakkına sahiptir. Cayma hakkının kullanılabilmesi için Ürün'ün
+          kullanılmamış, araca yapıştırılmamış ve satışa engel olacak şekilde tahrip
+          edilmemiş olması gerekir.
+        </p>
+        <p className="mt-2 text-sm text-slate-600">
+          Cayma bildirimi hello@otohafiza.com adresine yazılı olarak iletilir. İade kargo
+          bedeli Alıcı'ya aittir.
+        </p>
+        <p className="mt-2 text-sm text-slate-600">
+          Alıcı'nın işletmesinin ticari/mesleki amaçla (servis/tamirhane işletmeciliği)
+          sipariş vermesi nedeniyle 6502 sayılı Kanun anlamında "tüketici" sayılıp
+          sayılmayacağı ayrı bir hukuki değerlendirme konusudur; 14 günlük cayma süresi bu
+          belirsizlik ihtimaline karşı asgari tüketici koruma standardı esas alınarak,
+          ihtiyaten tanınmıştır.
+        </p>
+        <p className="mt-2 text-sm text-slate-600">
+          Satıcı, cayma bildirimini aldığı tarihten itibaren en geç on dört (14) gün içinde,
+          varsa teslimat masrafı dahil, tahsil edilen bedelin tamamını Alıcı'ya iade eder.
+        </p>
+
+        <h3 className="mt-4 font-semibold text-slate-800">A.3 — Ayıplı Ürün</h3>
+        <p className="mt-2 text-sm text-slate-600">
+          Ürün'ün ayıplı (kusurlu) teslim edilmesi hâlinde Alıcı, 6502 sayılı Kanun'un 8-12.
+          maddeleri uyarınca; satılanı geri vermeye hazır olduğunu bildirerek sözleşmeden
+          dönme, satılanı alıkoyup ayıp oranında bedel indirimi isteme, aşırı masraf
+          gerektirmediği takdirde ücretsiz onarım isteme veya imkân varsa ayıpsız bir
+          misliyle değiştirilmesini isteme haklarından birini kullanabilir. Bu haklardan biri
+          seçilerek Satıcı'ya bildirildiğinde, Satıcı bildirimden itibaren azami otuz (30)
+          gün içinde gereğini yerine getirir.
+        </p>
+
+        <h2 className="mt-8 text-lg font-bold text-slate-900">
+          Bölüm III — Ek-B: Dijital Hizmet (Abonelik Planı) Satın Alımı
+        </h2>
+
+        <h3 className="mt-4 font-semibold text-slate-800">B.1 — Hizmetin İfası</h3>
+        <p className="mt-2 text-sm text-slate-600">
+          Abonelik hizmeti, ödemenin onaylanmasıyla birlikte derhal (elektronik ortamda
+          anında) ifa edilmeye başlanır; Alıcı ilgili plan özelliklerine anında erişim
+          kazanır.
+        </p>
+
+        <h3 className="mt-4 font-semibold text-slate-800">B.2 — Cayma Hakkı</h3>
+        <p className="mt-2 text-sm text-slate-600">
+          <strong>Kural:</strong> Alıcı tüketici sıfatını haiz ise, satın alma tarihinden
+          itibaren on dört (14) gün içinde cayma hakkına sahiptir; bu süre içinde Abonelik,
+          Ödeme, Yenileme, İptal ve İade Politikası Madde 7-8 kapsamında iade edilir.
+        </p>
+        <p className="mt-2 text-sm text-slate-600">
+          <strong>İstisna (şu an tetiklenmemektedir):</strong> Mesafeli Sözleşmeler
+          Yönetmeliği m.15/1-ğ uyarınca, elektronik ortamda anında ifa edilen hizmetlerde,
+          Alıcı satın alma anında ayrı bir onay kutucuğuyla hizmetin derhal ifasını talep
+          eder ve bu talebin cayma hakkını sona erdireceğini kabul ederse, cayma hakkı
+          kullanılamaz hâle gelir. Satıcı bu istisnayı şu an tetiklememeyi ve düz 14 günlük
+          cayma hakkını tanımayı tercih etmiştir.
+        </p>
+        <p className="mt-2 text-sm text-slate-600">
+          Cayma hakkının kullanılması, o ana kadar fiilen kullanılmış hizmet süresi için
+          orantısal bir mahsuplaşma gerektirmez; Abonelik, Ödeme, Yenileme, İptal ve İade
+          Politikası Madde 8.2'deki kötüye kullanım istisnası saklıdır.
+        </p>
+        <p className="mt-2 text-sm text-slate-600">
+          Alıcı'nın işletmesinin ticari/mesleki amaçla abonelik satın alması nedeniyle 6502
+          sayılı Kanun anlamında "tüketici" sayılıp sayılmayacağı ayrı bir hukuki
+          değerlendirme konusudur; yukarıdaki cayma hakkı, bu belirsizlik ihtimaline karşı
+          ihtiyaten tanınmıştır.
         </p>
       </div>
     </main>

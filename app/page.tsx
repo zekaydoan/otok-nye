@@ -1091,6 +1091,14 @@ export default async function HomePage() {
           <Link href="/kullanim-sartlari" className="underline">
             Kullanım Şartları
           </Link>
+          <span className="text-slate-300">·</span>
+          <Link href="/cerez-politikasi" className="underline">
+            Çerez Politikası
+          </Link>
+          <span className="text-slate-300">·</span>
+          <Link href="/kabul-edilebilir-kullanim-politikasi" className="underline">
+            Kabul Edilebilir Kullanım Politikası
+          </Link>
         </div>
         <div className="mt-4 flex justify-center">
           <PaymentBadges />

@@ -12,98 +12,90 @@ export default function TermsPage() {
           ← Ana sayfa
         </Link>
         <h1 className="mt-4 text-2xl font-bold text-slate-900">Kullanım Şartları</h1>
-        <p className="mt-2 text-sm text-slate-500">Son güncelleme: Ağustos 2026</p>
+        <p className="mt-2 text-sm text-slate-500">
+          Yürürlük tarihi: 20 Ağustos 2026 · Versiyon: v1.0
+        </p>
 
         <div className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
-          Bu metin, OtoHafıza hizmetinin kullanım koşullarını genel hatlarıyla açıklayan
-          bir <strong>şablondur</strong>. Yayına almadan önce köşeli parantez içindeki
-          alanları ([ ]) kendi işletme bilgilerinizle doldurmanız ve metni bir hukuk
-          danışmanına onaylatmanız önerilir. Bu içerik hukuki tavsiye niteliği taşımaz.
+          İşbu Kullanım Koşulları, otohafiza.com sitesini ziyaret eden herkes için geçerli
+          genel şartları düzenler. Platform'a kayıt olup hesap açan kullanıcılar için ayrıca{" "}
+          <Link href="/dashboard" className="underline">
+            SaaS Kullanım ve Lisans Sözleşmesi
+          </Link>{" "}
+          ve ekleri uygulanır; iki belge arasında çelişki olması hâlinde, hesap sahipleri
+          bakımından SaaS Kullanım ve Lisans Sözleşmesi esas alınır.
         </div>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">1. Hizmetin Tanımı</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">1. Amaç ve Kapsam</h2>
         <p className="mt-2 text-sm text-slate-600">
-          OtoHafıza ("Platform"), Sarper Dijital Teknolojiler ve Kiralama A.Ş. tarafından işletilen; araçlara
-          yapıştırılan QR etiketleri aracılığıyla yağ bakım geçmişinin dijital olarak
-          kaydedilmesini ve görüntülenmesini sağlayan bir SaaS (hizmet olarak yazılım)
-          uygulamasıdır. Platform, oto tamircileri ve servisler ("Bayi") tarafından
-          kullanılmak üzere tasarlanmıştır.
+          İşbu Kullanım Koşulları, Sarper Dijital Teknolojiler ve Kiralama A.Ş. ("Şirket")
+          tarafından işletilen otohafiza.com internet sitesinin ("Site") genel kullanım
+          şartlarını düzenler ve Site'yi ziyaret eden herkes ("Ziyaretçi") için bağlayıcıdır.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">2. Hesap Açma ve Sorumluluklar</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">2. Sitenin Kullanımı</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Hesap oluşturarak verdiğiniz bilgilerin doğru ve güncel olduğunu kabul edersiniz.
-          Hesap kimlik bilgilerinizin (e-posta/şifre) gizliliğinden ve hesabınız üzerinden
-          gerçekleştirilen tüm işlemlerden siz sorumlusunuz. Şüpheli bir erişim fark
-          ederseniz şifrenizi derhal değiştirmeniz ve bizimle iletişime geçmeniz gerekir.
-        </p>
-        <p className="mt-3 text-sm text-slate-600">
-          Araç sahiplerinin kişisel verilerini sisteme girerken KVKK Aydınlatma Metni'nde
-          belirtilen bilgilendirme yükümlülüklerini yerine getirmek Bayi'nin sorumluluğundadır.
+          Ziyaretçi, Site'yi yalnızca hukuka uygun amaçlarla kullanabilir; Site'nin
+          işleyişini bozacak, aşırı yük bindirecek veya güvenliğini tehdit edecek şekilde
+          kullanamaz. Site'de otomatikleştirilmiş araçlarla (bot, scraper, crawler) toplu
+          veri çekilmesi, arama motoru indeksleme robotları için kamuya açık şekilde izin
+          verilenler hariç, yasaktır.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">3. Abonelik ve Ödeme</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">3. Fikri Mülkiyet</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Platform, farklı kullanım limitlerine sahip ücretsiz ve ücretli planlar sunar.
-          Ücretli planlara ilişkin bedeller, seçtiğiniz plan sayfasında belirtilir ve
-          vergiler dahildir/hariçtir [seçiniz]. Abonelik dönemi içinde plan değişikliği
-          yapabilir veya aboneliğinizi panelden iptal edebilirsiniz; iptal, o an geçerli
-          fatura döneminin sonunda yürürlüğe girer.
+          Site'deki tüm içerik (metin, blog yazıları, görsel, logo, "OtoHafıza" markası,
+          arayüz tasarımı) Şirket'in veya lisans verenlerinin fikri mülkiyetindedir ve 5846
+          sayılı Fikir ve Sanat Eserleri Kanunu ile 6769 sayılı Sınai Mülkiyet Kanunu
+          kapsamında korunmaktadır. Ziyaretçi, Site içeriğini Şirket'in önceden yazılı izni
+          olmaksızın çoğaltamaz, dağıtamaz veya ticari amaçla kullanamaz; kaynak gösterilerek
+          yapılan makul alıntılar bu yasağın kapsamı dışındadır.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">4. Etiket Mağazası Siparişleri</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">4. Kullanıcı Hesapları</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Fiziksel QR etiket siparişleri, ödeme onayı sonrası üretime alınır ve panelden
-          durumu takip edilebilir. Sipariş, ödeme ve iade koşullarının ayrıntıları için{" "}
-          <Link href="/mesafeli-satis-sozlesmesi" className="text-brand-600 underline">
-            Mesafeli Satış Sözleşmesi
-          </Link>{" "}
-          geçerlidir.
+          Site üzerinden Platform'a kayıt olan Ziyaretçiler, kayıt anından itibaren SaaS
+          Kullanım ve Lisans Sözleşmesi ve eklerine tabi olur; işbu Kullanım Koşulları, hesap
+          açmamış Ziyaretçiler bakımından geçerliliğini korur.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">5. Fikri Mülkiyet</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">5. Üçüncü Taraf Bağlantılar</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Platform'un yazılımı, tasarımı, logosu ve marka unsurları Sarper Dijital Teknolojiler ve Kiralama A.Ş.'ye
-          aittir. Sisteme girdiğiniz araç ve bakım kayıtlarının mülkiyeti size/müşterilerinize
-          aittir; Platform bu verileri yalnızca hizmetin sunulması amacıyla işler.
+          Site, üçüncü kişilere ait internet sitelerine bağlantılar (link) içerebilir.
+          Şirket, bu sitelerin içeriğinden veya gizlilik uygulamalarından sorumlu değildir.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">6. Hizmetin Kullanılabilirliği</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">
+          6. Sorumluluğun Sınırlandırılması
+        </h2>
         <p className="mt-2 text-sm text-slate-600">
-          Platform'u makul bir çalışma süresiyle (uptime) sunmak için özen gösteririz,
-          ancak bakım, üçüncü taraf altyapı sağlayıcı kesintileri veya mücbir sebepler
-          nedeniyle zaman zaman erişim kesintileri yaşanabilir. Bu kesintilerden doğan
-          dolaylı zararlardan sorumlu tutulamayız.
+          Şirket, Site'de yer alan bilgilerin (blog içerikleri dahil) güncelliği, doğruluğu
+          veya eksiksizliği konusunda azami özeni gösterir; ancak bu içerikler genel
+          bilgilendirme amaçlıdır ve profesyonel (hukuki, mali, teknik) tavsiye niteliği
+          taşımaz. Şirket'in işbu madde kapsamındaki sorumluluğu, kasıt/ağır ihmal istisnası
+          saklı kalmak kaydıyla sınırlıdır.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">7. Sorumluluğun Sınırlandırılması</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">7. Değişiklikler</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Platform, mevcut haliyle ("as is") sunulur. Yasaların izin verdiği azami ölçüde,
-          hizmetin kullanımından doğabilecek dolaylı, arızi veya sonuç niteliğindeki
-          zararlardan sorumlu değiliz. Sorumluluğumuz, varsa, ilgili fatura döneminde
-          ödediğiniz abonelik bedeli ile sınırlıdır.
+          Şirket, işbu Kullanım Koşulları'nı önceden makul süre bildirimde bulunarak
+          güncelleyebilir; güncel metin Site üzerinde yayınlandığı andan itibaren geçerli
+          olur.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">8. Fesih</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">
+          8. Uygulanacak Hukuk ve Yetki
+        </h2>
         <p className="mt-2 text-sm text-slate-600">
-          Hesabınızı dilediğiniz zaman panelden kapatabilirsiniz. Bu şartların ihlali
-          hâlinde hesabınızı askıya alma veya sonlandırma hakkımız saklıdır. Fesih
-          sonrasında verilerinizin saklanma/silinme süreci KVKK Aydınlatma Metni'nde
-          açıklanan sürelere tabidir.
+          İşbu Kullanım Koşulları Türkiye Cumhuriyeti hukukuna tabidir; uyuşmazlıklarda
+          Manisa Mahkemeleri ve İcra Daireleri yetkilidir, tüketici sıfatını haiz kişilerin
+          kanundan doğan seçimlik hakları saklıdır.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">9. Değişiklikler</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">9. İletişim</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Bu şartları zaman zaman güncelleyebiliriz; önemli değişikliklerde sizi panel
-          üzerinden veya e-posta ile bilgilendiririz. Güncellenmiş şartları kullanmaya
-          devam etmeniz, değişiklikleri kabul ettiğiniz anlamına gelir.
-        </p>
-
-        <h2 className="mt-8 text-lg font-bold text-slate-900">10. Uygulanacak Hukuk</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Bu şartlar Türkiye Cumhuriyeti kanunlarına tabidir. Uyuşmazlıklarda [Şehir]
-          Mahkemeleri ve İcra Daireleri yetkilidir. Sorularınız için [E-posta] adresinden
-          bize ulaşabilirsiniz.
+          İşbu Kullanım Koşulları'na ilişkin sorular hello@otohafiza.com adresine
+          iletilebilir.
         </p>
       </div>
     </main>
