@@ -16,12 +16,18 @@ interface Props {
   // olmadığından bu ikisi boş bırakılabilir — bu durumda alt bilgi şeridi hiç basılmaz.
   labelName?: string;
   labelPhone?: string;
+  // Verilirse "PDF İndir (Yüksek Çözünürlük)" butonu gösterilir — tarayıcının
+  // window.print()'ine (çözünürlüğü yazıcı ayarına/tarayıcı PDF motoruna bağlı)
+  // güvenmek yerine, sunucuda her QR'ı yüksek çözünürlükte üretip doğrudan bir PDF
+  // dosyası indirir (bkz. app/api/admin/stok/[batchId]/pdf, lib/stickerLabelsPdf.ts
+  // — Zeki'nin 20 Ağustos 2026 talebi).
+  downloadPdfHref?: string;
 }
 
 // Her token'ı hem gerçek bir QR kod olarak (doğrudan yazdırılabilir/PDF alınabilir)
 // hem de düz metin link olarak gösterir — bayi kendi yazıcısından çıkarabilir ya da
 // düz listeyi profesyonel bir baskı firmasına iletebilir.
-export default function StickerTokenGrid({ tokens, baseUrl, labelName, labelPhone }: Props) {
+export default function StickerTokenGrid({ tokens, baseUrl, labelName, labelPhone, downloadPdfHref }: Props) {
   const [view, setView] = useState<"qr" | "list">("qr");
 
   return (
@@ -52,6 +58,14 @@ export default function StickerTokenGrid({ tokens, baseUrl, labelName, labelPhon
           >
             Yazdır / PDF Kaydet
           </button>
+        )}
+        {downloadPdfHref && (
+          <a
+            href={downloadPdfHref}
+            className="rounded-lg border border-brand-600 px-4 py-1.5 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+          >
+            📄 PDF İndir (Yüksek Çözünürlük)
+          </a>
         )}
       </div>
 

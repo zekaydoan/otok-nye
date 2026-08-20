@@ -53,7 +53,11 @@ export default async function AdminStockBatchPage({ params }: { params: { batchI
       </p>
 
       <div className="mt-6">
-        <StickerTokenGrid tokens={tokens} baseUrl={siteUrl} />
+        <StickerTokenGrid
+          tokens={tokens}
+          baseUrl={siteUrl}
+          downloadPdfHref={`/api/admin/stok/${batch.id}/pdf`}
+        />
       </div>
     </div>
   );
