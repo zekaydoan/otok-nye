@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AdPixels from "@/components/AdPixels";
+import CookieConsentBanner from "@/components/CookieConsentBanner";
 import PageviewTracker from "@/components/PageviewTracker";
 import ActiveVisitorTracker from "@/components/ActiveVisitorTracker";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -135,6 +136,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* ScrollToTop sağ altta olduğu için çakışmasın diye sol altta —
             bkz. WhatsAppFloatButton.tsx. */}
         <WhatsAppFloatButton />
+        <CookieConsentBanner />
       </body>
     </html>
   );

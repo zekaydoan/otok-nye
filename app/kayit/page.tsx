@@ -25,7 +25,15 @@ function SignupForm() {
   // için sessizce null kalır, kayıt akışını hiçbir şekilde etkilemez.
   const [partnerName, setPartnerName] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", password: "" });
-  const [consent, setConsent] = useState(false);
+  // 4 ayrı, bağımsız onay kutucuğu — hiçbiri varsayılan olarak işaretli
+  // gelmez (bkz. hukuki/06_KVKK_Aydinlatma_Metni_ve_Gizlilik_Esaslari.md §5 ve
+  // lib/contracts.ts CONTRACT_DOCUMENT_ORDER). "pazarlama" hariç üçü zorunludur.
+  const [consents, setConsents] = useState({
+    saas_kullanim_sartlari: false,
+    kvkk_aydinlatma: false,
+    yurtdisi_veri_aktarimi: false,
+    pazarlama_izni: false,
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -49,16 +57,17 @@ function SignupForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!consent) {
-      setError("Devam etmek için KVKK Aydınlatma Metni'ni onaylamalısınız.");
+    if (!consents.saas_kullanim_sartlari || !consents.kvkk_aydinlatma || !consents.yurtdisi_veri_aktarimi) {
+      setError("Devam etmek için sözleşme ve KVKK onaylarının tümünü işaretlemelisiniz.");
       return;
     }
     setLoading(true);
     try {
+      const payload = { ...form, consents, ...(referralCode ? { ref: referralCode } : {}) };
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(referralCode ? { ...form, ref: referralCode } : form),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -217,24 +226,80 @@ function SignupForm() {
               </div>
             </div>
 
-            <label className="flex items-start gap-2 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
-              <input
-                type="checkbox"
-                className="mt-0.5"
-                checked={consent}
-                onChange={(e) => setConsent(e.target.checked)}
-              />
-              <span>
-                <Link href="/kvkk" target="_blank" className="font-medium text-brand-600 underline">
-                  KVKK Aydınlatma Metni
-                </Link>
-                'ni ve{" "}
-                <Link href="/kullanim-sartlari" target="_blank" className="font-medium text-brand-600 underline">
-                  Kullanım Şartları
-                </Link>
-                'nı okudum, kabul ediyorum.
-              </span>
-            </label>
+            <div className="space-y-2 rounded-lg bg-slate-50 p-3">
+              <label className="flex items-start gap-2 text-xs text-slate-600">
+                <input
+                  required
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={consents.saas_kullanim_sartlari}
+                  onChange={(e) =>
+                    setConsents({ ...consents, saas_kullanim_sartlari: e.target.checked })
+                  }
+                />
+                <span>
+                  <Link href="/kullanim-sartlari" target="_blank" className="font-medium text-brand-600 underline">
+                    SaaS Kullanım ve Lisans Sözleşmesi
+                  </Link>
+                  'ni ve{" "}
+                  <Link href="/kullanim-sartlari" target="_blank" className="font-medium text-brand-600 underline">
+                    Kullanım Şartları
+                  </Link>
+                  'nı okudum, kabul ediyorum. <span className="text-slate-400">(zorunlu)</span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2 text-xs text-slate-600">
+                <input
+                  required
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={consents.kvkk_aydinlatma}
+                  onChange={(e) => setConsents({ ...consents, kvkk_aydinlatma: e.target.checked })}
+                />
+                <span>
+                  <Link href="/kvkk" target="_blank" className="font-medium text-brand-600 underline">
+                    KVKK Aydınlatma Metni
+                  </Link>
+                  'ni okudum, kişisel verilerimin belirtilen amaçlarla işlenmesini kabul
+                  ediyorum. <span className="text-slate-400">(zorunlu)</span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2 text-xs text-slate-600">
+                <input
+                  required
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={consents.yurtdisi_veri_aktarimi}
+                  onChange={(e) =>
+                    setConsents({ ...consents, yurtdisi_veri_aktarimi: e.target.checked })
+                  }
+                />
+                <span>
+                  Verilerimin, hizmetin teknik altyapısı (barındırma, e-posta bildirimi)
+                  gereği yurt dışına aktarılmasına{" "}
+                  <Link href="/kvkk" target="_blank" className="font-medium text-brand-600 underline">
+                    KVKK Aydınlatma Metni §1.6
+                  </Link>
+                  'da açıklanan kapsamda açık rıza gösteriyorum.{" "}
+                  <span className="text-slate-400">(zorunlu)</span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2 text-xs text-slate-600">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={consents.pazarlama_izni}
+                  onChange={(e) => setConsents({ ...consents, pazarlama_izni: e.target.checked })}
+                />
+                <span>
+                  Kampanya ve yeniliklerle ilgili e-posta/WhatsApp ile bilgilendirilmek
+                  istiyorum. <span className="text-slate-400">(isteğe bağlı)</span>
+                </span>
+              </label>
+            </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
 

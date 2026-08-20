@@ -19,6 +19,7 @@ import type {
   AnnouncementAudience,
   Appointment,
   BillingInfo,
+  ContractAcceptanceRecord,
   DataRequest,
   DataRequestStatus,
   OilRecord,
@@ -142,6 +143,8 @@ const stickerSelfPrintsStore = () => getStore("sticker_self_prints");
 // ---------- Saha Partner Ağı (bkz. types.ts "Saha Partner Ağı" bölümü) ----------
 const partnersStore = () => getStore("partners");
 const partnersByReferralCodeStore = () => getStore("partners_by_referral_code");
+
+const contractAcceptancesStore = () => getStore("contract_acceptances");
 // Partnerin kendi paneline giriş yapabilmesi için (bkz. lib/partnerAuth.ts) —
 // shopsByEmailStore'un telefon karşılığı, normalizePartnerPhone ile normalize
 // edilmiş numara anahtar olarak kullanılır.
@@ -1230,6 +1233,39 @@ function announcementMatchesShop(audience: AnnouncementAudience, shop: Shop): bo
 export async function listAnnouncementsForShop(shop: Shop): Promise<Announcement[]> {
   const all = await listAllAnnouncements();
   return all.filter((a) => announcementMatchesShop(a.audience, shop));
+}
+
+// ---------- Sözleşme Kabul Kaydı (elektronik delillendirme) ----------
+// Kayıt sırasında (bkz. app/api/auth/signup/route.ts) hesap sahibinin ayrı ayrı
+// onayladığı dört metnin (SaaS Sözleşmesi+Kullanım Şartları, KVKK Aydınlatma
+// Metni, yurt dışı veri aktarımı açık rızası, pazarlama izni) değişmez kaydı.
+// Amaç: bir uyuşmazlıkta "hangi versiyonu, ne zaman, hangi IP'den kabul etti"
+// sorusuna ispat niteliğinde cevap verebilmek (bkz. hukuki/00_INDEKS_ve_
+// RISK_ANALIZI.md aksiyon listesi). Kayıtlar yalnızca EKLENİR, hiçbir zaman
+// güncellenmez veya silinmez.
+export async function recordContractAcceptance(
+  entry: Omit<ContractAcceptanceRecord, "id" | "createdAt">
+): Promise<void> {
+  const full: ContractAcceptanceRecord = {
+    id: randomUUID(),
+    createdAt: new Date().toISOString(),
+    ...entry,
+  };
+  await contractAcceptancesStore().setJSON(full.id, full);
+}
+
+// Admin'de veya bir uyuşmazlık durumunda tek bir hesabın onay geçmişini
+// görüntülemek için — hacim düşük olduğundan (hesap başına genelde tek kayıt)
+// basitçe tüm store taranıp shopId'ye göre filtrelenir; listAdminAuditLog'daki
+// aynı ölçek varsayımı burada da geçerlidir.
+export async function getContractAcceptancesForShop(shopId: string): Promise<ContractAcceptanceRecord[]> {
+  const { blobs } = await contractAcceptancesStore().list();
+  const entries = await Promise.all(
+    blobs.map((b) => contractAcceptancesStore().get(b.key, { type: "json" }) as Promise<ContractAcceptanceRecord | null>)
+  );
+  return entries
+    .filter((e): e is ContractAcceptanceRecord => !!e && e.shopId === shopId)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 
 // ---------- Admin İşlem Günlüğü (Audit Log) ----------

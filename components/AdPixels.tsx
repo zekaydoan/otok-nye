@@ -1,4 +1,8 @@
+"use client";
+
 import Script from "next/script";
+import { useEffect, useState } from "react";
+import { COOKIE_CONSENT_COOKIE, COOKIE_CONSENT_EVENT } from "./CookieConsentBanner";
 
 // Google Analytics 4 ve Meta (Facebook) Pixel entegrasyonu — lib/email.ts ve
 // lib/whatsappReminder.ts'teki "dormant" desenin aynısı: ortam değişkeni
@@ -11,9 +15,39 @@ import Script from "next/script";
 // Bu kimlikler NEXT_PUBLIC_ önekiyle bilinçli olarak istemci tarafına açılır —
 // bu bir güvenlik açığı değildir: her sitenin GA/Meta Pixel kimliği zaten
 // sayfa kaynağında herkese açık şekilde görünür, sır değildir.
+//
+// KVKK/Çerez Politikası uyumu (bkz. hukuki/07_Cerez_Politikasi.md Madde 4,
+// components/CookieConsentBanner.tsx): bu iki ölçüm scripti artık ortam
+// değişkeni tanımlı olsa BİLE, kullanıcı çerez banner'ında "Kabul Et" demeden
+// yüklenmez. Karar verilmemişse (banner henüz gösteriliyorsa) da yüklenmez —
+// varsayılan her zaman "yükleme", asla "yükle ve sonra sor" değildir.
+function useCookieConsentGranted(): boolean {
+  const [granted, setGranted] = useState(false);
+
+  useEffect(() => {
+    function readCookie() {
+      const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_CONSENT_COOKIE}=([^;]*)`));
+      return match ? decodeURIComponent(match[1]) === "granted" : false;
+    }
+    setGranted(readCookie());
+
+    function handleConsentChange(e: Event) {
+      const detail = (e as CustomEvent<string>).detail;
+      setGranted(detail === "granted");
+    }
+    window.addEventListener(COOKIE_CONSENT_EVENT, handleConsentChange);
+    return () => window.removeEventListener(COOKIE_CONSENT_EVENT, handleConsentChange);
+  }, []);
+
+  return granted;
+}
+
 export default function AdPixels() {
   const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
   const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  const consentGranted = useCookieConsentGranted();
+
+  if (!consentGranted) return null;
 
   return (
     <>

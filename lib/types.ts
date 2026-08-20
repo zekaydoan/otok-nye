@@ -125,6 +125,37 @@ export interface PublicShop {
   plan: Plan;
 }
 
+// ---------- Sözleşme Kabul Kaydı (elektronik delillendirme) ----------
+// Kayıt sırasında ayrı ayrı onaylanan dört metin — bkz. lib/contracts.ts
+// CONTRACT_VERSIONS (güncel versiyon kimlikleri) ve computeAcceptanceHash
+// (her onay için üretilen bütünlük parmak izi). "pazarlama_izni" hariç diğer
+// üçü kayıt formunda zorunludur (bkz. app/kayit/page.tsx).
+export type ContractDocumentKey =
+  | "saas_kullanim_sartlari" // SaaS Kullanım ve Lisans Sözleşmesi + Kullanım Şartları
+  | "kvkk_aydinlatma" // KVKK Aydınlatma Metni
+  | "yurtdisi_veri_aktarimi" // KVKK §1.6 kapsamındaki açık rıza
+  | "pazarlama_izni"; // pazarlama e-postası/bildirimi izni — varsayılan kapalı
+
+export interface ContractAcceptanceItem {
+  document: ContractDocumentKey;
+  version: string;
+  accepted: boolean;
+  hash: string; // bkz. lib/contracts.ts computeAcceptanceHash
+}
+
+// Bir hesabın kayıt anında (veya ileride sözleşme güncellendiğinde yeniden
+// onay istendiğinde) verdiği onayların değişmez kaydı. Sonradan silinmez/
+// düzenlenmez — yalnızca eklenir; ispat değeri buradan gelir.
+export interface ContractAcceptanceRecord {
+  id: string;
+  shopId: string;
+  email: string;
+  createdAt: string; // ISO
+  ip: string;
+  userAgent?: string;
+  items: ContractAcceptanceItem[];
+}
+
 // ---------- Çoklu çalışan hesabı ----------
 // Bir dükkanda birden fazla usta panele erişebilsin diye Shop'un (hesap sahibi)
 // yanına bağımsız giriş bilgileriyle çalışan hesapları eklenebilir. Çalışan

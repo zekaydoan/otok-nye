@@ -7,11 +7,13 @@ import {
   getPartnerByReferralCode,
   getShopByEmail,
   getStaffByEmail,
+  recordContractAcceptance,
   recordPlanStart,
 } from "@/lib/blobStore";
 import { createSessionToken, hashPassword, setSessionCookie } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import { TR_PROVINCES, type Shop } from "@/lib/types";
+import { CONTRACT_DOCUMENT_ORDER, CONTRACT_VERSIONS, computeAcceptanceHash } from "@/lib/contracts";
+import { TR_PROVINCES, type ContractAcceptanceItem, type Shop } from "@/lib/types";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_NAME_LEN = 150;
@@ -29,17 +31,32 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, email, phone, password, city, ref } = body as {
+  const { name, email, phone, password, city, ref, consents } = body as {
     name?: string;
     email?: string;
     phone?: string;
     password?: string;
     city?: string;
     ref?: string; // Saha Partner Ağı referans kodu (?ref=KOD) — bkz. app/kayit/page.tsx
+    // Kayıt formundaki 4 ayrı onay kutucuğunun anlık durumu (bkz. app/kayit/page.tsx,
+    // lib/contracts.ts CONTRACT_DOCUMENT_ORDER). pazarlama_izni hariç üçü zorunludur.
+    consents?: Partial<Record<string, boolean>>;
   };
 
   if (!name || !email || !phone || !password || !city) {
     return NextResponse.json({ error: "Tüm alanları doldurun." }, { status: 400 });
+  }
+  // Zorunlu 3 onay (SaaS Sözleşmesi+Kullanım Şartları, KVKK Aydınlatma Metni,
+  // yurt dışı veri aktarımı açık rızası) işaretlenmeden hesap açılamaz — bkz.
+  // hukuki/00_INDEKS_ve_RISK_ANALIZI.md aksiyon listesi ve KVKK Metni §5.
+  const missingRequiredConsent = CONTRACT_DOCUMENT_ORDER.some(
+    (doc) => doc.required && !consents?.[doc.key]
+  );
+  if (missingRequiredConsent) {
+    return NextResponse.json(
+      { error: "Devam etmek için sözleşme ve KVKK onaylarının tümünü işaretlemelisiniz." },
+      { status: 400 }
+    );
   }
   // Serbest metin yerine sabit il listesiyle eşleşmeli — bkz. lib/types.ts
   // TR_PROVINCES yorumu (şehir bazlı raporlarda yazım farkı sorunu olmasın diye).
@@ -90,6 +107,34 @@ export async function POST(req: NextRequest) {
 
   await createShop(shop);
   await recordPlanStart(shop.id, shop.plan);
+
+  // Sözleşme kabul kaydı: her onaylanan/pas geçilen madde için o an yürürlükte
+  // olan versiyon ve bir bütünlük hash'i tek bir zaman damgasıyla saklanır
+  // (bkz. lib/contracts.ts). Bu adım başarısız olsa bile kayıt akışı BLOKLANMAZ
+  // — kullanıcı deneyimini bozmamak için hata sessizce loglanır; ancak yukarıdaki
+  // zorunlu onay kontrolü sayesinde gerçek onay zaten formdan doğrulanmış olur.
+  try {
+    const acceptedAt = shop.createdAt;
+    const items: ContractAcceptanceItem[] = CONTRACT_DOCUMENT_ORDER.map((doc) => {
+      const version = CONTRACT_VERSIONS[doc.key];
+      const accepted = Boolean(consents?.[doc.key]);
+      return {
+        document: doc.key,
+        version,
+        accepted,
+        hash: computeAcceptanceHash({ document: doc.key, version, email: shop.email, acceptedAt }),
+      };
+    });
+    await recordContractAcceptance({
+      shopId: shop.id,
+      email: shop.email,
+      ip,
+      userAgent: req.headers.get("user-agent") ?? undefined,
+      items,
+    });
+  } catch (err) {
+    console.error("[signup] Sözleşme kabul kaydı oluşturulamadı (kayıt yine de tamamlandı):", err);
+  }
 
   // Saha Partner Ağı: geçerli bir referans koduyla geldiyse bayiyi o partnere
   // bağlar (bkz. lib/blobStore.ts attributeShopToPartnerIfUnset). Bilinmeyen/

@@ -64,8 +64,8 @@
 
 - [ ] **TÜRKPATENT'e "OtoHafıza" marka tescil başvurusu (öncelikli, yalnızca Zeki yapabilir — idari işlem)**
 - [ ] Netlify ve Resend ile KVKK-uyumlu standart sözleşme/taahhütname imzalanması ve Kurul'a 5 iş günü içinde bildirilmesi (bkz. yukarıdaki nokta #3 — bir KVKK danışmanıyla birlikte yürütülmeli)
-- [ ] Sözleşme kabul kaydı: versiyon + SHA-256 hash + timestamp + IP altyapısının eklenmesi
-- [ ] Çerez onay banner'ı eklenmesi (GA4/Meta Pixel şu an onaysız yükleniyor — `components/AdPixels.tsx`)
-- [ ] Kayıt/onay ekranında 4 ayrı checkbox'ın uygulanması: (1) SaaS Sözleşmesi+Kullanım Koşulları, (2) KVKK Aydınlatma Metni, (3) yurt dışı veri aktarımı açık rızası, (4) pazarlama izni (varsayılan kapalı)
+- [x] Sözleşme kabul kaydı: versiyon + SHA-256 hash + timestamp + IP altyapısının eklenmesi (20 Ağustos 2026 — bkz. `lib/contracts.ts`, `lib/blobStore.ts` `recordContractAcceptance`, `app/api/auth/signup/route.ts`)
+- [x] Çerez onay banner'ı eklenmesi (20 Ağustos 2026 — bkz. `components/CookieConsentBanner.tsx`; `components/AdPixels.tsx` artık yalnızca "granted" onayında yükleniyor)
+- [x] Kayıt/onay ekranında 4 ayrı checkbox'ın uygulanması: (1) SaaS Sözleşmesi+Kullanım Koşulları, (2) KVKK Aydınlatma Metni, (3) yurt dışı veri aktarımı açık rızası, (4) pazarlama izni (varsayılan kapalı) — 20 Ağustos 2026, bkz. `app/kayit/page.tsx`
 - [x] Şirket kuruluşu tamamlanınca: MERSİS no, vergi dairesi/no, açık adres — tüm belgelerde yer tutucular dolduruldu (20 Ağustos 2026)
-- [ ] Canlı `/kvkk` ve `/mesafeli-satis-sozlesmesi` sayfalarının bu revize metinlerle güncellenmesi; `/kullanim-sartlari`, çerez politikası, AUP için yeni sayfalar açılması
+- [x] Canlı `/kvkk` ve `/mesafeli-satis-sozlesmesi` sayfalarının bu revize metinlerle güncellenmesi; `/kullanim-sartlari` genişletildi; çerez politikası (`/cerez-politikasi`) ve AUP (`/kabul-edilebilir-kullanim-politikasi`) için yeni sayfalar açıldı (20 Ağustos 2026)
