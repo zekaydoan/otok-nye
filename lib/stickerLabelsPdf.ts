@@ -1,13 +1,12 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import QRCode from "qrcode";
-import { OTOHAFIZA_ICON_160_PNG_BASE64 } from "./otohafizaIconBase64";
 
 // Genel stok etiket ekranındaki (bkz. app/admin/stok/[batchId]) tarayıcının
 // "Yazdır / PDF Kaydet" (window.print) yolu, kullanıcının yazıcı ayarlarına ve
 // tarayıcının PDF motoruna bağlı olarak QR kodları rastgele bir çözünürlükte
 // rasterize edebiliyor — Zeki'nin 20 Ağustos 2026 talebi ("çözünürlüğün
 // bozulmayacağı bir indir butonu") tam olarak bunu hedefliyor. Bu dosya, her
-// QR kodu yüksek çözünürlükte (600x600px) kendimiz üretip pdf-lib ile
+// QR kodu yüksek çözünürlükte (400x400px, ~288 DPI) kendimiz üretip pdf-lib ile
 // doğrudan bir PDF'e gömerek, tarayıcı/yazıcı ayarından tamamen bağımsız,
 // her zaman keskin bir çıktı garanti eder.
 //
@@ -34,11 +33,16 @@ export interface StickerLabelPdfOptions {
   // ileride kullanılabilir diye opsiyonel bırakıldı.
   labelName?: string;
   labelPhone?: string;
-  // Logoyu gömüp gömmeme (varsayılan true) — lib/otohafizaIconBase64.ts'teki
-  // sabit base64'ten okunur, dosya sistemi/ağ erişimi GEREKTİRMEZ (bkz. o
-  // dosyadaki yorum: self-fetch denemesi üretimde 502'ye yol açmıştı).
-  includeLogo?: boolean;
 }
+
+// NOT (20 Ağustos 2026): Bu PDF'e OtoHafıza logosunu da gömme denemesi
+// (base64 sabitten pdfDoc.embedPng ile) üretimde fonksiyonun çökmesine yol
+// açtı ("This function has crashed") — kesin sebep Netlify fonksiyon
+// loglarına erişimimiz olmadığı için netleşemedi. Riski izole etmek için
+// logo gömme BİLEREK bu sürümden çıkarıldı; ekrandaki (StickerTokenGrid,
+// istemci taraflı qrcode.react) QR kodlarında logo hâlâ görünüyor, yalnızca
+// bu sunucu tarafı PDF indirmesinde yok. Kök sebep netleşince güvenli
+// şekilde geri eklenebilir.
 
 const PAGE_WIDTH = 595.28; // A4, pt
 const PAGE_HEIGHT = 841.89;
@@ -46,7 +50,10 @@ const MARGIN = 28;
 const GAP = 14;
 const LABEL_WIDTH = 160;
 const LABEL_HEIGHT = 196;
-const QR_PIXEL_SIZE = 600; // baskıda pikselleşmeyecek kadar yüksek kaynak çözünürlük
+// 100pt (~1.39in) basım boyutunda 400px kaynak, ~288 DPI'a denk gelir — matbaa
+// baskısı için fazlasıyla yeterli, ayrıca büyük partilerde (yüzlerce etiket)
+// fonksiyonun bellek/CPU yükünü de makul tutar (bkz. 20 Ağustos 2026 çökme notu).
+const QR_PIXEL_SIZE = 400;
 
 const BRAND = rgb(0.145, 0.271, 0.635);
 const DARK = rgb(0.06, 0.09, 0.16);
@@ -62,10 +69,6 @@ export async function generateStickerLabelsPdf(
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const includeLogo = opts.includeLogo !== false;
-  const logoImage = includeLogo
-    ? await pdfDoc.embedPng(Buffer.from(OTOHAFIZA_ICON_160_PNG_BASE64, "base64"))
-    : null;
 
   const cols = Math.max(1, Math.floor((PAGE_WIDTH - 2 * MARGIN + GAP) / (LABEL_WIDTH + GAP)));
   const rows = Math.max(1, Math.floor((PAGE_HEIGHT - 2 * MARGIN + GAP) / (LABEL_HEIGHT + GAP)));
@@ -148,18 +151,6 @@ export async function generateStickerLabelsPdf(
       color: rgb(1, 1, 1),
     });
     page.drawImage(qrImage, { x: qrX, y: qrY, width: qrDrawSize, height: qrDrawSize });
-
-    // Marka bilinirliği için ortadaki logo — client tarafındaki qrcode.react
-    // imageSettings ile aynı oran (~%20), bkz. components/StickerTokenGrid.tsx
-    if (logoImage) {
-      const logoSize = qrDrawSize * 0.2;
-      page.drawImage(logoImage, {
-        x: qrX + (qrDrawSize - logoSize) / 2,
-        y: qrY + (qrDrawSize - logoSize) / 2,
-        width: logoSize,
-        height: logoSize,
-      });
-    }
 
     // Alt açıklama
     const caption = winAnsiSafe("QR kodu okutup aracınıza kaydedin");

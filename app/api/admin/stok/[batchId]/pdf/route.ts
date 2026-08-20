@@ -8,14 +8,17 @@ import { generateStickerLabelsPdf } from "@/lib/stickerLabelsPdf";
 // "Yazdır / PDF Kaydet" (window.print) yolundan BİLEREK ayrı: o yol, tarayıcının
 // PDF motoruna ve kullanıcının yazıcı ayarlarına bağlı olarak QR kodları
 // öngörülemeyen bir çözünürlükte rasterize edebiliyor. Burada her QR kendimiz
-// 600x600px üretip pdf-lib ile gömüyoruz — çıktı her zaman keskin (bkz.
-// lib/stickerLabelsPdf.ts, Zeki'nin 20 Ağustos 2026 talebi).
+// 400x400px (~288 DPI) üretip pdf-lib ile gömüyoruz — çıktı her zaman keskin
+// (bkz. lib/stickerLabelsPdf.ts, Zeki'nin 20 Ağustos 2026 talebi).
 //
-// Önemli: siteUrl için req.nextUrl.origin kullanılıyor (headers()/next-headers
-// DEĞİL) ve logo lib/otohafizaIconBase64.ts'teki sabit base64'ten gömülüyor —
+// Geçmiş: siteUrl için req.nextUrl.origin kullanılıyor (headers() DEĞİL) —
 // ilk sürüm sitenin kendi domainine "self-fetch" ile logo indiriyordu, bu da
-// üretimde HTTP 502 ile sonuçlandı (muhtemelen ek ağ isteğinin fonksiyon zaman
-// aşımına katkı yapması). Artık dış bağımlılık yok, tamamen kendi içinde çalışır.
+// önce HTTP 502'ye (muhtemelen zaman aşımı), logoyu base64 sabit yapınca da
+// fonksiyonun çökmesine ("This function has crashed") yol açtı — kesin sebep
+// Netlify fonksiyon loglarına erişimimiz olmadığından netleşemedi. Riski
+// izole etmek için logo gömme şimdilik ÇIKARILDI (bkz. lib/stickerLabelsPdf.ts
+// baştaki not) — bu route artık tamamen dış bağımlılıksız, sadece QR üretip
+// gömüyor.
 export async function GET(req: NextRequest, { params }: { params: { batchId: string } }) {
   try {
     const adminShopId = await getCurrentAdminShopId();
