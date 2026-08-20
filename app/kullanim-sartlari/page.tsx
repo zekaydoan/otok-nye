@@ -23,7 +23,7 @@ export default function TermsPage() {
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">1. Hizmetin Tanımı</h2>
         <p className="mt-2 text-sm text-slate-600">
-          OtoHafıza ("Platform"), [Firma Unvanınız] tarafından işletilen; araçlara
+          OtoHafıza ("Platform"), Sarper Dijital Teknolojiler ve Kiralama A.Ş. tarafından işletilen; araçlara
           yapıştırılan QR etiketleri aracılığıyla yağ bakım geçmişinin dijital olarak
           kaydedilmesini ve görüntülenmesini sağlayan bir SaaS (hizmet olarak yazılım)
           uygulamasıdır. Platform, oto tamircileri ve servisler ("Bayi") tarafından
@@ -63,7 +63,7 @@ export default function TermsPage() {
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">5. Fikri Mülkiyet</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Platform'un yazılımı, tasarımı, logosu ve marka unsurları [Firma Unvanınız]'a
+          Platform'un yazılımı, tasarımı, logosu ve marka unsurları Sarper Dijital Teknolojiler ve Kiralama A.Ş.'ye
           aittir. Sisteme girdiğiniz araç ve bakım kayıtlarının mülkiyeti size/müşterilerinize
           aittir; Platform bu verileri yalnızca hizmetin sunulması amacıyla işler.
         </p>

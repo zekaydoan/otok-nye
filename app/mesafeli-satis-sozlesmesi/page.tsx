@@ -32,8 +32,10 @@ export default function MesafeliSatisSozlesmesiPage() {
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">1. Taraflar</h2>
         <p className="mt-2 text-sm text-slate-600">
-          <strong>Satıcı:</strong> [Firma Unvanı], [Adres], [Vergi Dairesi/No veya
-          MERSİS No], [E-posta], [Telefon] ("Satıcı").
+          <strong>Satıcı:</strong> Sarper Dijital Teknolojiler ve Kiralama A.Ş., Muradiye
+          Mahallesi Zübeyde Hanım Cad. No:34/A Yunusemre/Manisa, Mesir Vergi Dairesi — VKN
+          7511125219, Mersis No 0751112521900001, Ticaret Sicil No 24016, hello@otohafiza.com,
+          +90 542 575 69 18 ("Satıcı").
         </p>
         <p className="mt-2 text-sm text-slate-600">
           <strong>Alıcı:</strong> OtoHafıza panelinde oturum açmış, sipariş formunda

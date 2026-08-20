@@ -36,9 +36,8 @@ export default function KvkkPage() {
           İşbu aydınlatma metni, SARPER DİJİTAL TEKNOLOJİLER VE KİRALAMA A.Ş. ("OtoHafıza",
           "Platform") tarafından, 6698 sayılı Kişisel Verilerin Korunması Kanunu'nun ("KVKK")
           10. maddesi uyarınca veri sorumlusu sıfatıyla hazırlanmıştır. İletişim:
-          hello@otohafiza.com{" "}
-          <span className="rounded bg-amber-100 px-1 text-amber-700">[Adres bekleniyor]</span>,{" "}
-          <span className="rounded bg-amber-100 px-1 text-amber-700">[Telefon bekleniyor]</span>.
+          hello@otohafiza.com, Muradiye Mahallesi Zübeyde Hanım Cad. No:34/A Yunusemre/Manisa,{" "}
+          +90 542 575 69 18.
         </p>
 
         <h3 className="mt-4 font-semibold text-slate-800">1.2 İşlenen Kişisel Veriler</h3>
@@ -116,9 +115,8 @@ export default function KvkkPage() {
           haklarına sahiptir.
         </p>
         <p className="mt-3 text-sm text-slate-600">
-          Taleplerinizi hello@otohafiza.com adresine veya{" "}
-          <span className="rounded bg-amber-100 px-1 text-amber-700">[Adres bekleniyor]</span>{" "}
-          adresine yazılı olarak iletebilirsiniz.
+          Taleplerinizi hello@otohafiza.com adresine veya Muradiye Mahallesi Zübeyde Hanım Cad.
+          No:34/A Yunusemre/Manisa adresine yazılı olarak iletebilirsiniz.
         </p>
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">4. Veri Güvenliği</h2>
