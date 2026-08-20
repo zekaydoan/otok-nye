@@ -1271,6 +1271,24 @@ export async function getContractAcceptancesForAccount(
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 
+// Admin "Sözleşme Onayları" sayfası için — kim (Kullanıcı/Bayi mi Saha
+// Partneri mi), hangi belgeyi, hangi versiyonla, ne zaman ve hangi IP'den
+// onayladı sorusunun TÜM hesaplar için tek bakışta cevabı. listAdminAuditLog
+// ile aynı ölçek varsayımı: hacim büyüdükçe (kapasite-analizi.md) sayfalama
+// gerekebilir, şimdilik en yeni 500 kayıtla sınırlı — tek bir signup/başvuru
+// olayı 4 kaleme kadar item içerebildiğinden (bkz. ContractAcceptanceItem)
+// audit log'dan biraz daha yüksek bir üst sınır seçildi.
+export async function listAllContractAcceptances(): Promise<ContractAcceptanceRecord[]> {
+  const { blobs } = await contractAcceptancesStore().list();
+  const entries = await Promise.all(
+    blobs.map((b) => contractAcceptancesStore().get(b.key, { type: "json" }) as Promise<ContractAcceptanceRecord | null>)
+  );
+  return entries
+    .filter((e): e is ContractAcceptanceRecord => !!e)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .slice(0, 500);
+}
+
 // ---------- Admin İşlem Günlüğü (Audit Log) ----------
 export async function recordAdminAuditLog(entry: {
   actorEmail: string;

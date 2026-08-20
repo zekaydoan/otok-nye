@@ -9,6 +9,7 @@ import {
   BellIcon,
   ChartBarIcon,
   ChatIcon,
+  CheckCircleIcon,
   DocumentIcon,
   HandshakeIcon,
   LightbulbIcon,
@@ -36,6 +37,7 @@ const NAV_ITEMS = [
   { href: "/admin/duyurular", label: "Duyurular", icon: <ChatIcon />, color: "amber" as const },
   { href: "/admin/oneriler", label: "Öneriler", icon: <LightbulbIcon />, color: "yellow" as const },
   { href: "/admin/veri-talepleri", label: "Veri Talepleri", icon: <LockIcon />, color: "slate" as const },
+  { href: "/admin/sozlesme-onaylari", label: "Sözleşme Onayları", icon: <CheckCircleIcon />, color: "brand" as const },
   { href: "/admin/aktivite", label: "Aktivite", icon: <DocumentIcon />, color: "green" as const },
 ];
 
