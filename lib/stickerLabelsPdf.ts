@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import QRCode from "qrcode";
+import { OTOHAFIZA_ICON_160_PNG_BASE64 } from "./otohafizaIconBase64";
 
 // Genel stok etiket ekranındaki (bkz. app/admin/stok/[batchId]) tarayıcının
 // "Yazdır / PDF Kaydet" (window.print) yolu, kullanıcının yazıcı ayarlarına ve
@@ -33,12 +34,10 @@ export interface StickerLabelPdfOptions {
   // ileride kullanılabilir diye opsiyonel bırakıldı.
   labelName?: string;
   labelPhone?: string;
-  // QR kodun altına gömülecek OtoHafıza logosu — public/icon-512.png'nin ham
-  // baytları. Çağıran taraf (API route) bunu HTTP üzerinden indirip geçirir;
-  // sunucu tarafında doğrudan dosya sisteminden okumak Netlify serverless
-  // fonksiyon paketlemesinde güvenilir olmayabildiği için BİLEREK burada değil,
-  // route.ts'de fetch ile alınır.
-  logoPngBytes?: Uint8Array;
+  // Logoyu gömüp gömmeme (varsayılan true) — lib/otohafizaIconBase64.ts'teki
+  // sabit base64'ten okunur, dosya sistemi/ağ erişimi GEREKTİRMEZ (bkz. o
+  // dosyadaki yorum: self-fetch denemesi üretimde 502'ye yol açmıştı).
+  includeLogo?: boolean;
 }
 
 const PAGE_WIDTH = 595.28; // A4, pt
@@ -63,16 +62,34 @@ export async function generateStickerLabelsPdf(
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const logoImage = opts.logoPngBytes ? await pdfDoc.embedPng(opts.logoPngBytes) : null;
+  const includeLogo = opts.includeLogo !== false;
+  const logoImage = includeLogo
+    ? await pdfDoc.embedPng(Buffer.from(OTOHAFIZA_ICON_160_PNG_BASE64, "base64"))
+    : null;
 
   const cols = Math.max(1, Math.floor((PAGE_WIDTH - 2 * MARGIN + GAP) / (LABEL_WIDTH + GAP)));
   const rows = Math.max(1, Math.floor((PAGE_HEIGHT - 2 * MARGIN + GAP) / (LABEL_HEIGHT + GAP)));
   const perPage = cols * rows;
 
+  // Her QR kodunun PNG'sini ÖNCEDEN, hepsini birden paralel üretiyoruz — önceki
+  // sürümde her etiket için sırayla (bir bir await ederek) üretiliyordu, bu da
+  // büyük partilerde toplam süreyi katlayıp Netlify fonksiyon zaman aşımına
+  // (ve gözlemlenen HTTP 502'ye) katkı yapıyordu (bkz. 20 Ağustos 2026).
+  const qrPngs = await Promise.all(
+    items.map((item) =>
+      QRCode.toBuffer(`${baseUrl}/e/${item.token}`, {
+        type: "png",
+        errorCorrectionLevel: "H",
+        margin: 1,
+        width: QR_PIXEL_SIZE,
+      })
+    )
+  );
+
   let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   let indexOnPage = 0;
 
-  for (const item of items) {
+  for (let i = 0; i < items.length; i++) {
     if (indexOnPage === perPage) {
       page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
       indexOnPage = 0;
@@ -115,14 +132,8 @@ export async function generateStickerLabelsPdf(
       color: rgb(1, 1, 1),
     });
 
-    // QR kodu — her etiket için ayrı, yüksek çözünürlükte üretilir
-    const qrPng = await QRCode.toBuffer(`${baseUrl}/e/${item.token}`, {
-      type: "png",
-      errorCorrectionLevel: "H",
-      margin: 1,
-      width: QR_PIXEL_SIZE,
-    });
-    const qrImage = await pdfDoc.embedPng(qrPng);
+    // QR kodu — yukarıda paralel üretilmiş PNG'lerden gömülür
+    const qrImage = await pdfDoc.embedPng(qrPngs[i]);
     const qrDrawSize = 100;
     const qrX = x + (LABEL_WIDTH - qrDrawSize) / 2;
     const qrY = y + LABEL_HEIGHT - headerHeight - qrDrawSize - 16;

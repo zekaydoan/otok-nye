@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { getStickerStockBatchById, listStickerTokensByBatch } from "@/lib/blobStore";
 import { generateStickerLabelsPdf } from "@/lib/stickerLabelsPdf";
-
-// Fiziksel etikete kalıcı olarak basılacak QR kodları her zaman sitenin gerçek,
-// kalıcı adresine gitmelidir — bkz. app/admin/stok/[batchId]/page.tsx'teki aynı
-// gerekçe (process.env.URL/DEPLOY_URL güvenilir değil, host header kullanılır).
-function getPermanentSiteUrl(): string {
-  const host = headers().get("host");
-  if (!host) return process.env.URL || "https://otohafiza.com";
-  const protocol = host.startsWith("localhost") ? "http" : "https";
-  return `${protocol}://${host}`;
-}
 
 // Genel stok etiket partisini (bkz. lib/types.ts StickerStockBatch) yüksek
 // çözünürlüklü, doğrudan indirilebilir bir PDF olarak üretir. Tarayıcının
@@ -21,47 +10,43 @@ function getPermanentSiteUrl(): string {
 // öngörülemeyen bir çözünürlükte rasterize edebiliyor. Burada her QR kendimiz
 // 600x600px üretip pdf-lib ile gömüyoruz — çıktı her zaman keskin (bkz.
 // lib/stickerLabelsPdf.ts, Zeki'nin 20 Ağustos 2026 talebi).
+//
+// Önemli: siteUrl için req.nextUrl.origin kullanılıyor (headers()/next-headers
+// DEĞİL) ve logo lib/otohafizaIconBase64.ts'teki sabit base64'ten gömülüyor —
+// ilk sürüm sitenin kendi domainine "self-fetch" ile logo indiriyordu, bu da
+// üretimde HTTP 502 ile sonuçlandı (muhtemelen ek ağ isteğinin fonksiyon zaman
+// aşımına katkı yapması). Artık dış bağımlılık yok, tamamen kendi içinde çalışır.
 export async function GET(req: NextRequest, { params }: { params: { batchId: string } }) {
-  const adminShopId = await getCurrentAdminShopId();
-  if (!adminShopId) return NextResponse.json({ error: "Yetkisiz." }, { status: 403 });
-
-  const batch = await getStickerStockBatchById(params.batchId);
-  if (!batch) return NextResponse.json({ error: "Parti bulunamadı." }, { status: 404 });
-
-  const tokens = await listStickerTokensByBatch(batch.id);
-  if (tokens.length === 0) {
-    return NextResponse.json({ error: "Bu partide henüz etiket yok." }, { status: 400 });
-  }
-
-  const siteUrl = getPermanentSiteUrl();
-
-  // Logo dosyasını sunucu dosya sisteminden değil, sitenin kendi public
-  // klasöründen HTTP ile indiriyoruz — Netlify serverless fonksiyon
-  // paketlemesinde public/ dosyalarına doğrudan fs erişimi güvenilir değil,
-  // ama /icon-512.png zaten istemci tarafında (bkz. StickerEditor,
-  // StickerTokenGrid) sorunsuz servis ediliyor.
-  let logoPngBytes: Uint8Array | undefined;
   try {
-    const logoRes = await fetch(`${siteUrl}/icon-512.png`);
-    if (logoRes.ok) {
-      logoPngBytes = new Uint8Array(await logoRes.arrayBuffer());
+    const adminShopId = await getCurrentAdminShopId();
+    if (!adminShopId) return NextResponse.json({ error: "Yetkisiz." }, { status: 403 });
+
+    const batch = await getStickerStockBatchById(params.batchId);
+    if (!batch) return NextResponse.json({ error: "Parti bulunamadı." }, { status: 404 });
+
+    const tokens = await listStickerTokensByBatch(batch.id);
+    if (tokens.length === 0) {
+      return NextResponse.json({ error: "Bu partide henüz etiket yok." }, { status: 400 });
     }
-  } catch {
-    // Logo alınamazsa PDF logosuz üretilir — indirme işlemini engellemeye değmez.
+
+    const pdfBytes = await generateStickerLabelsPdf(
+      req.nextUrl.origin,
+      tokens.map((t) => ({ token: t.token }))
+    );
+
+    return new NextResponse(Buffer.from(pdfBytes), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="genel-stok-etiketleri-${batch.id.slice(0, 8)}.pdf"`,
+        "Cache-Control": "no-store",
+      },
+    });
+  } catch (err) {
+    // Ham bir exception fonksiyonun çökmesine (ve tarayıcıda opaque bir HTTP 502
+    // görülmesine) yol açmasın diye — en azından okunabilir bir hata dönsün ve
+    // Netlify fonksiyon loglarında görülebilsin diye console.error ile kaydedilir.
+    console.error("Genel stok PDF üretim hatası:", err);
+    return NextResponse.json({ error: "PDF üretilemedi. Lütfen tekrar deneyin." }, { status: 500 });
   }
-
-  const pdfBytes = await generateStickerLabelsPdf(
-    siteUrl,
-    tokens.map((t) => ({ token: t.token })),
-    { logoPngBytes }
-  );
-
-  return new NextResponse(Buffer.from(pdfBytes), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="genel-stok-etiketleri-${batch.id.slice(0, 8)}.pdf"`,
-      "Cache-Control": "no-store",
-    },
-  });
 }
