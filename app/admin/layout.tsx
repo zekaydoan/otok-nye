@@ -84,12 +84,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 <LogoutButton />
               </div>
             </div>
-            <nav className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+            {/* Mobilde flex-wrap her sekmeyi kendi satırına sığdırmaya
+                çalışıp ikonu/etiketi birbirine ve kenara sıkıştırıyordu
+                (Zeki'nin 20 Ağustos 2026 geri bildirimi — ekran görüntüsünde
+                görülen "sıkış tıkış" görünüm). Mobilde tek satır, yatay
+                kaydırmalı bir sekme çubuğuna (flex-nowrap + overflow-x-auto)
+                geçildi — her sekme kendi genişliğini korur, dokunma hedefi
+                küçülmez, parmakla kaydırılır. sm ve üzeri (tablet/masaüstü)
+                genişlikte yeterli yer olduğundan eski flex-wrap davranışına
+                dönülür, hiçbir sekme kaydırmaya muhtaç kalmaz. */}
+            <nav className="-mx-4 mt-3 flex items-center gap-1.5 overflow-x-auto border-t border-slate-100 px-4 pt-3 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                  className="relative flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 sm:gap-2 sm:px-3"
                 >
                   <IconBadge icon={item.icon} color={item.color} />
                   <span>{item.label}</span>
