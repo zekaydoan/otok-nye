@@ -23,11 +23,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
     ...blogEntries,
     { url: `${SITE_URL}/referans`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${SITE_URL}/hakkimizda`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
     // /giris bilinçli olarak burada YOK: robots.ts zaten onu Disallow listesine
     // alıyor (oturum ekranı, indekslenmesi anlamlı değil) — sitemap'te taranması
     // engellenmiş bir URL'yi listelemek Google Search Console'da "Sitemap'te
     // gönderildi ama robots.txt tarafından engellendi" uyarısına yol açar.
     { url: `${SITE_URL}/kvkk`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
+    {
+      url: `${SITE_URL}/gizlilik-sozlesmesi`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
     {
       url: `${SITE_URL}/kullanim-sartlari`,
       lastModified: now,

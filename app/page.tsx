@@ -1076,12 +1076,20 @@ export default async function HomePage() {
           {/* "Blog" linki buradan kaldırıldı — sayfada zaten hem header
               menüsünde hem de kendi bölümünde ("Blog'dan Öne Çıkanlar")
               açıkça görünüyor, footer'da tekrarına gerek yok. */}
+          <Link href="/hakkimizda" className="underline">
+            Hakkımızda
+          </Link>
+          <span className="text-slate-300">·</span>
           <Link href="/referans" className="underline">
             Referans Programı
           </Link>
           <span className="text-slate-300">·</span>
           <Link href="/kvkk" className="underline">
             KVKK Aydınlatma Metni
+          </Link>
+          <span className="text-slate-300">·</span>
+          <Link href="/gizlilik-sozlesmesi" className="underline">
+            Gizlilik Sözleşmesi
           </Link>
           <span className="text-slate-300">·</span>
           <Link href="/saas-sozlesmesi" className="underline">
