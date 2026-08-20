@@ -73,6 +73,71 @@ export async function notifyAdmins(subject: string, html: string): Promise<void>
   await Promise.all(adminEmails.map((email) => sendEmail(email, subject, html)));
 }
 
+export interface BulkEmailSummary {
+  attempted: number;
+  sent: number;
+  failed: number;
+}
+
+// Bu dosyadaki ilk "birden çok alıcıya" gönderim senaryosu — notifyAdmins
+// birkaç admin e-postası için throttle'sız Promise.all kullanıyor, ama admin
+// sayısı elle sınırlı (ADMIN_EMAILS ortam değişkeni); bayi sayısı büyüdükçe
+// (bkz. kapasite-analizi.md) tüm bayilere TEK Promise.all ile aynı anda
+// gönderim Resend'in dakika/saniye başına istek sınırına takılabilir. Bu
+// yüzden alıcılar küçük gruplar hâlinde, gruplar arasında kısa bir gecikmeyle
+// gönderilir. Bir alıcının başarısız olması (geçersiz adres, geçici Resend
+// hatası vb.) diğerlerini ETKİLEMEZ — sendEmail zaten hatayı kendi içinde
+// yakalayıp {sent:false} döner, burada yalnızca sayılır.
+const BULK_EMAIL_BATCH_SIZE = 15;
+const BULK_EMAIL_BATCH_DELAY_MS = 300;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Admin panelinden bir duyuru yayınlanırken (bkz.
+// app/api/admin/duyurular/route.ts) hedef kitleye giren bayilere aynı
+// duyurunun e-posta kopyasını göndermek için — panel içi gösterim
+// (Announcement/listAnnouncementsForShop) bundan bağımsız çalışmaya devam
+// eder, bu yalnızca EK bir bildirim kanalıdır.
+export async function sendAnnouncementEmail(
+  recipientEmails: string[],
+  title: string,
+  message: string
+): Promise<BulkEmailSummary> {
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
+      <p style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:12px;">${escapeHtml(title)}</p>
+      <p style="white-space:pre-wrap;color:#334155;line-height:1.5;">${escapeHtml(message)}</p>
+      <p style="margin-top:20px;">
+        <a href="https://otohafiza.com/dashboard/duyurular" style="display:inline-block;background:#1d4ed8;color:#fff;
+        padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">
+        Panelde Görüntüle</a>
+      </p>
+      <p style="margin-top:24px;font-size:12px;color:#94a3b8;">
+        Bu e-posta, OtoHafıza hesabınıza kayıtlı adrese hesabınızla ilgili bir duyuruyu iletmek
+        amacıyla gönderildi.
+      </p>
+    </div>
+  `;
+
+  let sent = 0;
+  let failed = 0;
+  for (let i = 0; i < recipientEmails.length; i += BULK_EMAIL_BATCH_SIZE) {
+    const batch = recipientEmails.slice(i, i + BULK_EMAIL_BATCH_SIZE);
+    const results = await Promise.all(batch.map((to) => sendEmail(to, title, html)));
+    for (const result of results) {
+      if (result.sent) sent++;
+      else failed++;
+    }
+    if (i + BULK_EMAIL_BATCH_SIZE < recipientEmails.length) {
+      await delay(BULK_EMAIL_BATCH_DELAY_MS);
+    }
+  }
+
+  return { attempted: recipientEmails.length, sent, failed };
+}
+
 export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<EmailResult> {
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">

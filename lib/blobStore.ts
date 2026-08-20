@@ -1235,6 +1235,18 @@ export async function listAnnouncementsForShop(shop: Shop): Promise<Announcement
   return all.filter((a) => announcementMatchesShop(a.audience, shop));
 }
 
+// Bir duyuru yayınlanırken "bayilere e-posta de gönder" işaretlenmişse (bkz.
+// app/api/admin/duyurular/route.ts) alıcı listesini bulmak için — panelde
+// gösterimle (listAnnouncementsForShop) AYNI hedefleme mantığını
+// (announcementMatchesShop) kullanır, böylece panelde göreceği bayiler ile
+// e-posta alacak bayiler her zaman birebir aynı küme olur.
+export async function listShopsForAnnouncementAudience(
+  audience: AnnouncementAudience
+): Promise<Shop[]> {
+  const shops = await listAllShops();
+  return shops.filter((s) => announcementMatchesShop(audience, s));
+}
+
 // ---------- Sözleşme Kabul Kaydı (elektronik delillendirme) ----------
 // Kayıt sırasında (bkz. app/api/auth/signup/route.ts) hesap sahibinin ayrı ayrı
 // onayladığı dört metnin (SaaS Sözleşmesi+Kullanım Şartları, KVKK Aydınlatma

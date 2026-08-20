@@ -480,6 +480,13 @@ export interface Announcement {
   message: string;
   audience: AnnouncementAudience;
   createdAt: string;
+  // Admin, yayınlarken "bayilere e-posta de gönder" seçeneğini işaretlediyse
+  // gönderimin TETİKLENDİĞİ an (bkz. lib/email.sendAnnouncementEmail) — her
+  // alıcıya başarıyla ulaştığının garantisi değil, o an için asıl doğru sayı
+  // yayınlama isteğinin API yanıtındaki emailSummary'de (bkz.
+  // app/api/admin/duyurular/route.ts). Bu alan yalnızca admin geçmişinde
+  // "bu duyuru için e-posta denendi mi" rozetini göstermek için tutulur.
+  emailedAt?: string;
 }
 
 // ---------- KVKK Self-Servis Veri Talebi ----------

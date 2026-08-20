@@ -25,6 +25,7 @@ export default function AdminAnnouncementForm({
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [audience, setAudience] = useState<AnnouncementAudience>("all");
+  const [sendEmailToShops, setSendEmailToShops] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,14 +49,30 @@ export default function AdminAnnouncementForm({
       const res = await fetch("/api/admin/duyurular", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: trimmedTitle, message: trimmedMessage, audience }),
+        body: JSON.stringify({
+          title: trimmedTitle,
+          message: trimmedMessage,
+          audience,
+          sendEmailToShops,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Duyuru yayınlanamadı.");
         return;
       }
-      showToast("Duyuru yayınlandı.");
+      const summary = data.emailSummary as
+        | { attempted: number; sent: number; failed: number }
+        | null;
+      if (summary && summary.attempted > 0) {
+        showToast(
+          summary.failed > 0
+            ? `Duyuru yayınlandı. E-posta: ${summary.sent}/${summary.attempted} gönderildi, ${summary.failed} başarısız.`
+            : `Duyuru yayınlandı ve ${summary.sent} bayiye e-posta gönderildi.`
+        );
+      } else {
+        showToast("Duyuru yayınlandı.");
+      }
       setAnnouncements((prev) => [data.announcement, ...prev]);
       setTitle("");
       setMessage("");
@@ -112,6 +129,21 @@ export default function AdminAnnouncementForm({
           </select>
         </div>
 
+        <label className="flex items-start gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={sendEmailToShops}
+            onChange={(e) => setSendEmailToShops(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+          />
+          <span>
+            Hedef kitledeki bayilere aynı duyurunun e-posta kopyasını da gönder
+            <span className="block text-xs text-slate-400">
+              İşaretli değilse duyuru yalnızca panelde görünür, e-posta gitmez.
+            </span>
+          </span>
+        </label>
+
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
@@ -136,9 +168,16 @@ export default function AdminAnnouncementForm({
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <p className="text-sm font-semibold text-slate-900">{a.title}</p>
-                  <span className="shrink-0 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
-                    {ANNOUNCEMENT_AUDIENCE_LABELS[a.audience]}
-                  </span>
+                  <div className="flex shrink-0 gap-1.5">
+                    {a.emailedAt && (
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                        E-posta gönderildi
+                      </span>
+                    )}
+                    <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                      {ANNOUNCEMENT_AUDIENCE_LABELS[a.audience]}
+                    </span>
+                  </div>
                 </div>
                 <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{a.message}</p>
                 <p className="mt-2 text-xs text-slate-400">
