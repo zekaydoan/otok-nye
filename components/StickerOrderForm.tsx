@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PaymentBadges from "@/components/PaymentBadges";
+import IyzicoOdeBadge from "@/components/IyzicoOdeBadge";
 import { trackInitiateCheckout } from "@/components/AdPixels";
 
 export default function StickerOrderForm({
@@ -255,13 +256,16 @@ export default function StickerOrderForm({
           </p>
           <p className="text-xl font-bold text-slate-900">{total.toFixed(2)}₺</p>
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-lg bg-brand-600 px-5 py-2.5 font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
-        >
-          {loading ? "Yönlendiriliyor..." : "Öde ve Sipariş Ver"}
-        </button>
+        <div className="flex flex-col items-end gap-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-lg bg-brand-600 px-5 py-2.5 font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+          >
+            {loading ? "Yönlendiriliyor..." : "Öde ve Sipariş Ver"}
+          </button>
+          <IyzicoOdeBadge className="h-6" />
+        </div>
       </div>
 
       <PaymentBadges className="justify-center border-t border-slate-100 pt-4 sm:justify-start" />

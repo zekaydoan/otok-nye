@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import SubscriptionCheckoutForm from "@/components/SubscriptionCheckoutForm";
+import IyzicoOdeBadge from "@/components/IyzicoOdeBadge";
 import type { Plan } from "@/lib/types";
 
 const IDENTITY_NUMBER_REGEX = /^\d{11}$/;
@@ -83,6 +84,9 @@ export default function SubscriptionCheckoutStarter({ plan }: { plan: Plan }) {
       >
         {loading ? "Hazırlanıyor..." : "Ödemeye Geç"}
       </button>
+      <div className="mt-4 flex justify-center">
+        <IyzicoOdeBadge />
+      </div>
     </div>
   );
 }
