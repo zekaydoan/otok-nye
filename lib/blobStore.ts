@@ -1254,17 +1254,20 @@ export async function recordContractAcceptance(
   await contractAcceptancesStore().setJSON(full.id, full);
 }
 
-// Admin'de veya bir uyuşmazlık durumunda tek bir hesabın onay geçmişini
-// görüntülemek için — hacim düşük olduğundan (hesap başına genelde tek kayıt)
-// basitçe tüm store taranıp shopId'ye göre filtrelenir; listAdminAuditLog'daki
-// aynı ölçek varsayımı burada da geçerlidir.
-export async function getContractAcceptancesForShop(shopId: string): Promise<ContractAcceptanceRecord[]> {
+// Admin'de veya bir uyuşmazlık durumunda tek bir hesabın (Shop veya Partner)
+// onay geçmişini görüntülemek için — hacim düşük olduğundan (hesap başına
+// genelde tek kayıt) basitçe tüm store taranıp accountType+accountId'ye göre
+// filtrelenir; listAdminAuditLog'daki aynı ölçek varsayımı burada da geçerlidir.
+export async function getContractAcceptancesForAccount(
+  accountType: ContractAcceptanceRecord["accountType"],
+  accountId: string
+): Promise<ContractAcceptanceRecord[]> {
   const { blobs } = await contractAcceptancesStore().list();
   const entries = await Promise.all(
     blobs.map((b) => contractAcceptancesStore().get(b.key, { type: "json" }) as Promise<ContractAcceptanceRecord | null>)
   );
   return entries
-    .filter((e): e is ContractAcceptanceRecord => !!e && e.shopId === shopId)
+    .filter((e): e is ContractAcceptanceRecord => !!e && e.accountType === accountType && e.accountId === accountId)
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 

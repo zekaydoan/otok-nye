@@ -12,7 +12,7 @@ import {
 } from "@/lib/blobStore";
 import { createSessionToken, hashPassword, setSessionCookie } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import { CONTRACT_DOCUMENT_ORDER, CONTRACT_VERSIONS, computeAcceptanceHash } from "@/lib/contracts";
+import { SHOP_CONTRACT_DOCUMENT_ORDER, CONTRACT_VERSIONS, computeAcceptanceHash } from "@/lib/contracts";
 import { TR_PROVINCES, type ContractAcceptanceItem, type Shop } from "@/lib/types";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   // Zorunlu 3 onay (SaaS Sözleşmesi+Kullanım Şartları, KVKK Aydınlatma Metni,
   // yurt dışı veri aktarımı açık rızası) işaretlenmeden hesap açılamaz — bkz.
   // hukuki/00_INDEKS_ve_RISK_ANALIZI.md aksiyon listesi ve KVKK Metni §5.
-  const missingRequiredConsent = CONTRACT_DOCUMENT_ORDER.some(
+  const missingRequiredConsent = SHOP_CONTRACT_DOCUMENT_ORDER.some(
     (doc) => doc.required && !consents?.[doc.key]
   );
   if (missingRequiredConsent) {
@@ -115,19 +115,20 @@ export async function POST(req: NextRequest) {
   // zorunlu onay kontrolü sayesinde gerçek onay zaten formdan doğrulanmış olur.
   try {
     const acceptedAt = shop.createdAt;
-    const items: ContractAcceptanceItem[] = CONTRACT_DOCUMENT_ORDER.map((doc) => {
+    const items: ContractAcceptanceItem[] = SHOP_CONTRACT_DOCUMENT_ORDER.map((doc) => {
       const version = CONTRACT_VERSIONS[doc.key];
       const accepted = Boolean(consents?.[doc.key]);
       return {
         document: doc.key,
         version,
         accepted,
-        hash: computeAcceptanceHash({ document: doc.key, version, email: shop.email, acceptedAt }),
+        hash: computeAcceptanceHash({ document: doc.key, version, identifier: shop.email, acceptedAt }),
       };
     });
     await recordContractAcceptance({
-      shopId: shop.id,
-      email: shop.email,
+      accountType: "shop",
+      accountId: shop.id,
+      identifier: shop.email,
       ip,
       userAgent: req.headers.get("user-agent") ?? undefined,
       items,

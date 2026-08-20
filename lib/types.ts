@@ -126,14 +126,16 @@ export interface PublicShop {
 }
 
 // ---------- Sözleşme Kabul Kaydı (elektronik delillendirme) ----------
-// Kayıt sırasında ayrı ayrı onaylanan dört metin — bkz. lib/contracts.ts
-// CONTRACT_VERSIONS (güncel versiyon kimlikleri) ve computeAcceptanceHash
-// (her onay için üretilen bütünlük parmak izi). "pazarlama_izni" hariç diğer
-// üçü kayıt formunda zorunludur (bkz. app/kayit/page.tsx).
+// Kayıt sırasında ayrı ayrı onaylanan metinler — bkz. lib/contracts.ts
+// CONTRACT_VERSIONS (güncel versiyon kimlikleri), SHOP_CONTRACT_DOCUMENT_ORDER/
+// PARTNER_CONTRACT_DOCUMENT_ORDER (hesap türüne göre hangileri zorunlu) ve
+// computeAcceptanceHash (her onay için üretilen bütünlük parmak izi).
+// "pazarlama_izni" her iki hesap türünde de İSTEĞE BAĞLIDIR.
 export type ContractDocumentKey =
-  | "saas_kullanim_sartlari" // SaaS Kullanım ve Lisans Sözleşmesi + Kullanım Şartları
-  | "kvkk_aydinlatma" // KVKK Aydınlatma Metni
-  | "yurtdisi_veri_aktarimi" // KVKK §1.6 kapsamındaki açık rıza
+  | "saas_kullanim_sartlari" // Kullanıcı (Bayi): SaaS Kullanım ve Lisans Sözleşmesi + Kullanım Şartları
+  | "saha_partner_sozlesmesi" // Saha Partneri: Saha Partner Sözleşmesi + Kullanım Şartları
+  | "kvkk_aydinlatma" // KVKK Aydınlatma Metni — her iki hesap türü için de zorunlu
+  | "yurtdisi_veri_aktarimi" // KVKK §1.6 kapsamındaki açık rıza — her iki hesap türü için de zorunlu
   | "pazarlama_izni"; // pazarlama e-postası/bildirimi izni — varsayılan kapalı
 
 export interface ContractAcceptanceItem {
@@ -143,13 +145,18 @@ export interface ContractAcceptanceItem {
   hash: string; // bkz. lib/contracts.ts computeAcceptanceHash
 }
 
-// Bir hesabın kayıt anında (veya ileride sözleşme güncellendiğinde yeniden
-// onay istendiğinde) verdiği onayların değişmez kaydı. Sonradan silinmez/
-// düzenlenmez — yalnızca eklenir; ispat değeri buradan gelir.
+// Bir hesabın (Kullanıcı/Bayi VEYA Saha Partneri) kayıt anında (veya ileride
+// sözleşme güncellendiğinde yeniden onay istendiğinde) verdiği onayların
+// değişmez kaydı. Sonradan silinmez/düzenlenmez — yalnızca eklenir; ispat
+// değeri buradan gelir. accountType, aynı store içinde Shop ve Partner
+// kayıtlarının birbirine karışmadan ayırt edilebilmesi içindir.
+export type ContractAcceptorType = "shop" | "partner";
+
 export interface ContractAcceptanceRecord {
   id: string;
-  shopId: string;
-  email: string;
+  accountType: ContractAcceptorType;
+  accountId: string; // Shop.id veya Partner.id
+  identifier: string; // Shop için email, Partner için email||phone — hash girdisi ve okunabilirlik için
   createdAt: string; // ISO
   ip: string;
   userAgent?: string;

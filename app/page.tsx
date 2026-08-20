@@ -1099,6 +1099,10 @@ export default async function HomePage() {
           <Link href="/kabul-edilebilir-kullanim-politikasi" className="underline">
             Kabul Edilebilir Kullanım Politikası
           </Link>
+          <span className="text-slate-300">·</span>
+          <Link href="/saha-partner-sozlesmesi" className="underline">
+            Saha Partner Sözleşmesi
+          </Link>
         </div>
         <div className="mt-4 flex justify-center">
           <PaymentBadges />

@@ -6,9 +6,11 @@ import {
   generatePartnerReferralCode,
   getPartnerByPhone,
   recordAdminAuditLog,
+  recordContractAcceptance,
 } from "@/lib/blobStore";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import { PARTNER_CATEGORY_LABELS, type Partner, type PartnerCategory } from "@/lib/types";
+import { CONTRACT_VERSIONS, PARTNER_CONTRACT_DOCUMENT_ORDER, computeAcceptanceHash } from "@/lib/contracts";
+import { PARTNER_CATEGORY_LABELS, type ContractAcceptanceItem, type Partner, type PartnerCategory } from "@/lib/types";
 
 const MAX_NAME_LEN = 150;
 const MAX_PHONE_LEN = 30;
@@ -39,13 +41,17 @@ const WINDOW_MS = 60 * 60 * 1000; // 1 saat
 // gösteriyor.
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, phone, password, email, category, region } = body as {
+  const { name, phone, password, email, category, region, consents } = body as {
     name?: string;
     phone?: string;
     password?: string;
     email?: string;
     category?: PartnerCategory;
     region?: string;
+    // Başvuru formundaki 4 ayrı onay kutucuğunun anlık durumu (bkz.
+    // app/partner-basvuru/page.tsx, lib/contracts.ts PARTNER_CONTRACT_DOCUMENT_ORDER).
+    // pazarlama_izni hariç üçü zorunludur.
+    consents?: Partial<Record<string, boolean>>;
   };
 
   const trimmedName = (name || "").trim();
@@ -54,6 +60,18 @@ export async function POST(req: NextRequest) {
   if (!trimmedPhone) return NextResponse.json({ error: "Telefon zorunlu." }, { status: 400 });
   if (!password || !PASSWORD_REGEX.test(password)) {
     return NextResponse.json({ error: "Şifre tam olarak 6 haneli rakam olmalı." }, { status: 400 });
+  }
+  // Zorunlu 3 onay (Saha Partner Sözleşmesi+Kullanım Şartları, KVKK Aydınlatma
+  // Metni, yurt dışı veri aktarımı açık rızası) işaretlenmeden başvuru
+  // gönderilemez — bkz. hukuki/09_Saha_Partner_Sozlesmesi.md ve KVKK Metni §5.
+  const missingRequiredConsent = PARTNER_CONTRACT_DOCUMENT_ORDER.some(
+    (doc) => doc.required && !consents?.[doc.key]
+  );
+  if (missingRequiredConsent) {
+    return NextResponse.json(
+      { error: "Devam etmek için sözleşme ve KVKK onaylarının tümünü işaretlemelisiniz." },
+      { status: 400 }
+    );
   }
   if (trimmedName.length > MAX_NAME_LEN || trimmedPhone.length > MAX_PHONE_LEN) {
     return NextResponse.json({ error: "Girilen bilgiler çok uzun." }, { status: 400 });
@@ -103,6 +121,38 @@ export async function POST(req: NextRequest) {
     createdAt: new Date().toISOString(),
   };
   await createPartner(partner);
+
+  // Sözleşme kabul kaydı: her onaylanan/pas geçilen madde için o an yürürlükte
+  // olan versiyon ve bir bütünlük hash'i tek bir zaman damgasıyla saklanır
+  // (bkz. lib/contracts.ts, app/api/auth/signup/route.ts'teki aynı desen).
+  // identifier olarak email varsa email, yoksa telefon kullanılır — partnerde
+  // email isteğe bağlı olduğundan (bkz. yukarısı) tek sabit alan telefon.
+  // Bu adım başarısız olsa bile başvuru akışı BLOKLANMAZ; hata sessizce
+  // loglanır, gerçek onay zaten yukarıdaki zorunlu kontrolle doğrulanmıştır.
+  try {
+    const acceptedAt = partner.createdAt;
+    const identifier = partner.email || partner.phone;
+    const items: ContractAcceptanceItem[] = PARTNER_CONTRACT_DOCUMENT_ORDER.map((doc) => {
+      const version = CONTRACT_VERSIONS[doc.key];
+      const accepted = Boolean(consents?.[doc.key]);
+      return {
+        document: doc.key,
+        version,
+        accepted,
+        hash: computeAcceptanceHash({ document: doc.key, version, identifier, acceptedAt }),
+      };
+    });
+    await recordContractAcceptance({
+      accountType: "partner",
+      accountId: partner.id,
+      identifier,
+      ip: rateLimitKey,
+      userAgent: req.headers.get("user-agent") ?? undefined,
+      items,
+    });
+  } catch (err) {
+    console.error("[partner-basvuru] Sözleşme kabul kaydı oluşturulamadı (başvuru yine de tamamlandı):", err);
+  }
 
   // Admin bu işlemi yapmadı ama aktivite günlüğünde görebilsin diye kaydediliyor
   // — actorEmail alanı burada bir admin e-postası değil, kaynağı belirten sabit
