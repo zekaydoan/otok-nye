@@ -12,6 +12,7 @@ const ACTION_LABELS: Record<AdminAuditAction, string> = {
   iade_isaretlendi: "İade işaretlendi",
   siparis_silindi: "Sipariş kalıcı olarak silindi",
   siparis_hediye_edildi: "Sipariş hediye edildi",
+  genel_stok_etiket_olusturuldu: "Genel stok etiket partisi oluşturuldu",
   partner_olusturuldu: "Partner eklendi",
   partner_durum_degisti: "Partner durumu değişti",
   partner_atandi: "Partner ataması değişti",
@@ -29,6 +30,7 @@ const ACTION_LABELS: Record<AdminAuditAction, string> = {
 const TARGET_HREF: Record<AdminAuditLogEntry["targetType"], (id: string) => string> = {
   shop: (id) => `/admin/bayiler/${id}`,
   sticker_order: () => `/admin/siparisler`,
+  sticker_stock_batch: (id) => `/admin/stok/${id}`,
   partner: (id) => `/admin/partnerler/${id}`,
 };
 

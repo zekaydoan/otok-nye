@@ -23,8 +23,11 @@ const MAX_LEN = 120;
 const MAX_BIND_ATTEMPTS_PER_HOUR = 30;
 
 // Fiziksel, plakasız basılmış bir etiketi (bkz. app/e/[token]) ilk kez bir araca
-// bağlar. Etiket sipariş anında belirli bir bayiye ait olarak üretildiğinden yalnızca
-// o bayi, kendi hesabıyla giriş yapmışken bu etiketi bir araca bağlayabilir.
+// bağlar. Etiket sipariş anında belirli bir bayiye ait olarak üretildiyse yalnızca
+// o bayi, kendi hesabıyla giriş yapmışken bu etiketi bir araca bağlayabilir. Genel
+// stok etiketlerinde (bkz. lib/types.ts StickerToken, StickerStockBatch) ise bayi
+// baştan belli olmadığından, giriş yapmış olan HERHANGİ bir bayi ilk bağlamayı
+// yapabilir ve etiket o an o bayiye kalıcı olarak atanır.
 export async function POST(req: NextRequest, { params }: { params: { token: string } }) {
   const shopId = await getCurrentShopId();
   if (!shopId) return NextResponse.json({ error: "Giriş yapmalısınız." }, { status: 401 });
@@ -44,7 +47,10 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
 
   const tokenRecord = await getStickerToken(params.token, { consistency: "strong" });
   if (!tokenRecord) return NextResponse.json({ error: "Etiket bulunamadı." }, { status: 404 });
-  if (tokenRecord.shopId !== shopId) {
+  // Genel stok etiketlerinde (bkz. lib/types.ts StickerToken yorumu) shopId üretim
+  // anında boştur — bu durumda giriş yapmış olan HERHANGİ bir bayi ilk bağlamayı
+  // yapabilir, aşağıdaki bindStickerToken çağrısı token'ı o bayiye kalıcı olarak atar.
+  if (tokenRecord.shopId && tokenRecord.shopId !== shopId) {
     return NextResponse.json({ error: "Bu etiket başka bir yetkili servise ait." }, { status: 403 });
   }
   if (tokenRecord.vehicleId) {
@@ -123,7 +129,7 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
   };
 
   await createVehicle(vehicle);
-  await bindStickerToken(params.token, vehicle.id);
+  await bindStickerToken(params.token, vehicle.id, shopId);
 
   return NextResponse.json({ vehicleId: vehicle.id, isFirstVehicle });
 }

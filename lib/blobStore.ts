@@ -31,6 +31,7 @@ import type {
   StaffAccount,
   StickerOrder,
   StickerSelfPrint,
+  StickerStockBatch,
   StickerToken,
   Suggestion,
   SuggestionStatus,
@@ -72,6 +73,11 @@ const stickerOrderTokensStore = () => getStore("sticker_order_tokens");
 // bir siparişe ait tüm token'ları listeleyebilmek için sipariş->token indeksi.
 const stickerTokensStore = () => getStore("sticker_tokens");
 const stickerTokensByOrderStore = () => getStore("sticker_tokens_by_order");
+// Genel stok etiket partileri (bkz. StickerStockBatch) — herhangi bir bayiye/siparişe
+// bağlı olmadan admin panelinden toplu üretilen token'lar için (bkz. 20 Ağustos 2026,
+// "Hiçbir bayiye bağlı olmayan, genel stok etiket" talebi).
+const stickerStockBatchesStore = () => getStore("sticker_stock_batches");
+const stickerTokensByBatchStore = () => getStore("sticker_tokens_by_batch");
 // iyzico Abonelik: subscriptionReferenceCode -> {shopId, plan} eşlemesi —
 // hazırlık aşaması (bkz. lib/iyzicoSubscription.ts). Abonelik başlatılırken
 // yazılır, tekrarlayan ödeme webhook'u (app/api/webhooks/iyzico-abonelik)
@@ -1002,12 +1008,72 @@ export async function listStickerTokensByOrder(orderId: string): Promise<Sticker
 
 // Etiketi bir araca bağlar. Token'ın zaten bağlı olup olmadığı ve doğru bayiye ait
 // olup olmadığı çağıran API route tarafından önceden kontrol edilmelidir.
-export async function bindStickerToken(token: string, vehicleId: string): Promise<StickerToken> {
+//
+// claimingShopId: genel stok etiketlerinde (bkz. StickerStockBatch) token'ın shopId'si
+// üretim anında BOŞTUR. Böyle bir token ilk kez bir araca bağlanırken (yani ilk kez
+// fiilen kullanılırken), o anda giriş yapmış olan bayiye kalıcı olarak atanır — record.shopId
+// zaten doluysa (normal sipariş akışı) bu parametre hiçbir şey değiştirmez, sadece
+// eksik olduğunda devreye girer. Çağıran route bu noktaya gelmeden önce zaten
+// "tokenRecord.shopId boşsa herkes, doluysa yalnızca kendisi" kuralını kontrol etmiş olmalı
+// (bkz. app/api/etiket-token/[token]/bind/route.ts, app/e/[token]/page.tsx).
+export async function bindStickerToken(
+  token: string,
+  vehicleId: string,
+  claimingShopId?: string
+): Promise<StickerToken> {
   const record = await getStickerToken(token, { consistency: "strong" });
   if (!record) throw new Error("Etiket bulunamadı.");
-  const updated: StickerToken = { ...record, vehicleId, boundAt: new Date().toISOString() };
+  const updated: StickerToken = {
+    ...record,
+    vehicleId,
+    boundAt: new Date().toISOString(),
+    ...(claimingShopId && !record.shopId
+      ? { shopId: claimingShopId, assignedAt: new Date().toISOString() }
+      : {}),
+  };
   await stickerTokensStore().setJSON(token, updated);
   return updated;
+}
+
+// ---------- Genel Stok Etiket Partisi ----------
+// Belirli bir bayiye/siparişe bağlı olmadan, admin panelinden toplu QR etiket üretmek
+// için (bkz. lib/types.ts StickerStockBatch, app/api/admin/etiket-stok). Bu token'lar
+// createStickerTokens'tan farklı olarak shopId/orderId OLMADAN, sadece batchId ile
+// oluşturulur — bkz. yukarıdaki StickerToken/StickerStockBatch yorumları.
+export async function createStickerStockBatch(batch: StickerStockBatch): Promise<void> {
+  await stickerStockBatchesStore().setJSON(batch.id, batch);
+}
+
+export async function getStickerStockBatchById(id: string): Promise<StickerStockBatch | null> {
+  return (await stickerStockBatchesStore().get(id, { type: "json" })) as StickerStockBatch | null;
+}
+
+export async function listAllStickerStockBatches(): Promise<StickerStockBatch[]> {
+  const { blobs } = await stickerStockBatchesStore().list();
+  const batches = await Promise.all(blobs.map((b) => getStickerStockBatchById(b.key)));
+  return batches
+    .filter((b): b is StickerStockBatch => !!b)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+export async function createStickerStockTokens(batchId: string, quantity: number): Promise<string[]> {
+  const tokens: string[] = [];
+  for (let i = 0; i < quantity; i++) {
+    const token = randomUUID().replace(/-/g, "").slice(0, 12);
+    const record: StickerToken = { token, batchId, createdAt: new Date().toISOString() };
+    await stickerTokensStore().setJSON(token, record);
+    await stickerTokensByBatchStore().set(`${batchId}/${token}`, token);
+    tokens.push(token);
+  }
+  return tokens;
+}
+
+export async function listStickerTokensByBatch(batchId: string): Promise<StickerToken[]> {
+  const { blobs } = await stickerTokensByBatchStore().list({ prefix: `${batchId}/` });
+  const tokens = await Promise.all(
+    blobs.map((b) => getStickerToken(b.key.slice(batchId.length + 1)))
+  );
+  return tokens.filter((t): t is StickerToken => !!t);
 }
 
 // ---------- iyzico Abonelik ----------

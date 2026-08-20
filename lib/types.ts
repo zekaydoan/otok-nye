@@ -357,13 +357,46 @@ export interface StickerOrder {
 // her fiziksel etiket plakasız, yalnızca kendine özel bir "token" ile basılır. Bayi
 // etiketi bir araca yapıştırıp ilk kez okuttuğunda (bkz. app/e/[token]) token o araca
 // kalıcı olarak bağlanır; sonraki okutmalarda doğrudan o aracın sayfasına yönlendirir.
+//
+// shopId/orderId artık OPSİYONEL: normal bir siparişten (bkz. StickerOrder,
+// createStickerTokens) doğan token'larda ikisi de baştan doludur. Ama "genel stok"
+// token'larında (bkz. StickerStockBatch, createStickerStockTokens — Zeki'nin 20 Ağustos
+// 2026 talebi: "Hiçbir bayiye bağlı olmayan, genel stok etiket") üretim anında HİÇBİR
+// bayiye bağlı değildir; onun yerine batchId doludur. Böyle bir token ilk kez okutulup
+// (bkz. app/e/[token], app/api/etiket-token/[token]/bind) bir bayi hesabıyla bir araca
+// bağlandığında, o an giriş yapmış olan bayiye kalıcı olarak atanır (shopId + assignedAt
+// set edilir) — yani "fiziksel etikete kimin sahip olduğu" ilk okutmada, hangi bayinin
+// elinde olduğuna göre belirlenir. Bu, zaten var olan "etiket → araç" ilk-okutmada-bağlanma
+// güven modeliyle aynı mantığın bir üst seviyeye (etiket → bayi) taşınmış hâlidir.
 export interface StickerToken {
   token: string;
-  shopId: string;
-  orderId: string;
+  shopId?: string;
+  orderId?: string;
+  // Genel stok partisine aitse (orderId yerine) dolu — bkz. StickerStockBatch.
+  batchId?: string;
+  // shopId sonradan (ilk okutmada) atandıysa bu an — baştan bir StickerOrder ile
+  // birlikte doğan token'larda hiç dolmaz.
+  assignedAt?: string;
   vehicleId?: string;
   createdAt: string;
   boundAt?: string;
+}
+
+// ---------- Genel Stok Etiket Partisi ----------
+// Admin panelinden, herhangi bir bayiye/siparişe bağlı olmadan toplu QR etiket
+// üretmek için (bkz. app/api/admin/etiket-stok, components/AdminStockStickerForm).
+// Amaç: Zeki'nin kendi matbaasından bastırıp elinde stok olarak tutabileceği, hangi
+// bayiye gideceği henüz belli olmayan etiketler. Bu partideki token'lar bir bayi
+// tarafından ilk kez okutulup bir araca bağlandığında o bayiye kalıcı olarak atanır
+// (bkz. StickerToken.assignedAt). Ödeme/iyzico akışıyla hiç ilgisi yok — StickerOrder'dan
+// BİLEREK ayrı bir tip: StickerOrder her zaman belirli bir bayi + teslimat adresi
+// gerektirir, bu ise tam tersine o bilgilerin baştan OLMADIĞI durumu temsil eder.
+export interface StickerStockBatch {
+  id: string;
+  quantity: number;
+  note?: string;
+  createdAt: string;
+  createdByAdminEmail?: string;
 }
 
 // ---------- Öneri / Geri Bildirim ----------
@@ -468,6 +501,7 @@ export type AdminAuditAction =
   | "iade_isaretlendi"
   | "siparis_silindi"
   | "siparis_hediye_edildi"
+  | "genel_stok_etiket_olusturuldu"
   | "partner_olusturuldu"
   | "partner_durum_degisti"
   | "partner_atandi"
@@ -480,7 +514,7 @@ export interface AdminAuditLogEntry {
   id: string;
   actorEmail: string; // işlemi yapan adminin e-postası (bkz. lib/adminAuth.ts)
   action: AdminAuditAction;
-  targetType: "shop" | "sticker_order" | "partner";
+  targetType: "shop" | "sticker_order" | "sticker_stock_batch" | "partner";
   targetId: string;
   targetLabel: string; // ör. bayi adı — listede tekrar sorgu yapmadan gösterebilmek için
   detail: string; // kısa, insan tarafından okunabilir özet (ör. "free → business")

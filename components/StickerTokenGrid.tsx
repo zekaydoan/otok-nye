@@ -12,8 +12,10 @@ interface TokenItem {
 interface Props {
   tokens: TokenItem[];
   baseUrl: string;
-  labelName: string;
-  labelPhone: string;
+  // Genel stok partilerinde (bkz. app/admin/stok/[batchId]) henüz hiçbir bayiye ait
+  // olmadığından bu ikisi boş bırakılabilir — bu durumda alt bilgi şeridi hiç basılmaz.
+  labelName?: string;
+  labelPhone?: string;
 }
 
 // Her token'ı hem gerçek bir QR kod olarak (doğrudan yazdırılabilir/PDF alınabilir)
@@ -95,10 +97,12 @@ export default function StickerTokenGrid({ tokens, baseUrl, labelName, labelPhon
                 </p>
               </div>
 
-              <div className="border-t-2 border-dashed border-slate-300 bg-accent-500/10 px-3 py-2">
-                <p className="text-xs font-bold text-accent-600">{labelName}</p>
-                {labelPhone && <p className="text-[11px] text-slate-600">{labelPhone}</p>}
-              </div>
+              {labelName && (
+                <div className="border-t-2 border-dashed border-slate-300 bg-accent-500/10 px-3 py-2">
+                  <p className="text-xs font-bold text-accent-600">{labelName}</p>
+                  {labelPhone && <p className="text-[11px] text-slate-600">{labelPhone}</p>}
+                </div>
+              )}
 
               {t.vehicleId && (
                 <span className="no-print absolute right-2 top-2 rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-semibold text-green-700">

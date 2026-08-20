@@ -51,7 +51,11 @@ export default async function StickerTokenPage({ params }: { params: { token: st
     );
   }
 
-  if (tokenRecord.shopId !== shopId) {
+  // Genel stok etiketlerinde (bkz. lib/types.ts StickerToken yorumu) shopId üretim
+  // anında boştur — böyle bir token'ı ilk okutan/bağlayan HANGİ bayi ise, o bayiye
+  // atanır (bkz. bindStickerToken'daki claimingShopId mantığı). shopId zaten doluysa
+  // (normal sipariş akışı) eskisi gibi yalnızca o bayi bağlayabilir.
+  if (tokenRecord.shopId && tokenRecord.shopId !== shopId) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
         <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-100">
