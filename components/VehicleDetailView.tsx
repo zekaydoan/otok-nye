@@ -28,6 +28,7 @@ export default function VehicleDetailView({
   favoriteOils,
   plakaGuncellendi,
   reminderStatus,
+  shopId,
 }: {
   vehicle: Vehicle;
   initialRecords: OilRecord[];
@@ -36,6 +37,7 @@ export default function VehicleDetailView({
   favoriteOils: FavoriteOil[];
   plakaGuncellendi?: boolean;
   reminderStatus?: ReminderStatusDisplay | null;
+  shopId: string | null;
 }) {
   const [records, setRecords] = useState<OilRecord[]>(initialRecords);
   // "Güncel Km" widget'ının (bkz. VehicleKmUpdate) sunucuya yazdığı güncellemeyi
@@ -59,13 +61,13 @@ export default function VehicleDetailView({
   // bu sayfa her açıldığında aracı tarayıcının localStorage'ındaki son-görüntülenen
   // listesinin başına taşır.
   useEffect(() => {
-    recordRecentVehicle({
+    recordRecentVehicle(shopId, {
       id: vehicle.id,
       plateDisplay: vehicle.plateDisplay,
       brand: vehicle.brand,
       model: vehicle.model,
     });
-  }, [vehicle.id, vehicle.plateDisplay, vehicle.brand, vehicle.model]);
+  }, [shopId, vehicle.id, vehicle.plateDisplay, vehicle.brand, vehicle.model]);
 
   function handleRecordCreated(record: OilRecord) {
     setRecords((prev) => {

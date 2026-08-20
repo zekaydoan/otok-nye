@@ -145,7 +145,7 @@ export default function VehicleListSection({
         </Link>
       )}
 
-      <RecentlyViewedVehicles />
+      <RecentlyViewedVehicles shopId={shopId} />
 
       {children}
 

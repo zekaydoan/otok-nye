@@ -8,12 +8,12 @@ import { readRecentVehicles, type RecentVehicleEntry } from "@/lib/recentVehicle
 // bkz. lib/recentVehicles.ts — veri sunucudan gelmiyor, tarayıcının
 // localStorage'ından okunuyor, bu yüzden istemci bileşeni ve mount-sonrası
 // okuma gerekiyor (VehicleListSection'daki sessionStorage deseniyle aynı mantık).
-export default function RecentlyViewedVehicles() {
+export default function RecentlyViewedVehicles({ shopId }: { shopId: string | null }) {
   const [items, setItems] = useState<RecentVehicleEntry[]>([]);
 
   useEffect(() => {
-    setItems(readRecentVehicles());
-  }, []);
+    setItems(readRecentVehicles(shopId));
+  }, [shopId]);
 
   if (items.length === 0) return null;
 

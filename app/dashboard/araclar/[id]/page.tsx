@@ -50,6 +50,7 @@ export default async function VehicleDetailPage({
       favoriteOils={currentShop?.favoriteOils || []}
       plakaGuncellendi={!!searchParams.plakaGuncellendi}
       reminderStatus={reminderStatus}
+      shopId={currentShopId}
     />
   );
 }
