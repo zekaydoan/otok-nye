@@ -12,12 +12,19 @@
 // *.iyzipay.com script-src/connect-src/frame-src'ye eklendi (18 Ağustos 2026:
 // bu eksiklik yüzünden abonelik ödeme ekranı CSP tarafından sessizce
 // bloke ediliyordu, konsolda "violates ... script-src" hatasıyla tespit edildi).
+//
+// 21 Ağustos 2026 GÜNCELLEMESİ: iyzico incelemesi için canlıda test edilirken
+// img-src/font-src'nin de eksik olduğu görüldü — Checkout Form'un kart ağı
+// logoları (Axess, Bonus, Maximum, Paraf, World vb. SVG'ler, cdn.iyzipay.com)
+// ve Inter fontu (.ttf, cdn.iyzipay.com) CSP tarafından engellendiği için
+// yüklenemiyordu, ödeme kutusu eksik/varsayılan görünümle render ediliyordu.
+// *.iyzipay.com bu iki direktife de eklendi.
 const csp = [
   "default-src 'self'",
-  "img-src 'self' data: https://images.unsplash.com https://www.facebook.com",
+  "img-src 'self' data: https://images.unsplash.com https://www.facebook.com https://*.iyzipay.com",
   "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline' https://connect.facebook.net https://www.googletagmanager.com https://*.iyzipay.com",
-  "font-src 'self' data:",
+  "font-src 'self' data: https://*.iyzipay.com",
   "connect-src 'self' https://www.facebook.com https://connect.facebook.net https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.iyzipay.com",
   "frame-src 'self' https://*.iyzipay.com",
   "frame-ancestors 'none'",
