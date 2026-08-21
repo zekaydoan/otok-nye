@@ -21,11 +21,14 @@
 // değil, next.config.js'teki CSP'nin *.iyzipay.com'a izin vermemesiydi, bu
 // düzeltildi (bkz. next.config.js script-src/connect-src/frame-src). Test
 // için bu bayrak geçici olarak true yapılmıştı, test tamamlandığı için
-// tekrar false'a alındı. Şirket kuruluşu HÂLÂ tamamlanmadı — fatura kesme
-// yeterliliği yok, bu yüzden ücretli planlar gerçek kullanıcılara hâlâ
-// kapalı kalmalı. Kuruluş tamamlandığında bu değeri true yapmak (ve
-// hukuki/ klasöründeki sözleşme paketini yayına almak) yeterli.
-export const PAID_PLANS_ENABLED = false;
+// tekrar false'a alındı.
+//
+// 21 Ağustos 2026 GÜNCELLEMESİ: iyzico başvuru incelemesi kapsamında konsol
+// logu/HAR/ekran kaydı istedi — bunları üretebilmek için bayrak GEÇİCİ olarak
+// tekrar true yapıldı. Kanıtlar toplanıp iyzico'ya iletildikten sonra, Zeki
+// gerçek lansmana hazır olduğuna karar verene kadar bu değer tekrar false'a
+// alınmalı (bkz. SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md madde 1).
+export const PAID_PLANS_ENABLED = true;
 
 // ---- Kurucu Servis kontenjanı ----
 // "Ücretli planlar yakında açılacak" tek başına güven kırıcı ve belirsiz —
