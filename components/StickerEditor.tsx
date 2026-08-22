@@ -115,7 +115,7 @@ export default function StickerEditor({
                 <BrandMark className="h-2.5 w-2.5" />
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-white">
-                Yağ Bakım Geçmişi
+                Bakım Geçmişi
               </span>
             </div>
 

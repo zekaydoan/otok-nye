@@ -19,8 +19,8 @@ export function defaultNextServiceKm(currentKm?: number): number | undefined {
 
 export function buildConfirmationMessage(vehicle: Vehicle, record: OilRecord): string {
   const parts = [
-    `${vehicle.plateDisplay} aracınızın yağ bakımı ${record.date} tarihinde tamamlandı.`,
-    `${record.oilBrand} ${record.oilModel} (${record.quantityKg} kg) kullanıldı.`,
+    `${vehicle.plateDisplay} aracınızın bakımı ${record.date} tarihinde tamamlandı.`,
+    `${record.oilBrand} ${record.oilModel} (${record.quantityKg} L) kullanıldı.`,
   ];
   if (record.nextServiceDate) {
     parts.push(`Sonraki bakım önerilen tarih: ${record.nextServiceDate}.`);
@@ -29,8 +29,12 @@ export function buildConfirmationMessage(vehicle: Vehicle, record: OilRecord): s
   return parts.join(" ");
 }
 
+// Panelden tek tıkla gönderilen manuel WhatsApp hatırlatma mesajı — Zeki'nin
+// V2 talebi (terminoloji sadeleştirme): "yağ bakım zamanı" yerine daha genel
+// "bakım zamanı" kullanılır, ürün yalnızca yağ değişimiyle sınırlı algılanmasın.
+// Mesajın gönderim altyapısı (buildWhatsAppLink, manuel tetikleme) değişmedi.
 export function buildReminderMessage(vehicle: Vehicle, record: OilRecord): string {
-  return `Merhaba, ${vehicle.plateDisplay} plakalı aracınızın yağ bakım zamanı yaklaşıyor (önerilen tarih: ${record.nextServiceDate}). Randevu için ${record.shopName} ile iletişime geçebilirsiniz.`;
+  return `Merhaba, ${vehicle.plateDisplay} plakalı aracınızın bakım zamanı yaklaşıyor (önerilen tarih: ${record.nextServiceDate}). Randevu için ${record.shopName} ile iletişime geçebilirsiniz.`;
 }
 
 // ---------- Kilometre Tutarlılığı ----------

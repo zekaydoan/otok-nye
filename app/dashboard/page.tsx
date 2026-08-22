@@ -169,8 +169,12 @@ export default async function DashboardPage() {
       )}
 
       {/* Hızlı işlemler — her biri isimli + renkli IconBadge ile: admin panelindeki
-          "beyaz ikon, renkli kutucuk" görsel diliyle tutarlı (bkz. components/IconBadge). */}
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          "beyaz ikon, renkli kutucuk" görsel diliyle tutarlı (bkz. components/IconBadge).
+          V2 madde 13: Henüz hiç aracı olmayan yeni kullanıcı için "Toplu Ekle (CSV)"
+          ve "Verimi İndir (CSV)" birincil aksiyon olarak gösterilmiyor — fonksiyonlar
+          silinmedi, ilk araç eklenir eklenmez (vehicles.length > 0) normal şekilde
+          tekrar görünürler. Yeni kullanıcının tek birincil aksiyonu "Yeni Araç Ekle". */}
+      <div className={`mt-4 grid grid-cols-2 gap-3 ${vehicles.length > 0 ? "sm:grid-cols-4" : ""}`}>
         <Link
           href="/dashboard/araclar/yeni"
           className="flex h-full flex-col items-center justify-center gap-2 rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100 hover:ring-brand-300 sm:flex-row sm:text-left"
@@ -179,20 +183,24 @@ export default async function DashboardPage() {
           <span className="text-sm font-semibold text-slate-900">Yeni Araç Ekle</span>
         </Link>
         <QrScanner />
-        <Link
-          href="/dashboard/araclar/toplu-ekle"
-          className="flex h-full flex-col items-center justify-center gap-2 rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100 hover:ring-indigo-300 sm:flex-row sm:text-left"
-        >
-          <IconBadge icon={<UploadIcon />} color="indigo" size="md" />
-          <span className="text-sm font-semibold text-slate-900">Toplu Ekle (CSV)</span>
-        </Link>
-        <a
-          href="/api/shop/export"
-          className="flex h-full flex-col items-center justify-center gap-2 rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100 hover:ring-green-300 sm:flex-row sm:text-left"
-        >
-          <IconBadge icon={<DownloadIcon />} color="green" size="md" />
-          <span className="text-sm font-semibold text-slate-900">Verimi İndir (CSV)</span>
-        </a>
+        {vehicles.length > 0 && (
+          <>
+            <Link
+              href="/dashboard/araclar/toplu-ekle"
+              className="flex h-full flex-col items-center justify-center gap-2 rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100 hover:ring-indigo-300 sm:flex-row sm:text-left"
+            >
+              <IconBadge icon={<UploadIcon />} color="indigo" size="md" />
+              <span className="text-sm font-semibold text-slate-900">Toplu Ekle (CSV)</span>
+            </Link>
+            <a
+              href="/api/shop/export"
+              className="flex h-full flex-col items-center justify-center gap-2 rounded-xl bg-white p-3 text-center shadow-sm ring-1 ring-slate-100 hover:ring-green-300 sm:flex-row sm:text-left"
+            >
+              <IconBadge icon={<DownloadIcon />} color="green" size="md" />
+              <span className="text-sm font-semibold text-slate-900">Verimi İndir (CSV)</span>
+            </a>
+          </>
+        )}
       </div>
 
       <Link

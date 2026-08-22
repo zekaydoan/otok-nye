@@ -6,17 +6,31 @@ import { resizeImageFile } from "@/lib/imageClient";
 import { useToast } from "@/components/Toast";
 import { StarIcon } from "@/components/icons";
 import VoiceInputButton from "@/components/VoiceInputButton";
+import { defaultNextServiceDate, defaultNextServiceKm } from "@/lib/maintenance";
 import type { FavoriteOil, OilRecord } from "@/lib/types";
+
+// "2026-08-22" → "22.08.2026" — Sonraki Bakım Hatırlatması'nın otomatik
+// hesaplanan değerini okunaklı göstermek için (bkz. aşağıdaki
+// "Sonraki Bakım Hatırlatması" bölümü).
+function fmtDMY(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  return `${d}.${m}.${y}`;
+}
 
 export default function AddOilRecordForm({
   vehicleId,
   hasOwnerPhone,
   favoriteOils = [],
+  // Bu araç için ilk bakım kaydı mı ekleniyor — buton metnini ("+ İlk Bakım
+  // Kaydını Ekle" vs "+ Bakım Kaydı Ekle") buna göre değiştirir (bkz.
+  // VehicleDetailView, Zeki'nin V2 talebi madde 11).
+  isFirstRecord = false,
   onCreated,
 }: {
   vehicleId: string;
   hasOwnerPhone: boolean;
   favoriteOils?: FavoriteOil[];
+  isFirstRecord?: boolean;
   // Kayıt sunucuda oluşturulduğunda API'nin döndürdüğü tam kayıt nesnesini üst
   // bileşene iletir — böylece liste, yavaş/tutarsız olabilen bir router.refresh()
   // beklemeden anında güncellenebilir (bkz. VehicleDetailView).
@@ -48,6 +62,12 @@ export default function AddOilRecordForm({
   const [open, setOpen] = useState(false);
   const [isRefreshing, startRefresh] = useTransition();
   const [justSaved, setJustSaved] = useState(false);
+  // Sonraki Bakım Hatırlatması varsayılan olarak iki boş kutu göstermek yerine
+  // otomatik hesaplanan değeri doğrudan gösterir (bkz. lib/maintenance.ts
+  // defaultNextServiceDate/defaultNextServiceKm) — usta yalnızca özel bir durum
+  // varsa "Değiştir" diyerek asıl tarih/km kutularını açar (Zeki'nin V2 talebi
+  // madde 6). Hesaplama algoritması DEĞİŞMEDİ, yalnızca gösterimi sadeleşti.
+  const [editingNextService, setEditingNextService] = useState(false);
 
   // Kayıt başarıyla eklendikten sonra formu hemen kapatırsak, arka plandaki liste
   // henüz sunucudan yeni veriyi almadığı için bir an "henüz kayıt yok" durumu
@@ -139,6 +159,7 @@ export default function AddOilRecordForm({
       });
       setBeforePhoto(null);
       setAfterPhoto(null);
+      setEditingNextService(false);
       showToast("Kayıt eklendi.");
       // API zaten oluşturulan kaydı geri döndürüyor — sunucudan yeniden okumayı
       // (ve Netlify Blobs .list()'in olası gecikmesini) beklemeden üst bileşene
@@ -161,7 +182,7 @@ export default function AddOilRecordForm({
         onClick={() => setOpen(true)}
         className="rounded-lg bg-accent-500 px-4 py-2 font-semibold text-white hover:bg-accent-600"
       >
-        + Yağ Bakım Kaydı Ekle
+        {isFirstRecord ? "+ İlk Bakım Kaydını Ekle" : "+ Bakım Kaydı Ekle"}
       </button>
     );
   }
@@ -275,7 +296,7 @@ export default function AddOilRecordForm({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <div className="flex items-center justify-between gap-2">
-            <label className="block text-sm font-medium text-slate-700">Miktar (kg) *</label>
+            <label className="block text-sm font-medium text-slate-700">Miktar (L) *</label>
             <VoiceInputButton
               label="Miktar"
               numeric
@@ -315,29 +336,67 @@ export default function AddOilRecordForm({
 
       <div className="rounded-lg bg-brand-50 p-3">
         <p className="text-xs font-semibold text-brand-700">Sonraki Bakım Hatırlatması</p>
-        <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label className="block text-xs text-slate-600">Önerilen Tarih</label>
-            <input
-              type="date"
-              value={form.nextServiceDate}
-              onChange={(e) => setForm({ ...form, nextServiceDate: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
-            />
-            <p className="mt-1 text-[11px] text-slate-400">Boş bırakılırsa +12 ay olarak ayarlanır.</p>
+        {!editingNextService ? (
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-slate-700">
+              <span className="font-semibold text-slate-900">
+                {fmtDMY(defaultNextServiceDate(form.date || new Date().toISOString().slice(0, 10)))}
+              </span>
+              {(() => {
+                const computedKm = defaultNextServiceKm(form.km ? Number(form.km) : undefined);
+                return computedKm ? (
+                  <>
+                    {" "}
+                    · <span className="font-semibold text-slate-900">{computedKm.toLocaleString("tr-TR")} km</span>
+                  </>
+                ) : null;
+              })()}
+            </p>
+            <button
+              type="button"
+              onClick={() => setEditingNextService(true)}
+              className="text-xs font-medium text-brand-600 hover:underline"
+            >
+              Değiştir
+            </button>
           </div>
-          <div>
-            <label className="block text-xs text-slate-600">Önerilen Km</label>
-            <input
-              type="number"
-              min="0"
-              value={form.nextServiceKm}
-              onChange={(e) => setForm({ ...form, nextServiceKm: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
-            />
-            <p className="mt-1 text-[11px] text-slate-400">Boş bırakılırsa +12.500 km olarak ayarlanır.</p>
+        ) : (
+          <div className="mt-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs text-slate-600">Önerilen Tarih</label>
+                <input
+                  type="date"
+                  value={form.nextServiceDate}
+                  onChange={(e) => setForm({ ...form, nextServiceDate: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-slate-400">Boş bırakılırsa +12 ay olarak ayarlanır.</p>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-600">Önerilen Km</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.nextServiceKm}
+                  onChange={(e) => setForm({ ...form, nextServiceKm: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-slate-400">Boş bırakılırsa +12.500 km olarak ayarlanır.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setForm({ ...form, nextServiceDate: "", nextServiceKm: "" });
+                setEditingNextService(false);
+              }}
+              className="mt-2 text-xs font-medium text-brand-600 hover:underline"
+            >
+              Otomatik hesaplanan değere dön
+            </button>
           </div>
-        </div>
+        )}
       </div>
 
       <label className="flex items-center gap-2 text-sm text-slate-700">

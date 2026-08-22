@@ -16,6 +16,7 @@ export default function NewVehiclePage() {
     year: "",
     ownerName: "",
     ownerPhone: "",
+    currentKm: "",
   });
   const [plateError, setPlateError] = useState<string | null>(null);
   const [ownerConsent, setOwnerConsent] = useState(false);
@@ -159,14 +160,27 @@ export default function NewVehiclePage() {
             </datalist>
           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700">Model Yılı</label>
-          <input
-            value={form.year}
-            onChange={(e) => setForm({ ...form, year: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
-            placeholder="2019"
-          />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Model Yılı</label>
+            <input
+              value={form.year}
+              onChange={(e) => setForm({ ...form, year: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+              placeholder="2019"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Güncel KM</label>
+            <input
+              type="number"
+              min="0"
+              value={form.currentKm}
+              onChange={(e) => setForm({ ...form, currentKm: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+              placeholder="85000"
+            />
+          </div>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>

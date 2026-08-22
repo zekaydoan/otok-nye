@@ -91,7 +91,7 @@ export async function generateServiceReceiptPdf(
   const rows: [string, string][] = [
     ["Tarih / Saat", `${record.date}  ${record.time}`],
     ["Yağ", `${record.oilBrand} ${record.oilModel}`],
-    ["Miktar", `${record.quantityKg} kg`],
+    ["Miktar", `${record.quantityKg} L`],
   ];
   if (record.km) rows.push(["Kilometre", `${record.km} km`]);
   rows.push(["Yağ Filtresi", record.filterChanged ? "Değiştirildi" : "Değiştirilmedi"]);

@@ -86,7 +86,7 @@ export default async function VehicleReportPage({
                     <p className="font-semibold text-slate-900">
                       {r.date} · {r.time}
                     </p>
-                    <p className="text-sm font-medium text-brand-700">{r.quantityKg} kg</p>
+                    <p className="text-sm font-medium text-brand-700">{r.quantityKg} L</p>
                   </div>
                   <p className="mt-1 text-sm text-slate-700">
                     {r.oilBrand} {r.oilModel}

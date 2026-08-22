@@ -9,7 +9,6 @@ import {
   normalizePlate,
 } from "@/lib/blobStore";
 import { validatePlate } from "@/lib/plates";
-import { isBillingInfoComplete } from "@/lib/billing";
 import { PLAN_LIMITS } from "@/lib/types";
 import type { Vehicle } from "@/lib/types";
 
@@ -25,13 +24,14 @@ export async function POST(req: NextRequest) {
   if (!shopId) return NextResponse.json({ error: "Giriş yapmalısınız." }, { status: 401 });
 
   const body = await req.json();
-  const { plate, brand, model, year, ownerName, ownerPhone } = body as {
+  const { plate, brand, model, year, ownerName, ownerPhone, currentKm } = body as {
     plate?: string;
     brand?: string;
     model?: string;
     year?: string;
     ownerName?: string;
     ownerPhone?: string;
+    currentKm?: number | string;
   };
 
   if (!plate || !brand || !model) {
@@ -46,6 +46,17 @@ export async function POST(req: NextRequest) {
     (ownerPhone && ownerPhone.length > 30)
   ) {
     return NextResponse.json({ error: "Girilen bilgilerden biri çok uzun." }, { status: 400 });
+  }
+
+  // V2: Yeni Araç Ekle formuna eklenen opsiyonel "Güncel KM" alanı — bakım
+  // kaydı eklerken zaten yapılan km doğrulamasıyla (bkz.
+  // app/api/vehicles/[id]/records/route.ts) aynı üst sınır kullanılır.
+  let parsedCurrentKm: number | undefined;
+  if (currentKm !== undefined && currentKm !== null && currentKm !== "") {
+    parsedCurrentKm = Number(currentKm);
+    if (!Number.isFinite(parsedCurrentKm) || parsedCurrentKm < 0 || parsedCurrentKm > 5_000_000) {
+      return NextResponse.json({ error: "Geçersiz kilometre değeri." }, { status: 400 });
+    }
   }
 
   const plateCheck = validatePlate(plate);
@@ -73,16 +84,10 @@ export async function POST(req: NextRequest) {
   const shop = await getShopById(shopId);
   if (!shop) return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
 
-  // Fatura bilgisi eksikken hiçbir bayi (free plan dahil) yeni araç ekleyemez —
-  // bkz. lib/billing.ts. İstemci bu koddan yakalayıp /dashboard/fatura-bilgileri'ne
-  // yönlendirir (bkz. app/dashboard/araclar/yeni/page.tsx).
-  if (!isBillingInfoComplete(shop.billingInfo)) {
-    return NextResponse.json(
-      { error: "Devam etmeden önce fatura bilgilerinizi kaydetmeniz gerekiyor.", requiresBilling: true },
-      { status: 409 }
-    );
-  }
-
+  // V2: Fatura bilgisi zorunluluğu buradan kaldırıldı (Zeki'nin talebi — ücretsiz
+  // kullanıcı satın alma yapmadığı sürece fatura bilgisi istenmemeli). Fatura
+  // bilgisi artık yalnızca ücretli plan/etiket satın alımında zorunlu tutuluyor
+  // (bkz. app/api/shop/plan/route.ts, app/api/etiket-siparis/route.ts).
   const currentVehicles = await listVehiclesByShop(shopId);
   const limit = PLAN_LIMITS[shop.plan].maxVehicles;
   if (limit !== Infinity && currentVehicles.length >= limit) {
@@ -105,6 +110,9 @@ export async function POST(req: NextRequest) {
     year,
     ownerName,
     ownerPhone,
+    ...(parsedCurrentKm !== undefined
+      ? { lastKnownKm: parsedCurrentKm, lastKnownKmUpdatedAt: new Date().toISOString() }
+      : {}),
     createdByShopId: shopId,
     createdAt: new Date().toISOString(),
   };

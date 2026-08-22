@@ -110,7 +110,12 @@ export default function VehicleListSection({
             </svg>
           }
         />
-        {planLabel && maxVehicles !== null && (
+        {/* V2 madde 13: 0 araçlı yeni kullanıcıya "0/15 plan kullanımı" gibi ürünün
+            sınırını öne çıkaran bilgi ana değer olarak gösterilmiyor — limit
+            altyapısı (plan kontrolü, üst StatCard listesi) silinmedi, sadece
+            henüz aracı olmayan kullanıcı için bu kart gizlendi. Araç eklenir
+            eklenmez normal şekilde tekrar görünür. */}
+        {planLabel && maxVehicles !== null && vehicles.length > 0 && (
           <StatCard
             label={`${planLabel} Plan Kullanımı`}
             value={maxVehicles === Infinity ? "Sınırsız" : `${vehicles.length}/${maxVehicles}`}
@@ -153,10 +158,10 @@ export default function VehicleListSection({
         <div className="mt-10">
           <EmptyState
             icon={<CarIcon className="h-6 w-6" />}
-            title="Henüz araç eklemediniz"
-            description="İlk araçınızı ekleyin, QR etiketini yazdırın ve bakım geçmişini otomatik tutmaya başlayın."
+            title="OtoHafıza'ya Hoş Geldiniz"
+            description="İlk aracınızı ekleyerek başlayın."
             actionHref="/dashboard/araclar/yeni"
-            actionLabel="İlk araçınızı ekleyin"
+            actionLabel="+ İlk Aracımı Ekle"
           />
         </div>
       ) : (

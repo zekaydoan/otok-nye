@@ -44,6 +44,10 @@ export default function VehicleDetailView({
   // sayfa yenilenmeden burada da yansıtabilmek için (ör. "Sonraki Bakım" altındaki
   // "X km kaldı" etiketi) ayrı bir state olarak tutuyoruz.
   const [currentKm, setCurrentKm] = useState<number | undefined>(vehicle.lastKnownKm);
+  // V2: Bu aracın İLK bakım kaydı başarıyla eklendiğinde bir kereye mahsus
+  // gösterilen başarı bilgisi (Zeki'nin V2 talebi madde 12) — "sürekli popup"
+  // değil, kayıt listesinin üzerinde sade bir banner; kullanıcı kapatabilir.
+  const [firstRecordSuccess, setFirstRecordSuccess] = useState<OilRecord | null>(null);
 
   const latest = records[0];
   const kmRemaining =
@@ -70,10 +74,19 @@ export default function VehicleDetailView({
   }, [shopId, vehicle.id, vehicle.plateDisplay, vehicle.brand, vehicle.model]);
 
   function handleRecordCreated(record: OilRecord) {
+    // V2 madde 12: Bu, aracın kayıt listesine eklenen İLK kayıtsa (records o an
+    // boşsa) bir kereye mahsus başarı bandı gösteriyoruz. records state'i henüz
+    // güncellenmeden önceki uzunluğuna bakmamız gerekiyor.
+    const isFirstEver = records.length === 0;
+
     setRecords((prev) => {
       if (prev.some((r) => r.id === record.id)) return prev;
       return [record, ...prev];
     });
+
+    if (isFirstEver) {
+      setFirstRecordSuccess(record);
+    }
 
     try {
       sessionStorage.setItem("otoHafizaYeniArac", JSON.stringify(vehicle));
@@ -144,7 +157,11 @@ export default function VehicleDetailView({
               <p className="text-lg font-bold text-slate-900">
                 {vehicle.brand} {vehicle.model} {vehicle.year ? `(${vehicle.year})` : ""}
               </p>
-              <ScoreBadge tier={score.tier} label={score.label} />
+              {/* V2: "Yeterli Veri Yok" rozeti kaldırıldı — henüz yeterli bakım
+                  geçmişi olmayan bir araçta hiçbir rozet göstermiyoruz (bkz.
+                  lib/maintenance.ts computeMaintenanceScore "insufficient" tier).
+                  Yerine yeni bir durum sistemi bilinçli olarak EKLENMEDİ. */}
+              {score.tier !== "insufficient" && <ScoreBadge tier={score.tier} label={score.label} />}
             </div>
             {vehicle.ownerName && (
               <p className="mt-1 text-sm text-slate-400">
@@ -195,7 +212,10 @@ export default function VehicleDetailView({
             <IconBadge icon={<PencilIcon />} color="amber" size="sm" />
             Düzenle
           </Link>
-          <ShareReportButton vehicleId={vehicle.id} />
+          {/* V2 madde 14: "Satış Raporu Oluştur" bakım kaydı olmayan bir araçta
+              anlamsız (rapor gösterecek verisi yok) — özellik silinmedi, sadece
+              ilk kayıt eklenene kadar gizlendi. */}
+          {records.length > 0 && <ShareReportButton vehicleId={vehicle.id} />}
           <Link
             href={`/dashboard/araclar/${vehicle.id}/etiket`}
             className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
@@ -230,21 +250,54 @@ export default function VehicleDetailView({
 
       <div className="mt-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-slate-900">Yağ Bakım Geçmişi</h2>
+          <h2 className="text-lg font-bold text-slate-900">Bakım Geçmişi</h2>
           <AddOilRecordForm
             vehicleId={vehicle.id}
             hasOwnerPhone={!!vehicle.ownerPhone}
             favoriteOils={favoriteOils}
             onCreated={handleRecordCreated}
+            isFirstRecord={records.length === 0}
           />
         </div>
+
+        {/* V2 madde 12: İlk bakım kaydı eklendiğinde bir kereye mahsus gösterilen
+            sade başarı bandı — sürekli popup değil, records.length arttığı anda
+            (yani firstRecordSuccess set edildiğinde) burada belirir, kullanıcı
+            kapatabilir. */}
+        {firstRecordSuccess && (
+          <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border-l-4 border-green-400 bg-green-50 p-3 text-sm text-green-800">
+            <span className="flex items-start gap-2">
+              <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+              <span>
+                <strong>İlk bakım kaydedildi.</strong> OtoHafıza bu aracın bir sonraki
+                bakımını takip edecek.
+                {(firstRecordSuccess.nextServiceDate || firstRecordSuccess.nextServiceKm) && (
+                  <>
+                    {" "}
+                    Sonraki bakım: {firstRecordSuccess.nextServiceDate || ""}
+                    {firstRecordSuccess.nextServiceKm
+                      ? ` · ${firstRecordSuccess.nextServiceKm.toLocaleString("tr-TR")} km`
+                      : ""}
+                  </>
+                )}
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setFirstRecordSuccess(null)}
+              className="shrink-0 text-xs font-medium text-green-700 hover:text-green-900"
+            >
+              Kapat
+            </button>
+          </div>
+        )}
 
         {records.length === 0 ? (
           <div className="mt-4">
             <EmptyState
               icon={<DocumentIcon className="h-6 w-6" />}
-              title="Henüz bir yağ bakım kaydı yok"
-              description="Yukarıdaki formdan bu araç için ilk bakım kaydını ekleyin."
+              title="Şimdi ilk bakım kaydını ekleyin."
+              description="Bakım kaydından sonra OtoHafıza bir sonraki bakım zamanını takip etmeye başlayacak."
             />
           </div>
         ) : (
@@ -272,7 +325,7 @@ export default function VehicleDetailView({
                         <p className="font-semibold text-slate-900">
                           {r.date} · {r.time}
                         </p>
-                        <p className="text-sm font-medium text-brand-700">{r.quantityKg} kg</p>
+                        <p className="text-sm font-medium text-brand-700">{r.quantityKg} L</p>
                       </div>
                       <p className="mt-1 text-sm text-slate-700">
                         {r.oilBrand} {r.oilModel}
@@ -356,7 +409,7 @@ export default function VehicleDetailView({
                       <td className="px-4 py-3 text-slate-700">
                         {r.oilBrand} {r.oilModel}
                       </td>
-                      <td className="px-4 py-3 text-slate-700">{r.quantityKg} kg</td>
+                      <td className="px-4 py-3 text-slate-700">{r.quantityKg} L</td>
                       <td className="px-4 py-3 text-slate-700">
                         {r.km ? `${r.km} km` : "-"}
                         {kmIssueRecordIds.has(r.id) && (

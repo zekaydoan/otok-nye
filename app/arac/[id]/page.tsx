@@ -60,7 +60,7 @@ export default async function PublicVehiclePage({ params }: { params: { id: stri
                 <p className="text-sm font-semibold text-brand-700">Son Yağ Bakımı</p>
                 <p className="mt-1 text-sm text-slate-700">
                   {last.date} {last.time} tarihinde <strong>{last.oilBrand} {last.oilModel}</strong>{" "}
-                  yağından <strong>{last.quantityKg} kg</strong> konuldu.
+                  yağından <strong>{last.quantityKg} L</strong> konuldu.
                   {last.km ? ` (${last.km} km)` : ""}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">Servis: {last.shopName}</p>
@@ -80,7 +80,7 @@ export default async function PublicVehiclePage({ params }: { params: { id: stri
 
         {isMember ? (
           <div className="mt-6">
-            <h2 className="text-lg font-bold text-slate-900">Yağ Bakım Geçmişi</h2>
+            <h2 className="text-lg font-bold text-slate-900">Bakım Geçmişi</h2>
             {records.length === 0 ? (
               <p className="mt-2 text-sm text-slate-500">Kayıt bulunmuyor.</p>
             ) : (
@@ -91,7 +91,7 @@ export default async function PublicVehiclePage({ params }: { params: { id: stri
                       <p className="font-semibold text-slate-900">
                         {r.date} · {r.time}
                       </p>
-                      <p className="text-sm font-medium text-brand-700">{r.quantityKg} kg</p>
+                      <p className="text-sm font-medium text-brand-700">{r.quantityKg} L</p>
                     </div>
                     <p className="mt-1 text-sm text-slate-700">
                       {r.oilBrand} {r.oilModel}

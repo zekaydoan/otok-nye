@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getCurrentShopId } from "@/lib/auth";
 import { createAppointment, getShopById, listAppointmentsForShop } from "@/lib/blobStore";
-import { isBillingInfoComplete } from "@/lib/billing";
 import type { Appointment } from "@/lib/types";
 
 const MAX_LEN = 120;
@@ -22,16 +21,7 @@ export async function POST(req: NextRequest) {
   const shop = await getShopById(shopId);
   if (!shop) return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
 
-  // Fatura bilgisi eksikken hiçbir bayi (free plan dahil) yeni randevu ekleyemez —
-  // bkz. lib/billing.ts. İstemci bu koddan yakalayıp /dashboard/fatura-bilgileri'ne
-  // yönlendirir (bkz. components/AppointmentForm.tsx).
-  if (!isBillingInfoComplete(shop.billingInfo)) {
-    return NextResponse.json(
-      { error: "Devam etmeden önce fatura bilgilerinizi kaydetmeniz gerekiyor.", requiresBilling: true },
-      { status: 409 }
-    );
-  }
-
+  // V2: Fatura bilgisi zorunluluğu buradan kaldırıldı — bkz. app/api/vehicles/route.ts'teki aynı not.
   const body = await req.json();
   const { date, time, plateDisplay, customerName, customerPhone, note } = body as {
     date?: string;
