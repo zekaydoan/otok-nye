@@ -606,7 +606,7 @@ export interface TodayActivitySummary {
 // eklenen araç ve girilen bakım kaydı sayısını döner. Ayrı bir sayaç/istatistik
 // deposu tutmuyoruz; diğer admin özet fonksiyonlarıyla (ör. getChurnStats,
 // getPendingCounts) aynı "bayinin araçlarını tara" deseni burada da kabul
-// edilebilir maliyette — bir bayinin araç sayısı plan limitleriyle (15/250/∞)
+// edilebilir maliyette — bir bayinin araç sayısı plan limitleriyle (15/100/250/∞)
 // sınırlı.
 export async function getTodayActivitySummary(shopId: string): Promise<TodayActivitySummary> {
   const todayISO = turkeyDateISO();

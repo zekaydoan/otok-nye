@@ -244,9 +244,9 @@ export const PLAN_LIMITS: Record<
   }
 > = {
   free: { maxVehicles: 15, maxStaff: 1, label: "Ücretsiz", price: "0₺", period: "/ay" },
-  pro: { maxVehicles: 250, maxStaff: 5, label: "Pro", price: "499₺", period: "/ay" },
+  pro: { maxVehicles: 100, maxStaff: 5, label: "Pro", price: "499₺", period: "/ay" },
   business: {
-    maxVehicles: Infinity,
+    maxVehicles: 250,
     maxStaff: Infinity,
     label: "İşletme",
     price: "999₺",
