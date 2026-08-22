@@ -11,12 +11,15 @@ import {
   PARTNER_COMMISSION_STANDARD_RATE,
   PARTNER_CONVERSION_BONUS_TRY,
   PARTNER_TIER_THRESHOLDS,
+  ANNOUNCEMENT_NEW_MEMBER_WINDOW_DAYS,
 } from "./types";
 import type {
   AdminAuditAction,
   AdminAuditLogEntry,
   Announcement,
   AnnouncementAudience,
+  AnnouncementReadReceipt,
+  AnnouncementRecipientType,
   Appointment,
   BillingInfo,
   ContractAcceptanceRecord,
@@ -133,6 +136,13 @@ const planEventsStore = () => getStore("plan_events");
 // burada "toplu okundu" mantığı işe yarıyor, çünkü duyurular sırayla okunmuyor,
 // panele her girişte hepsi birden görülmüş sayılıyor).
 const announcementsStore = () => getStore("announcements");
+// Bir duyurunun kim tarafından okunduğunun granüler kaydı — yukarıdaki
+// "toplu okundu" (lastSeenAnnouncementAt) yalnızca header rozeti için yeterliydi;
+// admin'in duyuru bazında "kim okudu, kim okumadı" görebilmesi için (bkz.
+// AnnouncementReadReceipt) EKLENDİ. Anahtar `${announcementId}__${recipientType}__${recipientId}`
+// — bu sayede bir duyurunun tüm okuma kayıtları tek bir prefix taramasıyla
+// (list({ prefix })) bulunabilir (bkz. listReadReceiptsForAnnouncement).
+const announcementReadsStore = () => getStore("announcement_reads");
 
 // ---------- Admin İşlem Günlüğü (Audit Log) ----------
 const adminAuditLogStore = () => getStore("admin_audit_log");
@@ -1221,10 +1231,34 @@ export async function listAllAnnouncements(): Promise<Announcement[]> {
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 
-function announcementMatchesShop(audience: AnnouncementAudience, shop: Shop): boolean {
+// Bir hesabın (Shop veya Partner) createdAt'i, "yeni üye" penceresinin
+// (ANNOUNCEMENT_NEW_MEMBER_WINDOW_DAYS) içinde mi — bkz. Announcement.newOnly.
+function isWithinNewMemberWindow(createdAt: string): boolean {
+  const windowMs = ANNOUNCEMENT_NEW_MEMBER_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  return Date.now() - new Date(createdAt).getTime() <= windowMs;
+}
+
+function shopMatchesAnnouncementAudience(
+  audience: AnnouncementAudience,
+  newOnly: boolean,
+  shop: Shop
+): boolean {
+  if (newOnly && !isWithinNewMemberWindow(shop.createdAt)) return false;
   if (audience === "all") return true;
   const isPaid = shop.plan !== "free";
   return audience === "paid" ? isPaid : !isPaid;
+}
+
+function partnerMatchesAnnouncementAudience(newOnly: boolean, partner: Partner): boolean {
+  if (newOnly && !isWithinNewMemberWindow(partner.createdAt)) return false;
+  return true;
+}
+
+// recipientType eklenmeden önce yayınlanmış duyurularda alan yok — bkz.
+// types.ts AnnouncementRecipientType yorumu, geriye dönük uyumluluk için
+// undefined "usta" kabul edilir.
+function announcementRecipientType(a: Announcement): AnnouncementRecipientType {
+  return a.recipientType ?? "usta";
 }
 
 // Bir bayinin panelinde görmesi gereken duyuruları (kendi plan hedef kitlesine
@@ -1232,19 +1266,119 @@ function announcementMatchesShop(audience: AnnouncementAudience, shop: Shop): bo
 // app/dashboard/duyurular.
 export async function listAnnouncementsForShop(shop: Shop): Promise<Announcement[]> {
   const all = await listAllAnnouncements();
-  return all.filter((a) => announcementMatchesShop(a.audience, shop));
+  return all.filter(
+    (a) =>
+      announcementRecipientType(a) === "usta" &&
+      shopMatchesAnnouncementAudience(a.audience, !!a.newOnly, shop)
+  );
 }
 
-// Bir duyuru yayınlanırken "bayilere e-posta de gönder" işaretlenmişse (bkz.
+// listAnnouncementsForShop'un Saha Satış Partneri karşılığı — bkz.
+// app/partner/duyurular. Partnerlerde plan kavramı olmadığından tek eksen
+// newOnly'dir (bkz. partnerMatchesAnnouncementAudience).
+export async function listAnnouncementsForPartner(partner: Partner): Promise<Announcement[]> {
+  const all = await listAllAnnouncements();
+  return all.filter(
+    (a) =>
+      announcementRecipientType(a) === "partner" &&
+      partnerMatchesAnnouncementAudience(!!a.newOnly, partner)
+  );
+}
+
+// Bir duyuru yayınlanırken "e-posta de gönder" işaretlenmişse (bkz.
 // app/api/admin/duyurular/route.ts) alıcı listesini bulmak için — panelde
 // gösterimle (listAnnouncementsForShop) AYNI hedefleme mantığını
-// (announcementMatchesShop) kullanır, böylece panelde göreceği bayiler ile
-// e-posta alacak bayiler her zaman birebir aynı küme olur.
+// (shopMatchesAnnouncementAudience) kullanır, böylece panelde göreceği bayiler
+// ile e-posta alacak bayiler her zaman birebir aynı küme olur.
 export async function listShopsForAnnouncementAudience(
-  audience: AnnouncementAudience
+  audience: AnnouncementAudience,
+  newOnly = false
 ): Promise<Shop[]> {
   const shops = await listAllShops();
-  return shops.filter((s) => announcementMatchesShop(audience, s));
+  return shops.filter((s) => shopMatchesAnnouncementAudience(audience, newOnly, s));
+}
+
+// listShopsForAnnouncementAudience'ın partner karşılığı.
+export async function listPartnersForAnnouncementAudience(newOnly = false): Promise<Partner[]> {
+  const partners = await listAllPartners();
+  return partners.filter((p) => partnerMatchesAnnouncementAudience(newOnly, p));
+}
+
+// ---- Duyuru Okundu Kaydı (bkz. types.ts AnnouncementReadReceipt) ----
+function announcementReadReceiptKey(
+  announcementId: string,
+  recipientType: AnnouncementRecipientType,
+  recipientId: string
+): string {
+  return `${announcementId}__${recipientType}__${recipientId}`;
+}
+
+// Bir alıcı bir duyuruyu (Duyurular sayfasını ziyaret ederek) gördüğünde
+// çağrılır — bkz. app/dashboard/duyurular, app/partner/duyurular. İLK okunma
+// anını korumak için zaten bir kayıt varsa üzerine YAZMAZ (kullanıcı sayfayı
+// her ziyaret ettiğinde readAt'in ilerlememesi için).
+export async function recordAnnouncementRead(
+  announcementId: string,
+  recipientType: AnnouncementRecipientType,
+  recipientId: string,
+  recipientLabel: string
+): Promise<void> {
+  const key = announcementReadReceiptKey(announcementId, recipientType, recipientId);
+  const existing = (await announcementReadsStore().get(key, { type: "json" })) as AnnouncementReadReceipt | null;
+  if (existing) return;
+  const receipt: AnnouncementReadReceipt = {
+    id: key,
+    announcementId,
+    recipientType,
+    recipientId,
+    recipientLabel,
+    readAt: new Date().toISOString(),
+  };
+  await announcementReadsStore().setJSON(key, receipt);
+}
+
+// Bir duyurunun tüm okunma kayıtları — anahtar `${announcementId}__...` prefix'i
+// taşıdığından tek bir prefix taramasıyla bulunur (bkz. announcementReadsStore
+// yorumu).
+export async function listReadReceiptsForAnnouncement(
+  announcementId: string
+): Promise<AnnouncementReadReceipt[]> {
+  const { blobs } = await announcementReadsStore().list({ prefix: `${announcementId}__` });
+  const entries = await Promise.all(
+    blobs.map((b) => announcementReadsStore().get(b.key, { type: "json" }) as Promise<AnnouncementReadReceipt | null>)
+  );
+  return entries
+    .filter((e): e is AnnouncementReadReceipt => !!e)
+    .sort((a, b) => (a.readAt < b.readAt ? 1 : -1));
+}
+
+// Admin "Kim okudu?" panelinde tek çağrıyla göstermek için — hedef kitledeki
+// TÜM alıcılar (listShopsForAnnouncementAudience/listPartnersForAnnouncementAudience
+// ile AYNI mantık) okuma kayıtlarıyla eşleştirilir, okuyan/okumayan iki ayrı
+// listeye ayrılır. "Ona göre aksiyon alalım" (Zeki, 22 Ağustos 2026) —
+// admin okumayanları burada isimleriyle görüp ayrıca WhatsApp'tan dürtebilsin diye.
+export async function getAnnouncementReadStats(announcement: Announcement): Promise<{
+  totalRecipients: number;
+  read: { id: string; name: string; readAt: string }[];
+  unread: { id: string; name: string }[];
+}> {
+  const recipientType: AnnouncementRecipientType = announcement.recipientType ?? "usta";
+  const [recipients, receipts] = await Promise.all([
+    recipientType === "partner"
+      ? listPartnersForAnnouncementAudience(!!announcement.newOnly)
+      : listShopsForAnnouncementAudience(announcement.audience, !!announcement.newOnly),
+    listReadReceiptsForAnnouncement(announcement.id),
+  ]);
+  const readByRecipientId = new Map(receipts.map((r) => [r.recipientId, r]));
+  const read: { id: string; name: string; readAt: string }[] = [];
+  const unread: { id: string; name: string }[] = [];
+  for (const r of recipients) {
+    const receipt = readByRecipientId.get(r.id);
+    if (receipt) read.push({ id: r.id, name: r.name, readAt: receipt.readAt });
+    else unread.push({ id: r.id, name: r.name });
+  }
+  read.sort((a, b) => (a.readAt < b.readAt ? 1 : -1));
+  return { totalRecipients: recipients.length, read, unread };
 }
 
 // ---------- Sözleşme Kabul Kaydı (elektronik delillendirme) ----------
@@ -1377,6 +1511,21 @@ export async function countUnseenAnnouncements(shop: Shop): Promise<number> {
 export async function markAnnouncementsSeen(shopId: string): Promise<void> {
   await updateShopFields(shopId, (shop) => ({
     ...shop,
+    lastSeenAnnouncementAt: new Date().toISOString(),
+  }));
+}
+
+// countUnseenAnnouncements'ın partner karşılığı — bkz. app/partner/layout.tsx.
+export async function countUnseenAnnouncementsForPartner(partner: Partner): Promise<number> {
+  const matching = await listAnnouncementsForPartner(partner);
+  if (!partner.lastSeenAnnouncementAt) return matching.length;
+  return matching.filter((a) => a.createdAt > partner.lastSeenAnnouncementAt!).length;
+}
+
+// markAnnouncementsSeen'in partner karşılığı — bkz. app/partner/duyurular.
+export async function markAnnouncementsSeenForPartner(partnerId: string): Promise<void> {
+  await updatePartnerFields(partnerId, (partner) => ({
+    ...partner,
     lastSeenAnnouncementAt: new Date().toISOString(),
   }));
 }

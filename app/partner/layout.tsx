@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentPartnerId } from "@/lib/partnerAuth";
-import { getPartnerById } from "@/lib/blobStore";
+import { countUnseenAnnouncementsForPartner, getPartnerById } from "@/lib/blobStore";
 import Logo from "@/components/Logo";
 import PartnerLogoutButton from "@/components/PartnerLogoutButton";
+import IconBadge from "@/components/IconBadge";
+import { BellIcon } from "@/components/icons";
 
 // Saha Partneri paneli — bkz. app/partner-girisi, lib/partnerAuth.ts. Bayi
 // panelinden (app/dashboard) TAMAMEN AYRI bir bölüm: farklı oturum, farklı
@@ -16,17 +18,34 @@ export default async function PartnerLayout({ children }: { children: React.Reac
   const partner = await getPartnerById(partnerId);
   if (!partner) redirect("/partner-girisi");
 
+  // Bayi panelindeki (app/dashboard/layout.tsx) Duyurular rozetiyle aynı
+  // desen — admin'in bu partner grubuna özel yayınladığı, henüz görülmemiş
+  // duyuru sayısı (bkz. blobStore.countUnseenAnnouncementsForPartner).
+  const unseenAnnouncements = await countUnseenAnnouncementsForPartner(partner);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6">
           <Link href="/partner" className="flex items-center gap-2">
             <Logo size="sm" />
             <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-brand-600">
               Partner
             </span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
+            <Link
+              href="/partner/duyurular"
+              className="relative flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-sm font-medium text-slate-600 hover:bg-slate-50"
+            >
+              <IconBadge icon={<BellIcon />} color="amber" />
+              <span>Duyurular</span>
+              {unseenAnnouncements > 0 && (
+                <span className="rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  {unseenAnnouncements}
+                </span>
+              )}
+            </Link>
             <span className="hidden text-sm font-medium text-slate-600 sm:inline">{partner.name}</span>
             <Link
               href="/partner/ayarlar"

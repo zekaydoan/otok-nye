@@ -466,6 +466,8 @@ export interface Suggestion {
 // "all" tüm bayilere gider; "paid" yalnızca ücretli (free dışı) plandaki
 // bayilere, "free" yalnızca ücretsiz plandaki bayilere gider — plan bazlı
 // kampanya hedeflemesi için (bkz. blobStore.listAnnouncementsForShop).
+// recipientType "partner" olduğunda bu alan anlamsızdır, her zaman "all"
+// olarak saklanır (partnerlerde plan kavramı yok) — bkz. AnnouncementRecipientType.
 export type AnnouncementAudience = "all" | "paid" | "free";
 
 export const ANNOUNCEMENT_AUDIENCE_LABELS: Record<AnnouncementAudience, string> = {
@@ -474,11 +476,35 @@ export const ANNOUNCEMENT_AUDIENCE_LABELS: Record<AnnouncementAudience, string> 
   free: "Ücretsiz Plandakiler",
 };
 
+// Bir duyurunun Kullanıcı/Bayi (usta) mı yoksa Saha Satış Partneri mi hedef
+// aldığını ayırt eder — Zeki'nin 22 Ağustos 2026 talebi: "duyuru gönderilecek
+// kısmına bu hafta üye olan satış partnerleri ayrı tutulsun, ustalar ayrı
+// tutulsun". Eski kayıtlarda bu alan yoktur (undefined) — okunurken her yerde
+// `a.recipientType ?? "usta"` ile geriye dönük uyumlu varsayılan uygulanır,
+// böylece bu alan eklenmeden önce yayınlanmış duyurular hâlâ ustalara doğru
+// şekilde görünmeye devam eder.
+export type AnnouncementRecipientType = "usta" | "partner";
+
+export const ANNOUNCEMENT_RECIPIENT_TYPE_LABELS: Record<AnnouncementRecipientType, string> = {
+  usta: "Ustalar (Bayiler)",
+  partner: "Saha Satış Partnerleri",
+};
+
 export interface Announcement {
   id: string;
   title: string;
   message: string;
   audience: AnnouncementAudience;
+  // bkz. AnnouncementRecipientType yorumu — undefined ise "usta" kabul edilir.
+  recipientType?: AnnouncementRecipientType;
+  // İşaretliyse yalnızca son ANNOUNCEMENT_NEW_MEMBER_WINDOW_DAYS gün içinde
+  // kaydolmuş (Shop.createdAt / Partner.createdAt) alıcılara gösterilir —
+  // "hoşgeldiniz" tarzı duyurular için (bkz. blobStore.announcementMatchesShop/
+  // announcementMatchesPartner). Sorgu ANINDA hesaplanır, yayınlama anında
+  // dondurulmuş bir alıcı listesi SAKLANMAZ — yani bu kutu işaretli bir duyuru,
+  // yayınlandıktan bir hafta sonra artık kimseye "yeni" görünmeyecek şekilde
+  // kendiliğinden görünürlükten düşer.
+  newOnly?: boolean;
   createdAt: string;
   // Admin, yayınlarken "bayilere e-posta de gönder" seçeneğini işaretlediyse
   // gönderimin TETİKLENDİĞİ an (bkz. lib/email.sendAnnouncementEmail) — her
@@ -487,6 +513,28 @@ export interface Announcement {
   // app/api/admin/duyurular/route.ts). Bu alan yalnızca admin geçmişinde
   // "bu duyuru için e-posta denendi mi" rozetini göstermek için tutulur.
   emailedAt?: string;
+}
+
+// "Yeni üye" (newOnly) filtresinin baktığı pencere — bkz. Announcement.newOnly.
+export const ANNOUNCEMENT_NEW_MEMBER_WINDOW_DAYS = 7;
+
+// ---------- Duyuru Okundu Kaydı ----------
+// Admin'in "bu duyuruyu kimler okudu, kimler okumadı" görebilmesi için (Zeki'nin
+// 22 Ağustos 2026 talebi: "ona göre aksiyon alalım" — ör. okumayan bayiyi/partneri
+// ayrıca WhatsApp'tan dürtmek). Shop.lastSeenAnnouncementAt/Partner.lastSeenAnnouncementAt
+// yalnızca "en son ne zaman Duyurular sayfasını ziyaret etti" gibi TEK bir imleç
+// tutar (header rozetini hesaplamak için yeterli) — ama "şu SPESİFİK duyuruyu
+// okudu mu" sorusuna cevap veremez, çünkü imleç duyuru bazlı değil. Bu yüzden
+// duyuru başına, alıcı başına AYRI bir kayıt tutuluyor. Yalnızca EKLENİR — bir
+// alıcı aynı duyuruyu tekrar tekrar görse bile ilk okuma anı korunur (bkz.
+// blobStore.recordAnnouncementRead, "zaten var mı" kontrolü).
+export interface AnnouncementReadReceipt {
+  id: string; // `${announcementId}__${recipientType}__${recipientId}` — bkz. blobStore
+  announcementId: string;
+  recipientType: AnnouncementRecipientType;
+  recipientId: string; // Shop.id veya Partner.id
+  recipientLabel: string; // bayi/partner adı anlık görüntüsü — admin listesinde ekstra sorgu gerekmesin diye
+  readAt: string; // ISO, İLK okunma anı
 }
 
 // ---------- KVKK Self-Servis Veri Talebi ----------
@@ -695,6 +743,10 @@ export interface Partner {
   // günceller (bkz. yukarıdaki kapsam notu, app/partner/ayarlar). Yoksa admin
   // ödeme gününde partnerden IBAN istemek zorunda kalır.
   paymentInfo?: PartnerPaymentInfo;
+  // Partner panelindeki Duyurular rozetinin sayısını hesaplamak için —
+  // Shop.lastSeenAnnouncementAt ile birebir aynı desen (bkz. o alanın yorumu,
+  // blobStore.countUnseenAnnouncementsForPartner, markAnnouncementsSeenForPartner).
+  lastSeenAnnouncementAt?: string; // ISO
 }
 
 // ---- Komisyon kademeleri (bkz. Saha_Partner_Agi_Analiz.docx Bölüm 2 ve 3) ----

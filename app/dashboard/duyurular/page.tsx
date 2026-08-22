@@ -1,18 +1,32 @@
 import { getCurrentShopId } from "@/lib/auth";
-import { getShopById, listAnnouncementsForShop, markAnnouncementsSeen } from "@/lib/blobStore";
+import {
+  getShopById,
+  listAnnouncementsForShop,
+  markAnnouncementsSeen,
+  recordAnnouncementRead,
+} from "@/lib/blobStore";
 import EmptyState from "@/components/EmptyState";
 import { BellIcon } from "@/components/icons";
 import { ANNOUNCEMENT_AUDIENCE_LABELS } from "@/lib/types";
 
 // Randevular sayfasındaki markWhatsappAppointmentsSeen deseniyle aynı: sayfa
 // ziyareti, header'daki Duyurular rozetini otomatik olarak sıfırlar (bkz.
-// lib/blobStore.markAnnouncementsSeen, app/dashboard/layout.tsx).
+// lib/blobStore.markAnnouncementsSeen, app/dashboard/layout.tsx). Ayrıca
+// admin'in "kim okudu?" panelinde (bkz. AdminAnnouncementForm) görünebilmesi
+// için her gösterilen duyuru için ayrı bir okundu kaydı düşülür (bkz.
+// blobStore.recordAnnouncementRead) — bu, kaba rozet imlecinden (yukarıdaki
+// markAnnouncementsSeen) BAĞIMSIZ, duyuru bazlı ayrı bir mekanizmadır.
 export default async function AnnouncementsPage() {
   const shopId = await getCurrentShopId();
   const shop = shopId ? await getShopById(shopId) : null;
   const announcements = shop ? await listAnnouncementsForShop(shop) : [];
 
   if (shopId) await markAnnouncementsSeen(shopId);
+  if (shop) {
+    await Promise.all(
+      announcements.map((a) => recordAnnouncementRead(a.id, "usta", shop.id, shop.name))
+    );
+  }
 
   return (
     <div>

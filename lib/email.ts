@@ -103,14 +103,19 @@ function delay(ms: number): Promise<void> {
 export async function sendAnnouncementEmail(
   recipientEmails: string[],
   title: string,
-  message: string
+  message: string,
+  // Bayiler (usta) için "/dashboard/duyurular", Saha Satış Partnerleri için
+  // "/partner/duyurular" — iki panel tamamen ayrı olduğundan (bkz.
+  // AnnouncementRecipientType) buton yanlış panele göndermesin diye
+  // çağıran taraf (app/api/admin/duyurular/route.ts) belirtir.
+  panelPath: string = "/dashboard/duyurular"
 ): Promise<BulkEmailSummary> {
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
       <p style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:12px;">${escapeHtml(title)}</p>
       <p style="white-space:pre-wrap;color:#334155;line-height:1.5;">${escapeHtml(message)}</p>
       <p style="margin-top:20px;">
-        <a href="https://otohafiza.com/dashboard/duyurular" style="display:inline-block;background:#1d4ed8;color:#fff;
+        <a href="https://otohafiza.com${panelPath}" style="display:inline-block;background:#1d4ed8;color:#fff;
         padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">
         Panelde Görüntüle</a>
       </p>
