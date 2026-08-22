@@ -1920,6 +1920,75 @@ export async function getStickerOrderStats(): Promise<StickerOrderStats> {
   };
 }
 
+// ---------- Günlük Özet Raporu (PDF indirme için) ----------
+// Zeki'nin 22 Ağustos 2026 talebi: "Bugünün istatistikleri pdf olarak insin.
+// Kaç kişi ziyaret etti hangi şehirlerden ziyaret etti kaç kişi paket aldı
+// kaç kişi partner olarak üye oldu" — admin panelinden herhangi bir günü seçip
+// bu özeti PDF olarak indirebilmek için (bkz. lib/dailyStatsReportPdf.ts,
+// app/api/admin/istatistikler/gunluk-rapor/route.ts). Yukarıdaki tekil
+// fonksiyonların (getCityVisits, getPageviewsInRange, getPlanStartStats vb.)
+// tuttuğu aynı ham veriyi tek bir günün özeti olarak birleştirir; ayrı bir
+// depolama biçimi/önceden-hesaplama GEREKMEZ, hepsi zaten günlük anahtarlarla
+// süresiz saklanıyor.
+export interface DailyCityStat {
+  city: string;
+  count: number;
+}
+
+export interface DailyStatsReport {
+  date: string; // YYYY-MM-DD
+  pageviews: number;
+  cityVisits: DailyCityStat[]; // en çoktan aza
+  unknownLocationViews: number; // il tespit edilemeyen görüntüleme sayısı (pageviews - Σ cityVisits)
+  newShopCount: number; // o gün kaydolan yeni bayi (Kullanıcı/usta) sayısı
+  paidPlanStarts: { plan: Plan; count: number }[]; // o gün ücretli bir plana başlayan sayısı (plan bazında, free hariç)
+  totalPaidPlanStarts: number;
+  newPartnerCount: number; // o gün kaydolan yeni Saha Satış Partneri sayısı
+}
+
+export async function getDailyStatsReport(dateISO: string): Promise<DailyStatsReport> {
+  const [pageviewRange, cityCounts, shops, planEvents, partners] = await Promise.all([
+    getPageviewsInRange(dateISO, dateISO),
+    getCityVisits(dateISO),
+    listAllShops(),
+    listAllPlanEvents(),
+    listAllPartners(),
+  ]);
+
+  const cityVisits = Object.entries(cityCounts)
+    .map(([city, count]) => ({ city, count }))
+    .sort((a, b) => b.count - a.count);
+  const knownLocationViews = cityVisits.reduce((sum, c) => sum + c.count, 0);
+  const pageviews = pageviewRange.total;
+  const unknownLocationViews = Math.max(0, pageviews - knownLocationViews);
+
+  const newShopCount = shops.filter((s) => s.createdAt.slice(0, 10) === dateISO).length;
+
+  const paidCounts = emptyPlanCounts();
+  for (const event of planEvents) {
+    if (event.plan === "free") continue;
+    if (event.createdAt.slice(0, 10) !== dateISO) continue;
+    paidCounts[event.plan] = (paidCounts[event.plan] ?? 0) + 1;
+  }
+  const paidPlanStarts = (Object.keys(paidCounts) as Plan[])
+    .filter((p) => p !== "free" && paidCounts[p] > 0)
+    .map((plan) => ({ plan, count: paidCounts[plan] }));
+  const totalPaidPlanStarts = paidPlanStarts.reduce((sum, p) => sum + p.count, 0);
+
+  const newPartnerCount = partners.filter((p) => p.createdAt.slice(0, 10) === dateISO).length;
+
+  return {
+    date: dateISO,
+    pageviews,
+    cityVisits,
+    unknownLocationViews,
+    newShopCount,
+    paidPlanStarts,
+    totalPaidPlanStarts,
+    newPartnerCount,
+  };
+}
+
 export interface ChurnStats {
   cancelledOrderCount: number;
   cancelledOrderValueTry: number; // yalnızca ödemesi alınmışken iptal edilenler (cancelledWithPayment)

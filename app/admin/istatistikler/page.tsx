@@ -21,6 +21,7 @@ import IconBadge, { type IconBadgeColor } from "@/components/IconBadge";
 import TurkeyVisitorMap from "@/components/TurkeyVisitorMap";
 import ActiveVisitorsCard from "@/components/ActiveVisitorsCard";
 import PageviewsRangeExplorer from "@/components/PageviewsRangeExplorer";
+import DailyReportDownload from "@/components/DailyReportDownload";
 
 // Yalnızca ADMIN_EMAILS ortam değişkeninde tanımlı hesaplara açık — bkz.
 // app/admin/siparisler/page.tsx ile aynı desen ve gerekçe.
@@ -132,6 +133,7 @@ export default async function AdminStatsPage() {
   const topCityYear = topCity(cityVisitsYear);
 
   const todayViews = pageviews[pageviews.length - 1]?.count ?? 0;
+  const yesterdayViews = pageviews[pageviews.length - 2]?.count ?? 0;
   const last14DaysViews = pageviews.reduce((sum, d) => sum + d.count, 0);
   const maxViews = Math.max(1, ...pageviews.map((d) => d.count));
 
@@ -160,6 +162,7 @@ export default async function AdminStatsPage() {
           <ActiveVisitorsCard initialCount={activeVisitors.count} initialByProvince={activeVisitors.byProvince} />
         </div>
         <StatCard icon={<ChartBarIcon />} color="blue" label="Bugünkü Ziyaret" value={todayViews.toString()} />
+        <StatCard icon={<ChartBarIcon />} color="slate" label="Dünkü Ziyaret" value={yesterdayViews.toString()} />
         <StatCard
           icon={<CalendarIcon />}
           color="blue"
@@ -214,9 +217,10 @@ export default async function AdminStatsPage() {
         <p className="mt-1 text-xs text-slate-400">
           Kişi/IP bazlı değil, günlük toplam sayfa görüntüleme sayacıdır (14 günlük toplam: {last14DaysViews}).
         </p>
-        <div className="mt-4 flex items-end gap-1.5" style={{ height: 100 }}>
+        <div className="mt-4 flex items-end gap-1.5" style={{ height: 120 }}>
           {pageviews.map((d) => (
             <div key={d.date} className="flex flex-1 flex-col items-center gap-1" title={`${d.date}: ${d.count}`}>
+              <span className="text-[10px] font-semibold text-slate-600">{d.count}</span>
               <div
                 className="w-full rounded-t bg-brand-500"
                 style={{ height: `${Math.max(4, (d.count / maxViews) * 80)}px` }}
@@ -224,6 +228,22 @@ export default async function AdminStatsPage() {
               <span className="text-[9px] text-slate-400">{d.date.slice(8, 10)}</span>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Günlük rapor — PDF indirme */}
+      <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <div className="flex items-center gap-2">
+          <IconBadge icon={<PackageIcon />} color="green" />
+          <h2 className="font-bold text-slate-900">Günlük Rapor (PDF)</h2>
+        </div>
+        <p className="mt-1 text-xs text-slate-400">
+          Seçilen günün toplam ziyaretçi sayısı, hangi şehirlerden ziyaret edildiği,
+          o gün kaç kişinin ücretli pakete geçtiği ve kaç kişinin Saha Satış
+          Partneri olarak üye olduğu tek bir PDF'te özetlenir.
+        </p>
+        <div className="mt-4">
+          <DailyReportDownload todayISO={today} />
         </div>
       </section>
 
