@@ -279,7 +279,8 @@ export default async function HomePage() {
               CTA, fiyatlandırma kartları) TEK birincil eylem rengi bu — Giriş
               Yap turuncu olursa header'da iki "birincil" buton varmış gibi
               görünüp asıl dönüşüm hedefinin görsel ağırlığı bölünür. Bu yüzden
-              Giriş Yap mavi/çerçeveli, ikincil ağırlıkta tutuluyor. */}
+              Giriş Yap dolgulu mavi (bg-brand-600, beyaz yazı) — belirgin ama
+              turuncudan ayrı bir renk ailesinde, ikincil ağırlıkta. */}
           <nav className="flex items-center gap-2 text-sm font-medium text-slate-600 sm:gap-4">
             <Link href="#nasil-calisir" className="hidden hover:text-brand-700 sm:inline">
               Nasıl Çalışır
@@ -295,7 +296,7 @@ export default async function HomePage() {
             </Link>
             <Link
               href="/giris"
-              className="rounded-lg border border-brand-600 px-3 py-2 font-semibold text-brand-600 hover:bg-brand-50 sm:px-4"
+              className="rounded-lg bg-brand-600 px-3 py-2 font-semibold text-white hover:bg-brand-700 sm:px-4"
             >
               Giriş Yap
             </Link>
