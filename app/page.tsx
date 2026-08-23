@@ -6,6 +6,7 @@ import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
 import FaqAccordion from "@/components/FaqAccordion";
 import MobileNavMenu from "@/components/MobileNavMenu";
+import HeroQrPreview from "@/components/HeroQrPreview";
 import { buildBusinessWhatsAppLink } from "@/lib/whatsappBusiness";
 import {
   BellIcon,
@@ -365,25 +366,13 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* QR etiket görseli — ürünün fiziksel etiketini temsil eden dekoratif
-            kart. Önceki hero'daki yüzen kartların mobilde taşma sorunu
-            yaşattığı biliniyor (bkz. geçmiş QA notları); aynı hatayı tekrar
-            etmemek için sadece geniş ekranlarda (lg+) gösteriliyor. Mobilde
-            QR anlatımı yukarıdaki rozet ile zaten sağlanıyor. */}
-        <div
-          aria-hidden
-          className="absolute right-10 top-14 hidden w-36 rotate-3 rounded-xl bg-white p-2.5 shadow-2xl ring-1 ring-black/5 lg:block xl:right-20"
-        >
-          <div className="rounded-lg bg-brand-600 px-2 py-1 text-center text-[10px] font-bold uppercase tracking-wide text-white">
-            Bakım Geçmişi
-          </div>
-          <div className="mt-2 flex items-center justify-center">
-            <QrIcon className="h-20 w-20 text-slate-900" />
-          </div>
-          <div className="mt-2 rounded-md bg-slate-100 px-2 py-1 text-center text-[11px] font-semibold text-slate-700">
-            34 XX 000
-          </div>
-        </div>
+        {/* QR etiket görseli — dashboard'daki gerçek etiket tasarımının aynısı
+            (ayrı client component: components/HeroQrPreview.tsx, bkz. o
+            dosyadaki not). Sadece geniş ekranlarda (lg+) gösteriliyor —
+            önceki hero'daki yüzen kartların mobilde taşma sorunu yaşattığı
+            biliniyor (bkz. geçmiş QA notları); mobilde QR anlatımı
+            yukarıdaki rozet ile zaten sağlanıyor. */}
+        <HeroQrPreview />
       </section>
 
       {/* 2. SORUN/ÇÖZÜM */}
