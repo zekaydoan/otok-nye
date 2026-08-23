@@ -246,6 +246,23 @@ kontenjanına giren bayiler için ömür boyu %50 indirimli Pro fiyatı henüz
 uygulanmıyor — bunun için iyzico'da ayrı bir indirimli ödeme planı
 oluşturup bu bayilere bağlamak gerekiyor, henüz yazılmadı.
 
+### 23 Ağustos 2026 — "Ürün + Ödeme Planlarını Oluştur" denendi, ⏳ iyzico'da bekliyor
+
+Zeki gerçek/canlı anahtarlarla `/admin/iyzico-abonelik`'teki kurulum
+aracını çalıştırdı, **"Sistem hatası" (iyzico'nun "(100001) Sistem hatası"
+genel hata koduyla aynı, bu bilinen ve dokümante bir iyzico davranışı)**
+aldı. iyzico panelindeki "Eklentiler" sayfası kontrol edildi — Multi
+Currency, Kart Saklama, BKM Express gibi eklentiler var ama **"Abonelik"
+eklentisi bu hesapta hiç listelenmiyor**, yani kendi kendine (self-servis)
+satın alınamıyor. Zeki, destek@iyzico.com'a gerçek/kurumsal hesapta
+Abonelik API'sinin aktifleştirilmesini isteyen bir mail attı (23 Ağustos
+2026) — **şu an iyzico'nun cevabı/aktivasyonu bekleniyor.** Kod tarafında
+başka bir eksik yok; iyzico aktivasyonu onaylayınca sırasıyla: (1)
+`/admin/iyzico-abonelik`'ten kurulum aracı tekrar çalıştırılacak (23
+Ağustos'taki sandbox/canlı ayrım düzeltmesi sayesinde artık doğru şekilde
+gerçek kodlar üretecek), (2) iyzico canlı panelinde abonelik webhook URL'si
+kontrol edilecek, (3) gerçek bir kartla uçtan uca test yapılacak.
+
 ## 2. KVKK Aydınlatma Metni — adres/telefon ✅ Tamamlandı (20 Ağustos 2026)
 
 - **Dosya:** `app/kvkk/page.tsx`
