@@ -168,6 +168,10 @@ const shopsByPartnerStore = () => getStore("shops_by_partner");
 const partnerCommissionsStore = () => getStore("partner_commissions");
 const partnerCommissionsByPartnerStore = () => getStore("partner_commissions_by_partner");
 const partnerCommissionsByShopStore = () => getStore("partner_commissions_by_shop");
+// V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): komisyon tahakkuk fonksiyonlarında
+// (aşağıda) "oku -> yoksa yaz" yarış koşulunu kapatmak için atomik kilit anahtarları
+// — bkz. claimFoundingServiceRank'teki aynı onlyIfNew/onlyIfMatch deseni.
+const partnerCommissionLocksStore = () => getStore("partner_commission_locks");
 
 export function normalizePlate(plate: string): string {
   return plate.toUpperCase().replace(/[^A-Z0-9ÇĞİÖŞÜ]/g, "");
@@ -2403,13 +2407,31 @@ export async function checkAndAccruePartnerActivationBonus(shopId: string): Prom
   const existing = await listCommissionsForShop(shopId);
   if (existing.some((e) => e.type === "aktivasyon")) return; // zaten tahakkuk etmiş
 
-  await recordPartnerCommission({
-    partnerId: shop.partnerId,
-    shopId: shop.id,
-    shopName: shop.name,
-    type: "aktivasyon",
-    amountTry: PARTNER_ACTIVATION_BONUS_TRY,
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 6): iki eşzamanlı
+  // tetik (ör. iki bakım kaydı isteği neredeyse aynı anda) yukarıdaki
+  // "oku -> yoksa yaz" kontrolünü ikisi de geçebilir. Bunu kapatmak için,
+  // asıl kaydı yazmadan önce atomik bir kilit anahtarını (onlyIfNew) almayı
+  // deniyoruz — yalnızca kilidi GERÇEKTEN alan çağrı komisyonu kaydeder,
+  // diğeri sessizce çıkar. Kilit alındıktan sonra yazma başarısız olursa
+  // kilit geri silinir, komisyon kalıcı olarak "kaçmaz".
+  const lockKey = `${shopId}/aktivasyon`;
+  const claim = await partnerCommissionLocksStore().set(lockKey, new Date().toISOString(), {
+    onlyIfNew: true,
   });
+  if (!claim.modified) return; // başka bir eşzamanlı çağrı zaten kazandı
+
+  try {
+    await recordPartnerCommission({
+      partnerId: shop.partnerId,
+      shopId: shop.id,
+      shopName: shop.name,
+      type: "aktivasyon",
+      amountTry: PARTNER_ACTIVATION_BONUS_TRY,
+    });
+  } catch (err) {
+    await partnerCommissionLocksStore().delete(lockKey);
+    throw err;
+  }
 }
 
 // Bir bayi free plandan ücretli bir plana (ilk kez) geçtiğinde çağrılır — hem
@@ -2429,13 +2451,28 @@ export async function checkAndAccruePartnerConversionBonus(
   const existing = await listCommissionsForShop(shopId);
   if (existing.some((e) => e.type === "donusum")) return;
 
-  await recordPartnerCommission({
-    partnerId: shop.partnerId,
-    shopId: shop.id,
-    shopName: shop.name,
-    type: "donusum",
-    amountTry: PARTNER_CONVERSION_BONUS_TRY,
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 6): bkz.
+  // checkAndAccruePartnerActivationBonus'taki aynı atomik kilit deseni —
+  // admin elle plan aktive ederken ve iyzico webhook'u neredeyse aynı anda
+  // gelirse ikisinin de dönüşüm bonusu yazmasını engeller.
+  const lockKey = `${shopId}/donusum`;
+  const claim = await partnerCommissionLocksStore().set(lockKey, new Date().toISOString(), {
+    onlyIfNew: true,
   });
+  if (!claim.modified) return;
+
+  try {
+    await recordPartnerCommission({
+      partnerId: shop.partnerId,
+      shopId: shop.id,
+      shopName: shop.name,
+      type: "donusum",
+      amountTry: PARTNER_CONVERSION_BONUS_TRY,
+    });
+  } catch (err) {
+    await partnerCommissionLocksStore().delete(lockKey);
+    throw err;
+  }
 }
 
 // Her başarılı tekrarlayan ödeme bildiriminde (iyzico webhook,
@@ -2469,14 +2506,31 @@ export async function accruePartnerRecurringCommission(
   const amountTry = Math.round(parsePlanPriceTry(shop.plan) * rate);
   if (amountTry <= 0) return;
 
-  await recordPartnerCommission({
-    partnerId: shop.partnerId,
-    shopId: shop.id,
-    shopName: shop.name,
-    type: "recurring",
-    amountTry,
-    periodMonth,
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 6): bkz.
+  // checkAndAccruePartnerActivationBonus'taki aynı atomik kilit deseni —
+  // iyzico'nun aynı bildirimi tekrar teslim etmesi (retry) VEYA aynı dönem
+  // için iki bağımsız tetik neredeyse aynı anda gelmesi durumunda tek bir
+  // kayıt yazılmasını garanti eder. Dönem bazlı olduğu için anahtar
+  // periodMonth'u da içerir.
+  const lockKey = `${shopId}/recurring/${periodMonth}`;
+  const claim = await partnerCommissionLocksStore().set(lockKey, new Date().toISOString(), {
+    onlyIfNew: true,
   });
+  if (!claim.modified) return;
+
+  try {
+    await recordPartnerCommission({
+      partnerId: shop.partnerId,
+      shopId: shop.id,
+      shopName: shop.name,
+      type: "recurring",
+      amountTry,
+      periodMonth,
+    });
+  } catch (err) {
+    await partnerCommissionLocksStore().delete(lockKey);
+    throw err;
+  }
 }
 
 // ---- Admin panel özet görünümleri ----
