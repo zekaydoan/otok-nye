@@ -10,7 +10,6 @@ import {
   listRecentStickerSelfPrints,
   listVehiclesByShop,
 } from "@/lib/blobStore";
-import { PLAN_LIMITS } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import {
   BellIcon,
@@ -20,31 +19,33 @@ import {
   LightbulbIcon,
   LockIcon,
   PackageIcon,
-  UsersIcon,
 } from "@/components/icons";
 import IconBadge from "@/components/IconBadge";
 
 // Admin, önceden her kategoriyi (Bayiler, Öneriler, Veri Talepleri) tek tek
-// gezerek "bekleyen bir şey var mı" diye kontrol etmek zorundaydı — özellikle
-// bekleyen plan talepleri (bkz. app/api/shop/plan/route.ts H1 düzeltmesi) yalnızca
-// ilgili bayinin kendi detay sayfasında görünüyordu. Bu sayfa beş kategoriyi
-// (bekleyen plan talepleri, iade bekleyen iptaller, okunmamış öneriler, bekleyen
+// gezerek "bekleyen bir şey var mı" diye kontrol etmek zorundaydı. Bu sayfa
+// dört kategoriyi (iade bekleyen iptaller, okunmamış öneriler, bekleyen
 // KVKK veri talepleri, onay bekleyen partner başvuruları) tek bir yerde toplar;
 // nav'daki rozet sayısı (bkz. app/admin/layout.tsx) buradaki toplamla aynı
 // fonksiyonları kullanır. "Onay bekleyen partner başvuruları" sonradan eklendi
 // (bkz. app/admin/partnerler'daki bölgeye göre gruplanmış onay akışı) — o
 // akış kurulduğunda buraya eklenmesi unutulmuştu, admin yeni bir başvuru
 // geldiğinde bunu ancak Partnerler sayfasını elle ziyaret ederse görüyordu.
+//
+// V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): "Bekleyen Plan Talepleri"
+// kategorisi kaldırıldı — pendingPlan, iyzico Abonelik entegrasyonu öncesi
+// elle onay akışına aitti (bkz. SECURITY_FIX_PLAN.md H1). 18 Ağustos 2026'dan
+// beri ücretli plan seçimi doğrudan iyzico ödeme akışına gidiyor ve ödeme
+// onaylanınca plan callback'te otomatik aktive oluyor — bu kategori artık
+// hiçbir gerçek bayide dolmuyordu.
 export async function getPendingCounts() {
-  const [shops, orders, suggestions, dataRequests, partnerSummaries] = await Promise.all([
-    listAllShops(),
+  const [orders, suggestions, dataRequests, partnerSummaries] = await Promise.all([
     listAllStickerOrders(),
     listAllSuggestions(),
     listAllDataRequests(),
     listAllPartnerSummaries(),
   ]);
 
-  const pendingPlanShops = shops.filter((s) => s.pendingPlan);
   // "İade bekleyen iptal" — bayi tarafından iptal edilmiş VE iptal anında ödemesi
   // zaten alınmış (cancelledWithPayment) VE henüz admin tarafından iade
   // işaretlenmemiş (refundedAt yok) siparişler. Yalnızca status==="iptal" bakmak
@@ -58,13 +59,11 @@ export async function getPendingCounts() {
   const pendingPartners = partnerSummaries.filter((s) => s.partner.status === "onay_bekliyor");
 
   return {
-    pendingPlanShops,
     refundPendingOrders,
     unreadSuggestions,
     pendingDataRequests,
     pendingPartners,
     total:
-      pendingPlanShops.length +
       refundPendingOrders.length +
       unreadSuggestions.length +
       pendingDataRequests.length +
@@ -90,7 +89,7 @@ export default async function AdminPendingPage() {
   if (!adminShopId) notFound();
 
   const [
-    { pendingPlanShops, refundPendingOrders, unreadSuggestions, pendingDataRequests, pendingPartners, total },
+    { refundPendingOrders, unreadSuggestions, pendingDataRequests, pendingPartners, total },
     noVehicleFreeShops,
     recentSelfPrints,
   ] = await Promise.all([getPendingCounts(), getNoVehicleFreeShops(), listRecentStickerSelfPrints(20)]);
@@ -128,33 +127,6 @@ export default async function AdminPendingPage() {
             <Link href="/admin/partnerler" className="text-sm font-semibold text-brand-600 underline">
               Başvuruları incele →
             </Link>
-          </div>
-        </section>
-      )}
-
-      {pendingPlanShops.length > 0 && (
-        <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-          <div className="flex items-center gap-2">
-            <IconBadge icon={<UsersIcon />} color="indigo" />
-            <h2 className="font-bold text-slate-900">Bekleyen Plan Talepleri ({pendingPlanShops.length})</h2>
-          </div>
-          <p className="mt-1 text-xs text-slate-400">
-            Ödeme (banka havalesi/elden) alındıysa bayinin detay sayfasından planı elle aktive edin.
-          </p>
-          <div className="mt-4 space-y-2">
-            {pendingPlanShops.map((s) => (
-              <Link
-                key={s.id}
-                href={`/admin/bayiler/${s.id}`}
-                className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2 text-sm hover:bg-amber-100"
-              >
-                <span className="font-medium text-slate-800">{s.name}</span>
-                <span className="text-amber-700">
-                  {s.pendingPlan && PLAN_LIMITS[s.pendingPlan].label} talep etti
-                  {s.pendingPlanRequestedAt ? ` — ${new Date(s.pendingPlanRequestedAt).toLocaleDateString("tr-TR")}` : ""}
-                </span>
-              </Link>
-            ))}
           </div>
         </section>
       )}

@@ -40,14 +40,6 @@ export default async function AdminShopDetailPage({ params }: { params: { id: st
         </span>
       </div>
 
-      {shop.pendingPlan && (
-        <div className="mt-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <strong>{PLAN_LIMITS[shop.pendingPlan].label}</strong> planına geçiş talep etti
-          {shop.pendingPlanRequestedAt ? ` — ${new Date(shop.pendingPlanRequestedAt).toLocaleString("tr-TR")}` : ""}
-          . Ödeme onaylandıysa aşağıdan planı elle aktive edin.
-        </div>
-      )}
-
       <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
         <h2 className="font-bold text-slate-900">Planı Elle Değiştir</h2>
         <p className="mt-1 text-xs text-slate-400">

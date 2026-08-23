@@ -14,22 +14,28 @@ export interface AdminShopRow {
   plan: Plan;
   vehicleCount: number;
   createdAt: string;
-  pendingPlan?: Plan;
   lastLoginAt?: string; // ISO — bkz. lib/types.ts Shop.lastLoginAt
 }
 
 const INACTIVE_DAYS_THRESHOLD = 30;
 
-// Dört "dikkat gerekebilir" sinyali hesaplar — hiçbiri veritabanında ayrı bir
+// Üç "dikkat gerekebilir" sinyali hesaplar — hiçbiri veritabanında ayrı bir
 // alan olarak tutulmaz, mevcut alanlardan türetilir:
 // - hiçAraçYok: kayıt olmuş ama tek araç bile eklememiş (onboarding'de takılmış olabilir)
-// - bekleyenPlan: H1 düzeltmesindeki pendingPlan (bkz. app/api/shop/plan/route.ts)
 // - uzunSüredirYok: lastLoginAt INACTIVE_DAYS_THRESHOLD günden eski, YA DA hiç
 //   yoksa (bu alan yeni eklendi — eski girişler için henüz kayıtlı olmayabilir)
 //   createdAt aynı eşikten eski. Bu ikinci koşul olmadan, özellik yeni
 //   çıktığında henüz hiç tekrar giriş yapmamış TÜM eski bayiler yanlışlıkla
 //   "aktif" görünürdü.
 // - limiteYakın: ücretsiz plandaki bir bayi limitin %80'ine ulaşmış/aşmış.
+//
+// V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): "bekleyenPlan" sinyali
+// kaldırıldı — pendingPlan alanı, iyzico Abonelik entegrasyonu öncesi elle
+// onay akışına aitti (bkz. SECURITY_FIX_PLAN.md H1). 18 Ağustos 2026'dan beri
+// ücretli plan seçimi doğrudan iyzico ödeme akışına gidiyor ve ödeme
+// onaylanınca plan callback'te otomatik aktive oluyor — pendingPlan artık
+// hiçbir gerçek bayide dolu bir değer almıyor. Alan veri modelinde duruyor,
+// yalnızca bu artık erişilemeyen UI okuması kaldırıldı.
 function computeFlags(s: AdminShopRow) {
   const now = Date.now();
   const daysSince = (iso: string) => (now - new Date(iso).getTime()) / 86400000;
@@ -37,7 +43,6 @@ function computeFlags(s: AdminShopRow) {
 
   return {
     noVehicles: s.vehicleCount === 0,
-    pendingPlan: !!s.pendingPlan,
     inactive: daysSince(lastActivity) > INACTIVE_DAYS_THRESHOLD,
     nearLimit: s.plan === "free" && s.vehicleCount >= PLAN_LIMITS.free.maxVehicles * 0.8,
   };
@@ -66,7 +71,7 @@ export default function AdminShopSearch({ shops }: { shops: AdminShopRow[] }) {
     if (onlyFlagged) {
       result = result.filter((s) => {
         const f = computeFlags(s);
-        return f.noVehicles || f.pendingPlan || f.inactive || f.nearLimit;
+        return f.noVehicles || f.inactive || f.nearLimit;
       });
     }
     return result;
@@ -145,7 +150,6 @@ export default function AdminShopSearch({ shops }: { shops: AdminShopRow[] }) {
                   <td className="px-3 py-2 text-slate-500">{s.createdAt.slice(0, 10)}</td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap gap-1">
-                      {flags.pendingPlan && <SignalBadge color="amber">Plan bekliyor</SignalBadge>}
                       {flags.noVehicles && <SignalBadge color="slate">Araç yok</SignalBadge>}
                       {flags.inactive && <SignalBadge color="slate">Uzun süredir yok</SignalBadge>}
                       {flags.nearLimit && <SignalBadge color="red">Limite yakın</SignalBadge>}
