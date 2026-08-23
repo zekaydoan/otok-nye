@@ -1,10 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
-import { getShopById, listStaffForShop, listStickerOrdersByShop, listVehiclesByShop } from "@/lib/blobStore";
+import {
+  getPartnerById,
+  getShopById,
+  listAllPartners,
+  listStaffForShop,
+  listStickerOrdersByShop,
+  listVehiclesByShop,
+} from "@/lib/blobStore";
 import { E_INVOICE_TYPE_LABELS, PLAN_LIMITS, STICKER_ORDER_STATUS_LABELS } from "@/lib/types";
 import AdminPlanOverrideForm from "@/components/AdminPlanOverrideForm";
 import AdminDeleteShopButton from "@/components/AdminDeleteShopButton";
+import AdminShopPartnerCorrectionForm from "@/components/AdminShopPartnerCorrectionForm";
 
 export default async function AdminShopDetailPage({ params }: { params: { id: string } }) {
   const adminShopId = await getCurrentAdminShopId();
@@ -13,10 +21,12 @@ export default async function AdminShopDetailPage({ params }: { params: { id: st
   const shop = await getShopById(params.id);
   if (!shop) notFound();
 
-  const [vehicles, orders, staff] = await Promise.all([
+  const [vehicles, orders, staff, allPartners, currentPartner] = await Promise.all([
     listVehiclesByShop(shop.id),
     listStickerOrdersByShop(shop.id),
     listStaffForShop(shop.id),
+    listAllPartners(),
+    shop.partnerId ? getPartnerById(shop.partnerId) : Promise.resolve(null),
   ]);
   // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 5): admin destek/satış
   // konuşmasında bir bayinin kaç çalışanı olduğunu ve limitine ne kadar
@@ -136,6 +146,32 @@ export default async function AdminShopDetailPage({ params }: { params: { id: st
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): "Partner Düzelt" —
+          otomatik ilk-temas mantığına (attributeShopToPartnerIfUnset) dokunmayan,
+          yalnızca nadir bir hatayı elle düzeltmek için ikincil/gelişmiş bir araç.
+          <details> ile kapalı başlar, günlük kullanımda öne çıkmaz. */}
+      <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <details>
+          <summary className="cursor-pointer font-bold text-slate-900">
+            Gelişmiş: Partner Ataması
+          </summary>
+          <p className="mt-1 text-xs text-slate-400">
+            Yalnızca nadir bir hatayı (ör. sahada yanlış referans kodu verilmesi)
+            düzeltmek için. Otomatik ilk temas mantığına dokunmaz, geçmiş komisyon
+            kayıtlarını değiştirmez — yalnızca bundan sonraki komisyonların hangi
+            partnere gideceğini etkiler.
+          </p>
+          <div className="mt-4">
+            <AdminShopPartnerCorrectionForm
+              shopId={shop.id}
+              currentPartnerId={shop.partnerId}
+              currentPartnerName={currentPartner?.name}
+              partners={allPartners.map((p) => ({ id: p.id, name: p.name, status: p.status }))}
+            />
+          </div>
+        </details>
       </section>
 
       <section className="mt-6">
