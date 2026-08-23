@@ -55,6 +55,16 @@ export default function VehicleDetailView({
   const kmIssues = useMemo(() => checkKmConsistency(records), [records]);
   const score = useMemo(() => computeMaintenanceScore(records), [records]);
   const kmIssueRecordIds = useMemo(() => new Set(kmIssues.map((i) => i.recordId)), [kmIssues]);
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): "Servis" bilgisi (hangi
+  // bayinin kaydı eklediği) yalnızca araç PAYLAŞIMLI ve en az bir kayıt BAŞKA
+  // bir bayiden geldiğinde anlamlı — kendi kayıtlarımızın hepsinde "Servis:
+  // [kendi dükkanımız]" yazması gereksiz tekrar. Bu yüzden sütun/etiket
+  // yalnızca en az bir "yabancı" kayıt varsa gösteriliyor; o durumda bile
+  // kendi kayıtlarımızın satırında boş bırakılıyor (bkz. aşağıdaki render).
+  const hasForeignShopRecords = useMemo(
+    () => Boolean(shopId) && records.some((r) => r.shopId !== shopId),
+    [records, shopId]
+  );
 
   const whatsAppLink =
     vehicle.ownerPhone && latest?.nextServiceDate
@@ -202,8 +212,12 @@ export default function VehicleDetailView({
           </div>
         </div>
 
-        {/* Eylem butonları — dashboard ve admin panelindeki "isim + renkli IconBadge"
-            görsel diliyle tutarlı (bkz. components/IconBadge). */}
+        {/* Eylem butonları — V2 sadeleştirme (23 Ağustos 2026, Zeki onayı):
+            Düzenle ve QR Etiketi Yazdır günlük en çok kullanılan iki aksiyon
+            olduğu için birincil (kutulu, IconBadge'li) kaldı. Satış Raporu ve
+            Genel Görünüm daha nadir kullanıldığından ikincil, küçük metin
+            linkleri olarak alta indi — hiçbiri kaldırılmadı, yalnızca görsel
+            ağırlıkları değişti. */}
         <div className="mt-5 grid grid-cols-2 gap-2 border-t border-slate-100 pt-4 sm:flex sm:flex-wrap">
           <Link
             href={`/dashboard/araclar/${vehicle.id}/duzenle`}
@@ -212,10 +226,6 @@ export default function VehicleDetailView({
             <IconBadge icon={<PencilIcon />} color="amber" size="sm" />
             Düzenle
           </Link>
-          {/* V2 madde 14: "Satış Raporu Oluştur" bakım kaydı olmayan bir araçta
-              anlamsız (rapor gösterecek verisi yok) — özellik silinmedi, sadece
-              ilk kayıt eklenene kadar gizlendi. */}
-          {records.length > 0 && <ShareReportButton vehicleId={vehicle.id} />}
           <Link
             href={`/dashboard/araclar/${vehicle.id}/etiket`}
             className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
@@ -223,10 +233,16 @@ export default function VehicleDetailView({
             <IconBadge icon={<QrIcon />} color="brand" size="sm" />
             QR Etiketi Yazdır
           </Link>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          {/* V2 madde 14: "Satış Raporu Oluştur" bakım kaydı olmayan bir araçta
+              anlamsız (rapor gösterecek verisi yok) — özellik silinmedi, sadece
+              ilk kayıt eklenene kadar gizlendi. */}
+          {records.length > 0 && <ShareReportButton vehicleId={vehicle.id} compact />}
           <Link
             href={`/arac/${vehicle.id}`}
             target="_blank"
-            className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-brand-700"
           >
             <IconBadge icon={<CarIcon />} color="indigo" size="sm" />
             Genel Görünüm
@@ -342,7 +358,7 @@ export default function VehicleDetailView({
                             )}
                           </span>
                         )}
-                        <span>{r.shopName}</span>
+                        {hasForeignShopRecords && r.shopId !== shopId && <span>{r.shopName}</span>}
                       </div>
                       {r.nextServiceDate && (
                         <p className="mt-1 text-xs text-brand-600">
@@ -391,7 +407,11 @@ export default function VehicleDetailView({
                     <th className="px-4 py-3 font-medium">Km</th>
                     <th className="px-4 py-3 font-medium">Sonraki Bakım</th>
                     <th className="px-4 py-3 font-medium">Fotoğraf</th>
-                    <th className="px-4 py-3 font-medium">Servis</th>
+                    {/* V2 sadeleştirme: "Servis" sütunu yalnızca araçta en az
+                        bir başka bayiden gelen kayıt varsa gösteriliyor —
+                        kendi kayıtlarımızın hepsinde tekrar eden bilgi
+                        (bkz. hasForeignShopRecords). */}
+                    {hasForeignShopRecords && <th className="px-4 py-3 font-medium">Servis</th>}
                     <th className="px-4 py-3 font-medium">Fiş</th>
                   </tr>
                 </thead>
@@ -441,7 +461,11 @@ export default function VehicleDetailView({
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-slate-500">{r.shopName}</td>
+                      {hasForeignShopRecords && (
+                        <td className="px-4 py-3 text-slate-500">
+                          {r.shopId !== shopId ? r.shopName : ""}
+                        </td>
+                      )}
                       <td className="px-4 py-3">
                         <a
                           href={`/api/vehicles/${vehicle.id}/records/${r.id}/pdf`}
