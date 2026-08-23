@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentShopId } from "@/lib/auth";
 import { getOilRecordById, getShopById, getVehicleById } from "@/lib/blobStore";
 import { generateServiceReceiptPdf } from "@/lib/pdf";
 
-// Servis fişi detaylı bakım bilgisi içerdiği için üyelere özeldir.
+// V2 Paket 3: Servis fişi kişisel veri (araç sahibinin adı/telefonu/e-postası/
+// adresi) İÇERMEZ — yalnızca araç bilgisi (plaka/marka/model) ve bakımı yapan
+// işletmenin kendi iş bilgisini (ad, telefon) barındırır (bkz. lib/pdf.ts).
+// QR ile açılan araç sayfası artık giriş yapmadan da bakım geçmişini
+// gösterdiğinden ("Servis fişini PDF olarak görüntüle" bağlantısı — bkz.
+// app/arac/[id]/page.tsx), bu uç de aynı şekilde herkese açıktır; eskiden
+// burada bulunan zorunlu bayi girişi kaldırıldı.
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string; recordId: string } }
 ) {
-  const shopId = await getCurrentShopId();
-  if (!shopId) return NextResponse.json({ error: "Giriş yapmalısınız." }, { status: 401 });
-
   const vehicle = await getVehicleById(params.id);
   if (!vehicle) return NextResponse.json({ error: "Araç bulunamadı." }, { status: 404 });
 

@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import { getCurrentShopId } from "@/lib/auth";
 import { getVehicleById, listOilRecordsForVehicle } from "@/lib/blobStore";
 import { checkKmConsistency, computeMaintenanceScore } from "@/lib/maintenance";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 import ScoreBadge from "@/components/ScoreBadge";
 import Logo from "@/components/Logo";
-import { LockIcon, WarningIcon } from "@/components/icons";
+import { WarningIcon } from "@/components/icons";
 import WhatsappOptOutToggle from "@/components/WhatsappOptOutToggle";
 import DataRequestForm from "@/components/DataRequestForm";
 
@@ -29,7 +30,10 @@ export default async function PublicVehiclePage({ params }: { params: { id: stri
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Araç</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <h1 className="text-3xl font-extrabold text-slate-900">{vehicle.plateDisplay}</h1>
-            <ScoreBadge tier={score.tier} label={score.label} />
+            {/* V2 Paket 3 madde 1: "Yeterli Veri Yok" rozeti kaldırıldı, yerine
+                yeni bir durum sistemi eklenmedi — bakım kaydı olsun olmasın bu
+                ifadeye ihtiyaç yok. */}
+            {score.tier !== "insufficient" && <ScoreBadge tier={score.tier} label={score.label} />}
           </div>
           <p className="mt-1 text-lg text-slate-600">
             {vehicle.brand} {vehicle.model} {vehicle.year ? `(${vehicle.year})` : ""}
@@ -54,130 +58,127 @@ export default async function PublicVehiclePage({ params }: { params: { id: stri
             </div>
           )}
 
+          {/* V2 Paket 3: QR'ı okutan araç sahibi giriş yapmadan da bakım
+              geçmişini görebilsin diye "üyelere özel" kilidi bu görünümden
+              kaldırıldı (bkz. kullanıcı talimatı). Ad/telefon/e-posta/adres gibi
+              kişisel veriler zaten burada hiç gösterilmiyordu (araç sahibi
+              bilgisi bu sayfada yer almaz) — yalnızca aracın kendi bakım
+              verileri ve servisin (işletmenin) kendi iş bilgisi açılıyor. */}
           {last ? (
-            isMember ? (
-              <div className="mt-4 rounded-xl bg-brand-50 p-4">
-                <p className="text-sm font-semibold text-brand-700">Son Yağ Bakımı</p>
-                <p className="mt-1 text-sm text-slate-700">
-                  {last.date} {last.time} tarihinde <strong>{last.oilBrand} {last.oilModel}</strong>{" "}
-                  yağından <strong>{last.quantityKg} L</strong> konuldu.
-                  {last.km ? ` (${last.km} km)` : ""}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">Servis: {last.shopName}</p>
+            <div className="mt-4 rounded-xl bg-brand-50 p-4">
+              <p className="text-sm font-semibold text-brand-700">Son Bakım</p>
+              <p className="mt-1 text-sm text-slate-700">
+                {last.date} {last.time} tarihinde <strong>{last.oilBrand} {last.oilModel}</strong>{" "}
+                yağından <strong>{last.quantityKg} L</strong> konuldu.
+                {last.km ? ` (${last.km} km)` : ""}
+              </p>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-brand-100 pt-3">
+                <div>
+                  <p className="text-xs text-slate-500">Bakımı yapan servis</p>
+                  <p className="text-sm font-semibold text-slate-800">{last.shopName}</p>
+                </div>
+                {/* V2 Paket 3 madde 5: WhatsApp butonu yalnızca bu bakım kaydını
+                    OLUŞTURAN servisin kendi kayıtlı işletme telefonuna
+                    (last.shopPhone — kayıt oluşturulurken shop.phone'dan
+                    kopyalanır, bkz. app/api/vehicles/[id]/records/route.ts)
+                    yönlenir. Araç sahibi telefonu veya genel sistem numarası
+                    KULLANILMAZ. Telefon yoksa/eşleşmiyorsa buton hiç gösterilmez. */}
+                {(() => {
+                  const shopWhatsAppLink = last.shopPhone
+                    ? buildWhatsAppLink(
+                        last.shopPhone,
+                        `Merhaba, ${vehicle.plateDisplay} plakalı aracım hakkında bilgi almak istiyorum.`
+                      )
+                    : null;
+                  return shopWhatsAppLink ? (
+                    <a
+                      href={shopWhatsAppLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg border border-green-300 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100"
+                    >
+                      WhatsApp'tan Ulaş
+                    </a>
+                  ) : null;
+                })()}
               </div>
-            ) : (
-              <div className="mt-4 rounded-xl bg-brand-50 p-4">
-                <p className="text-sm font-semibold text-brand-700">Son Bakım Tarihi: {last.date}</p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Bu araç için toplam {records.length} bakım kaydı var.
-                </p>
-              </div>
-            )
+            </div>
           ) : (
-            <p className="mt-4 text-sm text-slate-500">Henüz kayıtlı bir yağ bakımı yok.</p>
+            <p className="mt-4 text-sm text-slate-500">Henüz kayıtlı bir bakım kaydı yok.</p>
           )}
         </div>
 
-        {isMember ? (
-          <div className="mt-6">
-            <h2 className="text-lg font-bold text-slate-900">Bakım Geçmişi</h2>
-            {records.length === 0 ? (
-              <p className="mt-2 text-sm text-slate-500">Kayıt bulunmuyor.</p>
-            ) : (
-              <div className="mt-3 space-y-3">
-                {records.map((r) => (
-                  <div key={r.id} className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-slate-900">
-                        {r.date} · {r.time}
-                      </p>
-                      <p className="text-sm font-medium text-brand-700">{r.quantityKg} L</p>
-                    </div>
-                    <p className="mt-1 text-sm text-slate-700">
-                      {r.oilBrand} {r.oilModel}
+        <div className="mt-6">
+          <h2 className="text-lg font-bold text-slate-900">Bakım Geçmişi</h2>
+          {records.length === 0 ? (
+            <p className="mt-2 text-sm text-slate-500">Kayıt bulunmuyor.</p>
+          ) : (
+            <div className="mt-3 space-y-3">
+              {records.map((r) => (
+                <div key={r.id} className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-slate-900">
+                      {r.date} · {r.time}
                     </p>
-                    <div className="mt-1 flex flex-wrap gap-x-4 text-xs text-slate-500">
-                      {r.km && <span>{r.km} km</span>}
-                      {r.filterChanged && <span>Yağ filtresi değişti</span>}
-                      <span>{r.shopName}</span>
-                    </div>
-                    {r.nextServiceDate && (
-                      <p className="mt-1 text-xs text-brand-600">
-                        Sonraki bakım önerisi: {r.nextServiceDate}
-                        {r.nextServiceKm ? ` · ${r.nextServiceKm} km` : ""}
-                      </p>
-                    )}
-                    {(r.hasBeforePhoto || r.hasAfterPhoto) && (
-                      <div className="mt-2 flex gap-2">
-                        {r.hasBeforePhoto && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={`/api/photos/${r.id}/before`}
-                            alt="Öncesi"
-                            className="h-16 w-16 rounded-lg object-cover ring-1 ring-slate-200"
-                          />
-                        )}
-                        {r.hasAfterPhoto && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={`/api/photos/${r.id}/after`}
-                            alt="Sonrası"
-                            className="h-16 w-16 rounded-lg object-cover ring-1 ring-slate-200"
-                          />
-                        )}
-                      </div>
-                    )}
-                    {r.note && <p className="mt-2 text-xs text-slate-400">Not: {r.note}</p>}
-                    <a
-                      href={`/api/vehicles/${vehicle.id}/records/${r.id}/pdf`}
-                      target="_blank"
-                      className="mt-2 inline-block text-xs font-medium text-brand-600 underline"
-                    >
-                      Servis fişini PDF olarak görüntüle
-                    </a>
+                    <p className="text-sm font-medium text-brand-700">{r.quantityKg} L</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : (
-          records.length > 0 && (
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 text-center">
-              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                <LockIcon className="h-5 w-5" />
-              </div>
-              <p className="mt-3 text-sm font-semibold text-slate-800">
-                Tüm bakım geçmişi üyelere özeldir
-              </p>
-              <p className="mt-1 text-sm text-slate-500">
-                Yağ markası/modeli, kilometre, servis notları, fotoğraflar ve servis fişleri
-                dahil {records.length} kaydın tamamını görmek için OtoHafıza'ya giriş
-                yapmanız gerekir.
-              </p>
-              <div className="mt-4 flex justify-center gap-3">
-                <Link
-                  href="/giris"
-                  className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-                >
-                  Giriş Yap
-                </Link>
-                <Link
-                  href="/kayit"
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
-                >
-                  Ücretsiz Üye Ol
-                </Link>
-              </div>
+                  <p className="mt-1 text-sm text-slate-700">
+                    {r.oilBrand} {r.oilModel}
+                  </p>
+                  <div className="mt-1 flex flex-wrap gap-x-4 text-xs text-slate-500">
+                    {r.km && <span>{r.km} km</span>}
+                    {r.filterChanged && <span>Yağ filtresi değişti</span>}
+                    <span>{r.shopName}</span>
+                  </div>
+                  {r.nextServiceDate && (
+                    <p className="mt-1 text-xs text-brand-600">
+                      Sonraki bakım önerisi: {r.nextServiceDate}
+                      {r.nextServiceKm ? ` · ${r.nextServiceKm} km` : ""}
+                    </p>
+                  )}
+                  {(r.hasBeforePhoto || r.hasAfterPhoto) && (
+                    <div className="mt-2 flex gap-2">
+                      {r.hasBeforePhoto && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={`/api/photos/${r.id}/before`}
+                          alt="Öncesi"
+                          className="h-16 w-16 rounded-lg object-cover ring-1 ring-slate-200"
+                        />
+                      )}
+                      {r.hasAfterPhoto && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={`/api/photos/${r.id}/after`}
+                          alt="Sonrası"
+                          className="h-16 w-16 rounded-lg object-cover ring-1 ring-slate-200"
+                        />
+                      )}
+                    </div>
+                  )}
+                  {r.note && <p className="mt-2 text-xs text-slate-400">Not: {r.note}</p>}
+                  <a
+                    href={`/api/vehicles/${vehicle.id}/records/${r.id}/pdf`}
+                    target="_blank"
+                    className="mt-2 inline-block text-xs font-medium text-brand-600 underline"
+                  >
+                    Servis fişini PDF olarak görüntüle
+                  </a>
+                </div>
+              ))}
             </div>
-          )
-        )}
-
-        <div className="mt-8 rounded-xl border border-dashed border-slate-300 bg-white p-5 text-center">
-          <p className="text-sm text-slate-600">Bu aracın bakımını mı yaptınız?</p>
-          <Link href="/giris" className="mt-2 inline-block font-semibold text-brand-600">
-            Yetkili girişi yapıp yeni kayıt ekleyin →
-          </Link>
+          )}
         </div>
+
+        {/* V2 Paket 3 madde 6: Servis girişi artık büyük bir blok değil, sayfa
+            akışını bozmayan sade ikincil bir bağlantı — ana içerik araç
+            sahibi/müşteri için olan bakım bilgisi. Fonksiyon kaldırılmadı. */}
+        <p className="mt-8 text-center text-xs text-slate-400">
+          Servis misiniz?{" "}
+          <Link href="/giris" className="font-semibold text-brand-600">
+            Yetkili giriş →
+          </Link>
+        </p>
 
         {vehicle.ownerPhone && (
           <WhatsappOptOutToggle vehicleId={vehicle.id} initialOptOut={!!vehicle.whatsappOptOut} />
