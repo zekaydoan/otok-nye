@@ -174,11 +174,48 @@ textarea {
   opacity: 1;
 }
 
+/* Hero'daki QR akış kartının (bkz. components/HeroQrPreview.tsx) üç adımı
+   — etiket, telefonla okutma, sonuç — aynı ticker-cycle tekniğiyle: tek
+   keyframe'i 3 panel paylaşır, her biri negatif animation-delay ile faz
+   kaydırılarak sırayla belirir/kaybolur, ekstra JavaScript olmadan saf
+   CSS ile çalışır. Panellerin kendisi absolute olarak üst üste bindiği
+   (inset-0) için taşma/hizalama riski yok. */
+@keyframes hero-qr-flow {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  4% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  29% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  33% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+
+.animate-hero-flow {
+  animation: hero-qr-flow 12s ease-in-out infinite;
+  opacity: 0;
+}
+.animate-hero-flow:first-child {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-float-badge {
     animation: none;
   }
   .animate-ticker {
+    animation: none;
+  }
+  .animate-hero-flow {
     animation: none;
   }
 }
