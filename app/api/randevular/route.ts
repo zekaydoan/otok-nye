@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getCurrentShopId } from "@/lib/auth";
-import { createAppointment, getShopById, listAppointmentsForShop } from "@/lib/blobStore";
+import {
+  createAppointment,
+  getShopById,
+  isVehicleLinkedToShop,
+  listAppointmentsForShop,
+} from "@/lib/blobStore";
 import type { Appointment } from "@/lib/types";
 
 const MAX_LEN = 120;
@@ -23,13 +28,14 @@ export async function POST(req: NextRequest) {
 
   // V2: Fatura bilgisi zorunluluğu buradan kaldırıldı — bkz. app/api/vehicles/route.ts'teki aynı not.
   const body = await req.json();
-  const { date, time, plateDisplay, customerName, customerPhone, note } = body as {
+  const { date, time, plateDisplay, customerName, customerPhone, note, vehicleId } = body as {
     date?: string;
     time?: string;
     plateDisplay?: string;
     customerName?: string;
     customerPhone?: string;
     note?: string;
+    vehicleId?: string;
   };
 
   if (!date || !time) {
@@ -44,6 +50,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Girilen bilgilerden biri çok uzun." }, { status: 400 });
   }
 
+  // V2 Paket 2 madde 5: İstemci, kullanıcı plaka önerisinden kayıtlı bir araç
+  // seçtiyse vehicleId gönderir (bkz. components/AppointmentForm). Kayıtlı
+  // olmayan/manuel randevularda bu alan gönderilmez. Güvenlik: gönderilen
+  // vehicleId'nin gerçekten bu bayiye ait/bağlı bir araç olduğu sunucuda
+  // doğrulanır; değilse randevu yine de oluşturulur, yalnızca araç bağlantısı
+  // kurulmadan (manuel randevu davranışına sessizce düşer).
+  const validVehicleId =
+    vehicleId && (await isVehicleLinkedToShop(shopId, vehicleId)) ? vehicleId : undefined;
+
   const appointment: Appointment = {
     id: randomUUID(),
     shopId,
@@ -53,6 +68,7 @@ export async function POST(req: NextRequest) {
     customerName: customerName?.trim() || undefined,
     customerPhone: customerPhone?.trim() || undefined,
     note: note?.trim() || undefined,
+    vehicleId: validVehicleId,
     status: "bekliyor",
     createdAt: new Date().toISOString(),
   };

@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useToast } from "@/components/Toast";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
-import { CalendarIcon } from "@/components/icons";
+import { CalendarIcon, CheckIcon } from "@/components/icons";
 import EmptyState from "@/components/EmptyState";
 import AppointmentForm from "@/components/AppointmentForm";
-import { APPOINTMENT_STATUS_LABELS, type Appointment, type AppointmentStatus } from "@/lib/types";
+import { APPOINTMENT_STATUS_LABELS, type Appointment, type AppointmentStatus, type Vehicle } from "@/lib/types";
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
@@ -24,8 +25,13 @@ function statusBadgeClass(status: AppointmentStatus): string {
 // (bkz. VehicleListSection'daki aynı optimistic update deseni).
 export default function AppointmentsSection({
   initialAppointments,
+  vehicles,
 }: {
   initialAppointments: Appointment[];
+  // V2 Paket 2: Randevu formundaki plaka eşleştirme önerisi için (bkz.
+  // AppointmentForm). Sayfa boş dizi geçerse (ör. giriş yapılmamışsa) form
+  // yalnızca mevcut manuel giriş moduyla çalışmaya devam eder.
+  vehicles: Vehicle[];
 }) {
   const { showToast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
@@ -126,6 +132,26 @@ export default function AppointmentsSection({
               {[a.customerName, a.customerPhone].filter(Boolean).join(" · ") || "Müşteri bilgisi girilmedi"}
             </p>
             {a.note && <p className="mt-1 text-xs text-slate-400">{a.note}</p>}
+            {/* V2 Paket 2 madde 6-8: Randevu kayıtlı bir OtoHafıza aracına
+                bağlıysa (a.vehicleId), "Geldi" sonrası sade bir Bakım Kaydı Ekle
+                kısayolu gösterilir — otomatik kayıt OLUŞTURULMAZ, yalnızca
+                doğru aracın sayfasına tek tıkla gidilir (kullanıcı tekrar plaka
+                aramaz/müşteri seçmez). Kayıtlı araç yoksa bu alan hiç render
+                edilmez (bkz. Senaryo B). */}
+            {a.status === "geldi" && a.vehicleId && (
+              <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-green-50 px-2.5 py-1.5">
+                <span className="flex items-center gap-1 text-xs font-medium text-green-800">
+                  <CheckIcon className="h-3.5 w-3.5 shrink-0 text-green-600" />
+                  Müşteri geldi. Bakım kaydı eklemek ister misiniz?
+                </span>
+                <Link
+                  href={`/dashboard/araclar/${a.vehicleId}`}
+                  className="rounded-lg bg-green-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-green-700"
+                >
+                  Bakım Kaydı Ekle
+                </Link>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -172,7 +198,7 @@ export default function AppointmentsSection({
 
   return (
     <div className="mt-6 space-y-8">
-      <AppointmentForm onCreated={addAppointment} />
+      <AppointmentForm vehicles={vehicles} onCreated={addAppointment} />
 
       <div>
         <h2 className="text-lg font-bold text-slate-900">Yaklaşan Randevular</h2>

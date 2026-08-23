@@ -1,10 +1,18 @@
 import { getCurrentShopId } from "@/lib/auth";
-import { listAppointmentsForShop, markWhatsappAppointmentsSeen } from "@/lib/blobStore";
+import {
+  listAppointmentsForShop,
+  listVehiclesByShop,
+  markWhatsappAppointmentsSeen,
+} from "@/lib/blobStore";
 import AppointmentsSection from "@/components/AppointmentsSection";
 
 export default async function AppointmentsPage() {
   const shopId = await getCurrentShopId();
   const appointments = shopId ? await listAppointmentsForShop(shopId) : [];
+  // V2 Paket 2: Randevu formundaki plaka eşleştirme önerisi için bayinin kayıtlı
+  // araçları burada, sayfa yüklenirken bir kere getirilir — istemci tarafında her
+  // tuş vuruşunda ayrı bir arama isteği atılmaz (bkz. components/AppointmentForm).
+  const vehicles = shopId ? await listVehiclesByShop(shopId) : [];
   // Sayfa açıldığı an, WhatsApp onayıyla gelen ama henüz görülmemiş randevular
   // "görüldü" işaretlenir — header'daki kırmızı rozet (bkz. app/dashboard/layout.tsx)
   // bir sonraki sayfa yüklemesinde sıfırlanmış olur.
@@ -16,7 +24,7 @@ export default async function AppointmentsPage() {
       <p className="mt-1 text-sm text-slate-500">
         Günlük iş listenizi planlayın, müşterilerinize randevu hatırlatması gönderin.
       </p>
-      <AppointmentsSection initialAppointments={appointments} />
+      <AppointmentsSection initialAppointments={appointments} vehicles={vehicles} />
     </div>
   );
 }

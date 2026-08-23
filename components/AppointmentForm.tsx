@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
-import type { Appointment } from "@/lib/types";
+import type { Appointment, Vehicle } from "@/lib/types";
+
+// Plaka eşleştirmesi için boşlukları yok sayan, büyük harfe çeviren sade bir
+// normalize — "45 abb999" da "45ABB999" da aynı aracı bulabilsin diye.
+function normalizePlate(value: string): string {
+  return value.toLocaleUpperCase("tr-TR").replace(/\s+/g, "");
+}
 
 export default function AppointmentForm({
+  vehicles,
   onCreated,
 }: {
+  // V2 Paket 2: Plaka alanına yazarken bayinin kendi kayıtlı araçları içinde
+  // sade bir eşleşme önerisi göstermek için (bkz. madde 2-3). Boş dizi
+  // gönderilirse öneri listesi hiç görünmez, form eskisi gibi tamamen manuel
+  // çalışmaya devam eder.
+  vehicles: Vehicle[];
   // Randevu sunucuda oluşturulduğunda API'nin döndürdüğü tam nesneyi üst bileşene
   // iletir — liste, Netlify Blobs'un .list() gecikmesini beklemeden anında güncellenir
   // (bkz. VehicleDetailView / AddOilRecordForm'daki aynı desen).
@@ -28,6 +40,31 @@ export default function AppointmentForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  // V2 Paket 2 madde 3/5: Kullanıcı öneri listesinden kayıtlı bir araç seçtiğinde
+  // burada tutulur ve kayıt oluşturulurken API'ye gönderilir. Kullanıcı plaka
+  // metnini elle değiştirirse (madde 4 — kayıtlı olmayan müşteri özgürlüğü
+  // bozulmasın diye) hemen temizlenir.
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const plateSuggestions = useMemo(() => {
+    const term = normalizePlate(form.plateDisplay);
+    if (term.length < 2) return [];
+    return vehicles
+      .filter((v) => normalizePlate(v.plateDisplay).includes(term))
+      .slice(0, 5);
+  }, [form.plateDisplay, vehicles]);
+
+  function selectVehicle(v: Vehicle) {
+    setForm({
+      ...form,
+      plateDisplay: v.plateDisplay,
+      customerName: v.ownerName || form.customerName,
+      customerPhone: v.ownerPhone || form.customerPhone,
+    });
+    setSelectedVehicle(v);
+    setShowSuggestions(false);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,7 +74,7 @@ export default function AppointmentForm({
       const res = await fetch("/api/randevular", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, vehicleId: selectedVehicle?.id }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -51,6 +88,7 @@ export default function AppointmentForm({
       showToast("Randevu eklendi.");
       if (data.appointment) onCreated?.(data.appointment);
       setForm(emptyForm);
+      setSelectedVehicle(null);
       setOpen(false);
     } catch {
       setError("Bağlantı hatası, randevu eklenemedi. Lütfen internetinizi kontrol edip tekrar deneyin.");
@@ -95,14 +133,62 @@ export default function AppointmentForm({
         </div>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
+        <div className="relative">
           <label className="block text-sm font-medium text-slate-700">Plaka</label>
           <input
             value={form.plateDisplay}
-            onChange={(e) => setForm({ ...form, plateDisplay: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none"
+            onChange={(e) => {
+              setForm({ ...form, plateDisplay: e.target.value });
+              // Madde 4: kayıtlı olmayan müşteri için serbest metin girişi
+              // korunur — kullanıcı seçtiği aracın plakasını elle değiştirirse
+              // araç bağlantısı sessizce iptal edilir, randevu yine de manuel
+              // olarak kaydedilebilir.
+              if (selectedVehicle) setSelectedVehicle(null);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 uppercase focus:border-brand-500 focus:outline-none"
             placeholder="34 ABC 123"
+            autoComplete="off"
           />
+          {/* V2 Paket 2 madde 2: Kendi işletmesine ait kayıtlı araçlar içinde
+              sade bir eşleşme önerisi — yeni/büyük bir arama sistemi değil,
+              zaten yüklenmiş olan araç listesi üzerinde basit bir filtre. */}
+          {showSuggestions && plateSuggestions.length > 0 && (
+            <div className="absolute z-10 mt-1 w-full rounded-lg border border-slate-200 bg-white shadow-lg">
+              {plateSuggestions.map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    selectVehicle(v);
+                  }}
+                  className="flex w-full flex-col items-start gap-0.5 border-b border-slate-100 px-3 py-2 text-left last:border-b-0 hover:bg-brand-50"
+                >
+                  <span className="text-sm font-semibold text-slate-900">{v.plateDisplay}</span>
+                  <span className="text-xs text-slate-500">
+                    {v.brand} {v.model} {v.year ? `(${v.year})` : ""}
+                    {v.ownerName ? ` · ${v.ownerName}` : ""}
+                    {v.ownerPhone ? ` · ${v.ownerPhone}` : ""}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+          {selectedVehicle && (
+            <p className="mt-1 flex items-center gap-1 text-xs font-medium text-brand-700">
+              ✓ Kayıtlı araç seçildi
+              <button
+                type="button"
+                onClick={() => setSelectedVehicle(null)}
+                className="font-normal text-slate-400 underline hover:text-slate-600"
+              >
+                Değiştir
+              </button>
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700">Müşteri Adı</label>

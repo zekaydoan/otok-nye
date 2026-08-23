@@ -297,6 +297,13 @@ export interface Appointment {
   // WhatsApp onayıyla gelen bir randevu, bayi Randevular sayfasını ziyaret
   // edene kadar "yeni" sayılır (bkz. blobStore.markWhatsappAppointmentsSeen).
   seenByShop?: boolean;
+  // V2 Paket 2: Randevu, kayıtlı bir OtoHafıza aracından seçilerek oluşturulduysa
+  // ilgili aracın gerçek kayıt ID'sini tutar — böylece "Geldi" sonrası doğru
+  // aracın Bakım Kaydı Ekle akışına doğrudan gidilebilir (bkz.
+  // components/AppointmentForm, AppointmentsSection). Opsiyonel/nullable: eski
+  // kayıtlarda ve serbest metinle (kayıtlı olmayan müşteri) oluşturulan
+  // randevularda bu alan yoktur, geriye dönük uyumluluğu bozmaz.
+  vehicleId?: string;
 }
 
 // ---------- Etiket Mağazası (fiziksel QR etiket siparişi) ----------
