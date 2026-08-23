@@ -99,11 +99,11 @@ export const BLOG_POSTS: BlogPost[] = [
       },
       {
         type: "p",
-        text: "OtoHafıza gibi QR kodlu bir dijital bakım defteri kullanan bir oto servise yağınızı değiştirttiğinizde, her kayıt otomatik olarak tarihi ve bir sonraki değişim hedefini (tarih ve km olarak) saklar. Aracınıza yapıştırılan küçük bir QR etiketi okutularak tüm geçmiş görülebilir; servis de sisteme kayıtlıysa hedef tarih/km yaklaştığında size otomatik WhatsApp hatırlatması gönderilir.",
+        text: "OtoHafıza gibi dijital bir bakım takip sistemi kullanan bir oto servise yağınızı değiştirttiğinizde, her kayıt otomatik olarak tarihi ve bir sonraki değişim hedefini (tarih ve km olarak) saklar. Plaka ile arama yaparak ya da (varsa) araca yapıştırılan QR etiketi okutularak tüm geçmişe ulaşılabilir; hedef tarih/km yaklaştığında araç servisin Yaklaşan Bakımlar listesine düşer ve servis sizi WhatsApp'tan kolayca hatırlatabilir.",
       },
       {
         type: "cta",
-        text: "Oto tamirciyseniz, müşterilerinize bu hatırlatmayı otomatik göndermek işinizi büyütmenin en kolay yollarından biri.",
+        text: "Oto tamirciyseniz, müşterilerinize bu hatırlatmayı WhatsApp'tan kolayca göndermek işinizi büyütmenin en kolay yollarından biri.",
         href: "/kayit",
         label: "OtoHafıza'yı ücretsiz deneyin",
       },
@@ -164,10 +164,10 @@ export const BLOG_POSTS: BlogPost[] = [
         type: "p",
         text: "Plaka ile arama yaparak veya araca yapıştırılmış bir QR etiketi okutarak, o aracın bugüne kadarki tüm yağ/bakım geçmişine saniyeler içinde ulaşılır. Yeni bir usta işe başladığında bile önceki kayıtları görebilir.",
       },
-      { type: "h3", text: "2. Bakım hatırlatmaları otomatikleşir" },
+      { type: "h3", text: "2. Bakım zamanı gelen müşteriler otomatik listelenir" },
       {
         type: "p",
-        text: "Sistem, bir sonraki bakım tarihi veya kilometresi yaklaşan araçları otomatik listeler; WhatsApp üzerinden tek tıkla (ya da tamamen otomatik) hatırlatma gönderilir. Bu, hem müşteri memnuniyetini artırır hem de aracın tekrar sizin servisinize gelme ihtimalini yükseltir — dijital sistemin en somut ciro etkisi burada ortaya çıkar.",
+        text: "Sistem, bir sonraki bakım tarihi veya kilometresi yaklaşan araçları otomatik listeler; buradan WhatsApp üzerinden tek tıkla hatırlatma gönderebilirsiniz. Bu, hem müşteri memnuniyetini artırır hem de aracın tekrar sizin servisinize gelme ihtimalini yükseltir — dijital sistemin en somut ciro etkisi burada ortaya çıkar.",
       },
       { type: "h3", text: "3. Profesyonel bir izlenim bırakır" },
       {
@@ -180,14 +180,14 @@ export const BLOG_POSTS: BlogPost[] = [
         items: [
           "Kurulum kolaylığı: Yazılım kurmadan, tarayıcı üzerinden anında kullanılabiliyor mu?",
           "QR/plaka bazlı hızlı erişim: Kayıt aramak dakikalar değil saniyeler mi sürüyor?",
-          "Otomatik hatırlatma: WhatsApp veya SMS ile otomatik bakım hatırlatması var mı?",
+          "Hatırlatma kolaylığı: Bakım zamanı gelen müşteriye WhatsApp'tan tek tıkla ulaşabiliyor musunuz?",
           "Çoklu çalışan desteği: Birden fazla usta aynı anda, kendi girişiyle çalışabiliyor mu?",
           "Ücretsiz başlangıç: Küçük bir işletme için gerçekten ücretsiz bir giriş seviyesi var mı?",
         ],
       },
       {
         type: "p",
-        text: "OtoHafıza, tam olarak bu ihtiyaçlar için tasarlandı: her araca özel QR etiket, otomatik WhatsApp bakım hatırlatması, çoklu çalışan hesabı ve 15 araca kadar tamamen ücretsiz bir başlangıç planı.",
+        text: "OtoHafıza, tam olarak bu ihtiyaçlar için tasarlandı: isteğe bağlı QR etiket, WhatsApp ile hızlı iletişim, çoklu çalışan hesabı ve 15 araca kadar tamamen ücretsiz bir başlangıç planı.",
       },
       {
         type: "cta",
@@ -250,6 +250,11 @@ export const BLOG_POSTS: BlogPost[] = [
         ],
       },
       { type: "h2", text: "Sık sorulan sorular" },
+      { type: "h3", text: "QR etiketi kullanmak zorunlu mu?" },
+      {
+        type: "p",
+        text: "Hayır. Bakım kaydı ve geçmiş takibi, QR etiketi olmadan da plaka üzerinden yapılabilir. Fiziksel QR etiketi, müşterinin kendi telefonuyla geçmişi görmesini kolaylaştıran isteğe bağlı bir ek — sistemin zorunlu bir parçası değil.",
+      },
       { type: "h3", text: "Etiket yıpranırsa veya sökülürse ne olur?" },
       {
         type: "p",
@@ -279,11 +284,11 @@ export const BLOG_POSTS: BlogPost[] = [
   },
   {
     slug: "oto-servis-otomatik-bakim-hatirlatma-rehberi",
-    title: "Müşterileriniz Bakım Zamanını Unutuyor mu? Otomatik Bakım Hatırlatma Rehberi",
+    title: "Müşterileriniz Bakım Zamanını Unutuyor mu? Bakım Hatırlatma Rehberi",
     metaDescription:
-      "Oto servislerde müşteri kaybının en büyük nedenlerinden biri unutulan bakım tarihleri. Otomatik WhatsApp bakım hatırlatmasının işletmenize etkisini anlatıyoruz.",
+      "Oto servislerde müşteri kaybının en büyük nedenlerinden biri unutulan bakım tarihleri. WhatsApp'tan bakım hatırlatmasının işletmenize etkisini anlatıyoruz.",
     excerpt:
-      "Bir müşteri bakım tarihini unutup rakip bir servise gidiyorsa, bunun nedeni memnuniyetsizlik değil — sadece hatırlamamak olabilir. Çözüm: otomatik hatırlatma.",
+      "Bir müşteri bakım tarihini unutup rakip bir servise gidiyorsa, bunun nedeni memnuniyetsizlik değil — sadece hatırlamamak olabilir. Çözüm: zamanında bir hatırlatma.",
     category: "Müşteri Sadakati",
     publishedAt: "2026-08-08",
     readingMinutes: 5,
@@ -316,14 +321,14 @@ export const BLOG_POSTS: BlogPost[] = [
           "Hiç hatırlatmamak: En yaygın durum — ve en büyük ciro kaybı.",
         ],
       },
-      { type: "h2", text: "Otomatik hatırlatma nasıl çalışmalı?" },
+      { type: "h2", text: "Bakım hatırlatma nasıl çalışmalı?" },
       {
         type: "p",
-        text: "İyi kurgulanmış bir otomatik hatırlatma sistemi, her bakım kaydına girilen \"bir sonraki bakım tarihi/km\" bilgisini arka planda sürekli takip eder ve bu hedef yaklaştığında müşteriye otomatik bir WhatsApp mesajı gönderir — ustanın hiçbir şey hatırlaması ya da elle bir şey yapması gerekmeden.",
+        text: "İyi kurgulanmış bir sistem, her bakım kaydına girilen \"bir sonraki bakım tarihi/km\" bilgisini arka planda sürekli takip eder ve bu hedef yaklaştığında ilgili aracı otomatik olarak \"Yaklaşan Bakımlar\" listenize ekler — ustanın bunu hatırlaması ya da elle takip etmesi gerekmeden. Müşteriye WhatsApp mesajını göndermek ise genelde tek bir tıkla yapılan, ustanın kontrolünde kalan kolay bir adımdır.",
       },
       {
         type: "p",
-        text: "Daha ileri sistemlerde müşteri mesajdaki \"Evet, randevu oluşturalım\" butonuna dokunduğunda, panelinizde otomatik olarak bir randevu açılır ve size bir bildirimle haber verilir — telefonu hiç açmadan yeni bir randevu kazanmış olursunuz.",
+        text: "Müşteri WhatsApp'tan olumlu yanıt verdiğinde, randevusunu panelinizden birkaç saniyede oluşturabilir ve takip edebilirsiniz — böylece hem hatırlatmayı hem de randevuyu tek bir sistemden yönetmiş olursunuz.",
       },
       { type: "h2", text: "Hatırlatmanın dönüşüm oranını artıran ipuçları" },
       {
@@ -338,15 +343,15 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: "h2", text: "Bunun işletmenize somut etkisi" },
       {
         type: "p",
-        text: "Otomatik hatırlatma, yeni müşteri kazanmaktan çok daha ucuz bir büyüme yöntemidir: zaten sizi bir kez tercih etmiş bir müşteriyi tekrar kazanıyorsunuz. Bu da hem tekrarlayan ciroyu hem de müşteri sadakatini doğrudan artırır — üstelik hiçbir reklam bütçesi harcamadan.",
+        text: "Düzenli bakım hatırlatması, yeni müşteri kazanmaktan çok daha ucuz bir büyüme yöntemidir: zaten sizi bir kez tercih etmiş bir müşteriyi tekrar kazanıyorsunuz. Bu da hem tekrarlayan ciroyu hem de müşteri sadakatini doğrudan artırır — üstelik hiçbir reklam bütçesi harcamadan.",
       },
       {
         type: "p",
-        text: "OtoHafıza'da her bakım kaydına girilen bir sonraki bakım tarihi/km otomatik olarak izlenir, hedef yaklaştığında müşteriye otomatik WhatsApp hatırlatması gönderilir ve müşteri \"Evet\" derse panelinizde otomatik randevu açılır.",
+        text: "OtoHafıza'da her bakım kaydına girilen bir sonraki bakım tarihi/km otomatik olarak izlenir ve hedef yaklaştığında araç Yaklaşan Bakımlar listenizde görünür; oradan tek tıkla müşterinize WhatsApp'tan ulaşabilir, randevusunu panelden kolayca oluşturabilirsiniz.",
       },
       {
         type: "cta",
-        text: "Otomatik hatırlatmayı kendi işletmenizde ücretsiz deneyin.",
+        text: "Bakım hatırlatmayı kendi işletmenizde ücretsiz deneyin.",
         href: "/kayit",
         label: "Hemen Başla",
       },
