@@ -36,7 +36,9 @@ export default async function BillingInfoPage({
         </div>
       )}
 
-      {shop && isOwner && <BillingInfoForm initial={shop.billingInfo} returnTo={returnTo} />}
+      {shop && isOwner && (
+        <BillingInfoForm initial={shop.billingInfo} returnTo={returnTo} defaultPhone={shop.phone} />
+      )}
     </div>
   );
 }

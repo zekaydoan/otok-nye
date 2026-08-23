@@ -30,23 +30,6 @@ export default async function SettingsPage() {
         </div>
       )}
 
-      {/* Öneri Kutusu buraya taşındı (V2 sadeleştirme, 23 Ağustos 2026) — üst
-          navda günlük iş akışının dışında yer kaplıyordu, özellik silinmedi.
-          Hem sahip hem çalışan görebilir (Öneriler sayfası zaten role kısıtı
-          içermiyor, bkz. app/dashboard/oneriler). */}
-      <Link
-        href="/dashboard/oneriler"
-        className="mt-6 flex items-center gap-3 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100 hover:ring-brand-300 sm:p-6"
-      >
-        <IconBadge icon={<LightbulbIcon />} color="yellow" size="md" />
-        <div>
-          <h2 className="text-sm font-semibold text-slate-900">Öneri Kutusu</h2>
-          <p className="mt-0.5 text-xs text-slate-400">
-            Uygulamada görmek istediğiniz bir özellik ya da fikir varsa buradan iletin.
-          </p>
-        </div>
-      </Link>
-
       {isOwner && (
         <>
           <div className="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100 sm:p-6">
@@ -54,6 +37,12 @@ export default async function SettingsPage() {
             <div className="mt-1 text-xs text-slate-400">
               E-posta: {shop.email} — e-posta değişikliği için destek ile iletişime geçin.
             </div>
+            {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): bu isimle Fatura
+                Bilgileri'ndeki "Firma Unvanı"nın farkı açık değildi. */}
+            <p className="mt-2 text-xs text-slate-400">
+              Buradaki isim panelde ve müşterinin QR ile gördüğü ekranda görünür; faturada
+              kullanılan unvan ayrıca Fatura Bilgileri'nde belirlenir.
+            </p>
             <div className="mt-4">
               <ProfileForm defaultName={shop.name} defaultPhone={shop.phone} defaultCity={shop.city} />
             </div>
@@ -77,7 +66,7 @@ export default async function SettingsPage() {
               faturalarında kullanılır.
             </p>
             <Link
-              href="/dashboard/fatura-bilgileri"
+              href={`/dashboard/fatura-bilgileri?returnTo=${encodeURIComponent("/dashboard/ayarlar")}`}
               className="mt-4 inline-block rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
             >
               {isBillingInfoComplete(shop.billingInfo) ? "Fatura Bilgilerini Düzenle" : "Fatura Bilgilerini Doldur"}
@@ -103,6 +92,24 @@ export default async function SettingsPage() {
           </div>
         </>
       )}
+
+      {/* Öneri Kutusu — V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): önce üst
+          navdaydı, sonra bu sayfanın en üstüne taşınmıştı; sayfanın asıl amacı
+          hesap/firma ayarları olduğu için geri bildirim kartı en alta indi.
+          Özellik silinmedi. Hem sahip hem çalışan görebilir (Öneriler sayfası
+          zaten role kısıtı içermiyor, bkz. app/dashboard/oneriler). */}
+      <Link
+        href="/dashboard/oneriler"
+        className="mt-6 flex items-center gap-3 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100 hover:ring-brand-300 sm:p-6"
+      >
+        <IconBadge icon={<LightbulbIcon />} color="yellow" size="md" />
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">Öneri Kutusu</h2>
+          <p className="mt-0.5 text-xs text-slate-400">
+            Uygulamada görmek istediğiniz bir özellik ya da fikir varsa buradan iletin.
+          </p>
+        </div>
+      </Link>
     </div>
   );
 }

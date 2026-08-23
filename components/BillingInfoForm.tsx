@@ -15,9 +15,16 @@ import { E_INVOICE_TYPE_LABELS, type BillingInfo, type BillingType, type EInvoic
 export default function BillingInfoForm({
   initial,
   returnTo,
+  defaultPhone,
 }: {
   initial?: BillingInfo;
   returnTo?: string;
+  // İlk kayıtta (initial.phone henüz yoksa) işletme telefonuyla ön doldurmak
+  // için — V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): kullanıcı sistemde
+  // zaten kayıtlı telefonunu burada sıfırdan yazmak zorunda kalmasın.
+  // Daha önce kaydedilmiş bir fatura telefonu varsa (initial.phone) ona
+  // dokunulmaz, yalnızca ilk doldurmada devreye girer.
+  defaultPhone?: string;
 }) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -27,7 +34,7 @@ export default function BillingInfoForm({
   const [taxOffice, setTaxOffice] = useState(initial?.taxOffice || "");
   const [taxNumber, setTaxNumber] = useState(initial?.taxNumber || "");
   const [address, setAddress] = useState(initial?.address || "");
-  const [phone, setPhone] = useState(initial?.phone || "");
+  const [phone, setPhone] = useState(initial?.phone || defaultPhone || "");
   const [eInvoiceType, setEInvoiceType] = useState<EInvoiceType | "">(
     initial?.eInvoiceType || ""
   );
