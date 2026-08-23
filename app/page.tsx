@@ -355,6 +355,34 @@ export default async function HomePage() {
           <p className="mt-5 text-sm text-slate-300">
             15 araca kadar ücretsiz · Süre sınırı yok · Kredi kartı gerekmez
           </p>
+
+          {/* QR etiket anlatımı — hero'da ürünün QR tarafına hiç değinilmiyordu,
+              bunu kısa bir rozetle tamamlıyoruz. Metin akışının içinde (mobilde
+              de görünür), var olan başlık/CTA/alt metne dokunmadan eklendi. */}
+          <div className="mx-auto mt-5 inline-flex max-w-xl items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-slate-200 backdrop-blur">
+            <QrIcon className="h-4 w-4 shrink-0 text-accent-400" />
+            Her araca özel QR etiket yapıştırın — müşteri telefonla okutsun, bakım geçmişi anında açılsın.
+          </div>
+        </div>
+
+        {/* QR etiket görseli — ürünün fiziksel etiketini temsil eden dekoratif
+            kart. Önceki hero'daki yüzen kartların mobilde taşma sorunu
+            yaşattığı biliniyor (bkz. geçmiş QA notları); aynı hatayı tekrar
+            etmemek için sadece geniş ekranlarda (lg+) gösteriliyor. Mobilde
+            QR anlatımı yukarıdaki rozet ile zaten sağlanıyor. */}
+        <div
+          aria-hidden
+          className="absolute right-10 top-14 hidden w-36 rotate-3 rounded-xl bg-white p-2.5 shadow-2xl ring-1 ring-black/5 lg:block xl:right-20"
+        >
+          <div className="rounded-lg bg-brand-600 px-2 py-1 text-center text-[10px] font-bold uppercase tracking-wide text-white">
+            Bakım Geçmişi
+          </div>
+          <div className="mt-2 flex items-center justify-center">
+            <QrIcon className="h-20 w-20 text-slate-900" />
+          </div>
+          <div className="mt-2 rounded-md bg-slate-100 px-2 py-1 text-center text-[11px] font-semibold text-slate-700">
+            34 XX 000
+          </div>
         </div>
       </section>
 
