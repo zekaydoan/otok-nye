@@ -474,11 +474,11 @@ export default async function HomePage() {
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/otohafiza-demo-v2.gif"
+            src="/images/otohafiza-demo-v3.gif"
             alt="OtoHafıza panelinde bir aracın bakım geçmişini görüntüleme ve QR etiket oluşturma ekran kaydı"
             className="w-full"
-            width={1512}
-            height={801}
+            width={1456}
+            height={827}
             loading="lazy"
             decoding="async"
           />
