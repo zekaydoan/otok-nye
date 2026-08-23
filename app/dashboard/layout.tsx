@@ -13,7 +13,7 @@ import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
 import IconBadge, { type IconBadgeColor } from "@/components/IconBadge";
 import { ToastProvider } from "@/components/Toast";
-import { BellIcon, CalendarIcon, ChartBarIcon, LightbulbIcon, SettingsIcon } from "@/components/icons";
+import { BellIcon, CalendarIcon, ChartBarIcon, SettingsIcon } from "@/components/icons";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getCurrentSession();
@@ -68,7 +68,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
       color: "amber",
       badge: unseenAnnouncements,
     },
-    { href: "/dashboard/oneriler", label: "Öneri Kutusu", icon: <LightbulbIcon />, color: "yellow" },
+    // Öneri Kutusu bilinçli olarak üst navdan kaldırıldı (V2 sadeleştirme,
+    // 23 Ağustos 2026, Zeki onayı) — günlük iş akışının parçası değil, sürekli
+    // görünür üst menüde yer kaplıyordu. Özellik SİLİNMEDİ, yalnızca taşındı:
+    // bkz. app/dashboard/ayarlar/page.tsx altındaki "Öneri Kutusu" kartı.
     ...(isAdmin
       ? [{ href: "/admin/istatistikler", label: "Admin Paneli", icon: <ChartBarIcon />, color: "purple" as const }]
       : []),

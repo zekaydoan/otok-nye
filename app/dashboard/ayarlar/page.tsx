@@ -6,6 +6,8 @@ import { PLAN_LIMITS } from "@/lib/types";
 import ProfileForm from "@/components/ProfileForm";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
 import StaffSection from "@/components/StaffSection";
+import IconBadge from "@/components/IconBadge";
+import { LightbulbIcon } from "@/components/icons";
 
 export default async function SettingsPage() {
   const session = await getCurrentSession();
@@ -27,6 +29,23 @@ export default async function SettingsPage() {
           yalnızca hesap sahibi tarafından değiştirilebilir.
         </div>
       )}
+
+      {/* Öneri Kutusu buraya taşındı (V2 sadeleştirme, 23 Ağustos 2026) — üst
+          navda günlük iş akışının dışında yer kaplıyordu, özellik silinmedi.
+          Hem sahip hem çalışan görebilir (Öneriler sayfası zaten role kısıtı
+          içermiyor, bkz. app/dashboard/oneriler). */}
+      <Link
+        href="/dashboard/oneriler"
+        className="mt-6 flex items-center gap-3 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100 hover:ring-brand-300 sm:p-6"
+      >
+        <IconBadge icon={<LightbulbIcon />} color="yellow" size="md" />
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">Öneri Kutusu</h2>
+          <p className="mt-0.5 text-xs text-slate-400">
+            Uygulamada görmek istediğiniz bir özellik ya da fikir varsa buradan iletin.
+          </p>
+        </div>
+      </Link>
 
       {isOwner && (
         <>
