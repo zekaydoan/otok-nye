@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ToastProvider } from "@/components/Toast";
 import LogoutButton from "@/components/LogoutButton";
 import Logo from "@/components/Logo";
-import IconBadge from "@/components/IconBadge";
+import IconBadge, { type IconBadgeColor } from "@/components/IconBadge";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { getPendingCounts } from "@/app/admin/bekleyen-isler/page";
 import {
@@ -28,7 +28,7 @@ import {
 // gruplar arasına (masaüstünde) ince bir dikey çizgi eklendi. Önceden hepsi
 // tek sırada, aynı görsel ağırlıktaydı. "Bekleyen İşler" artık grubun
 // başında: admin panelinin asıl giriş noktası oldu (bkz. aşağıdaki logo linki).
-const NAV_GROUPS: { href: string; label: string; icon: React.ReactElement; color: string }[][] = [
+const NAV_GROUPS: { href: string; label: string; icon: React.ReactElement; color: IconBadgeColor }[][] = [
   [
     { href: "/admin/bekleyen-isler", label: "Bekleyen İşler", icon: <BellIcon />, color: "red" as const },
     { href: "/admin/siparisler", label: "Siparişler", icon: <PackageIcon />, color: "pink" as const },
