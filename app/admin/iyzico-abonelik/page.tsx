@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
 import { getIyzicoPricingPlanCode, getIyzicoSubscriptionProductCode } from "@/lib/blobStore";
+import { getBaseUrl } from "@/lib/iyzico";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 import IyzicoAbonelikKurulumButton from "@/components/IyzicoAbonelikKurulumButton";
 import { CheckCircleIcon, XCircleIcon } from "@/components/icons";
@@ -18,6 +19,11 @@ export default async function IyzicoAbonelikPage() {
   const adminShopId = await getCurrentAdminShopId();
   if (!adminShopId) notFound();
 
+  // Sandbox ve gerçek/canlı hesaplarda ürün/plan kodları birbirinden bağımsız
+  // saklanıyor (bkz. lib/blobStore.ts'teki iyzicoEnvSuffix yorumu) — burada
+  // hangi ortamda olunduğunu açıkça göstermek, IYZICO_BASE_URL değiştikten
+  // sonra "zaten oluşturulmuş" sanıp bu ekranı atlamayı önlüyor.
+  const isSandbox = getBaseUrl().includes("sandbox");
   const productReferenceCode = await getIyzicoSubscriptionProductCode();
   const plans = await Promise.all(
     PAID_PLANS.map(async (plan) => ({
@@ -34,10 +40,20 @@ export default async function IyzicoAbonelikPage() {
         ← Bekleyen İşler
       </Link>
       <h1 className="mt-2 text-2xl font-bold text-slate-900">iyzico Abonelik Kurulumu</h1>
+      <span
+        className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+          isSandbox ? "bg-amber-100 text-amber-800" : "bg-green-100 text-green-800"
+        }`}
+      >
+        {isSandbox ? "Şu an SANDBOX (test) ortamındasın" : "Şu an GERÇEK/CANLI ortamdasın"}
+      </span>
       <p className="mt-1 max-w-2xl text-sm text-slate-500">
         Bu ekran, iyzico hesabında OtoHafıza için tek bir "Abonelik" ürünü ve Pro/İşletme/İşletme
         Yıllık planlarına karşılık gelen 3 "ödeme planı" oluşturur. Bir kez çalıştırılması yeterli
         — tekrar tıklamak, zaten oluşturulmuş kodları yeniden oluşturmaz (aşağıda görünürler).
+        Sandbox ve gerçek hesap kodları birbirinden bağımsız saklanır — Netlify'daki
+        IYZICO_BASE_URL sandbox'tan gerçeğe geçtiğinde bu ekran otomatik olarak
+        "Henüz oluşturulmadı" gösterir ve butona tekrar basman gerekir.
       </p>
 
       <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">

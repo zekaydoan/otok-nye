@@ -193,6 +193,59 @@ hesabında Abonelik eklentisinin satın alınması (ki bu muhtemelen kurumsal
 hesap/vergi bilgisi ister) ve `PAID_PLANS_ENABLED` gerçek şirket kuruluşunu
 bekliyor.
 
+### 23 Ağustos 2026 GÜNCELLEMESİ — kritik bir hata bulundu ve düzeltildi
+
+Etiket siparişi ödeme akışındaki "/giris ekranına düşme" sorunu çözülüp
+canlıda gerçek bir ödeme başarıyla tamamlandıktan sonra (bkz. bu dosyanın
+üstündeki 22 Ağustos maddesi), Zeki'nin isteğiyle abonelik/kart saklama
+kısmı gözden geçirildi ve şu kritik hata bulundu:
+
+**Sorun:** `/admin/iyzico-abonelik`'teki "Ürün + Ödeme Planlarını Oluştur"
+aracı, oluşturduğu referans kodlarını (`iyzico_subscription_product_code`,
+`iyzico_pricing_plan_<plan>`) settingsStore'da SANDBOX/CANLI ayrımı
+yapmadan tek bir global anahtar altında saklıyordu. 18 Ağustos'ta bu araç
+sandbox anahtarlarıyla çalıştırılıp sandbox referans kodları kaydedilmişti.
+Netlify'daki `IYZICO_BASE_URL` sandbox'tan gerçek üretime geçtiğinde
+(22 Ağustos), araç İDEMPOTENT olduğu için "zaten var" diyip bu ESKİ SANDBOX
+KODLARINI kullanmaya devam edecekti — gerçek bir bayi Pro/İşletme'ye
+geçmeye çalıştığında iyzico "ürün/plan bulunamadı" hatasıyla sessizce
+başarısız olacaktı. Bu, gerçek para akışını etkileyecek bir hataydı.
+
+**Düzeltme:** `lib/blobStore.ts`'teki `getIyzicoSubscriptionProductCode`/
+`setIyzicoSubscriptionProductCode`/`getIyzicoPricingPlanCode`/
+`setIyzicoPricingPlanCode` fonksiyonları artık anahtar adına
+`IYZICO_BASE_URL`'e göre otomatik bir sonek (`_sandbox`/`_live`) ekliyor —
+sandbox ve gerçek kodlar artık birbirinden tamamen bağımsız saklanıyor.
+`/admin/iyzico-abonelik` sayfasına da hangi ortamda olunduğunu gösteren bir
+rozet eklendi (sarı "SANDBOX", yeşil "GERÇEK/CANLI").
+
+**Sonuç — Zeki'nin yapması gereken tek adım:** Gerçek/canlı iyzico
+anahtarları Netlify'da zaten aktif olduğundan, `/admin/iyzico-abonelik`
+sayfasını aç — büyük ihtimalle "GERÇEK/CANLI" rozeti ve "Henüz
+oluşturulmadı" yazan ürün/planlar göreceksin (bu beklenen, doğru davranış).
+"Ürün + Ödeme Planlarını Oluştur"a bas, bu sefer gerçek hesapta yeni kodlar
+oluşacak. Ardından iyzico'nun canlı Üye İşyeri Paneli'nde "Ayarlar > Firma
+Ayarları > İşyeri Bildirimleri" altına abonelik webhook URL'sinin
+(`https://otohafiza.com/api/webhooks/iyzico-abonelik`) tanımlı olduğunu
+doğrula (madde 1/4'te zaten istenmişti, tekrar kontrol etmekte fayda var).
+Son olarak `/dashboard/plan`'dan gerçek bir kartla küçük/test niteliğinde
+uçtan uca bir abonelik denemesi yap — planın gerçekten değiştiğini ve
+sonraki ay otomatik yenilenmesi için `planRenewsAt`'in güncellendiğini
+doğrularız.
+
+**Kart saklama hakkında (bilgi amaçlı):** OtoHafıza sunucusu hiçbir zaman
+kart bilgisi görmüyor/saklamıyor — kart, iyzico'nun kendi Checkout
+Form'unda toplanıp iyzico tarafında `customerReferenceCode`'a bağlı olarak
+saklanıyor, her ayın dönümünde otomatik tahsilat da iyzico tarafında
+gerçekleşiyor (`lib/iyzicoSubscription.ts`). Bizim tarafımızda yalnızca
+sonucu bildiren callback/webhook işleniyor — bu doğru ve güvenli mimari,
+ek bir değişiklik gerekmiyor.
+
+**Ayrıca bekleyen, ayrı bir konu (madde 7 ile aynı):** Kurucu Servis
+kontenjanına giren bayiler için ömür boyu %50 indirimli Pro fiyatı henüz
+uygulanmıyor — bunun için iyzico'da ayrı bir indirimli ödeme planı
+oluşturup bu bayilere bağlamak gerekiyor, henüz yazılmadı.
+
 ## 2. KVKK Aydınlatma Metni — adres/telefon ✅ Tamamlandı (20 Ağustos 2026)
 
 - **Dosya:** `app/kvkk/page.tsx`

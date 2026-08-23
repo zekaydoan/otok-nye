@@ -1,6 +1,7 @@
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
 import { hashPassword, verifyPassword } from "./auth";
+import { getBaseUrl } from "./iyzico";
 import { FOUNDING_SERVICE_SLOTS } from "./planAvailability";
 import {
   PLAN_LIMITS,
@@ -1138,20 +1139,42 @@ export async function getSubscriptionCheckoutTokenLink(
 // abone olmak istediğinde ilgili plan kodunu buradan okur). settingsStore
 // zaten sticker_unit_price_try için aynı basit anahtar-değer deseniyle
 // kullanılıyor, aynısı tekrarlanıyor.
+//
+// ÖNEMLİ (23 Ağustos 2026 düzeltmesi): Bu kodlar sandbox ve gerçek/canlı
+// iyzico hesaplarında BİRBİRİNDEN TAMAMEN BAĞIMSIZ — sandbox'ta oluşturulan
+// bir ürün/plan referans kodu, gerçek hesapta ANLAMSIZ (var olmayan bir
+// kayda işaret eder). Kurulum aracı İDEMPOTENT olduğu için (zaten bir kod
+// varsa yeniden oluşturmaz), anahtar isimleri ortam bilgisini içermezse,
+// IYZICO_BASE_URL sandbox'tan gerçek üretime geçtiğinde kurulum aracı
+// "zaten var" diyip ESKİ SANDBOX KODLARINI production'da kullanmaya devam
+// eder — bu da gerçek bir abonelik denemesinde iyzico'nun "ürün/plan
+// bulunamadı" hatasıyla sessizce başarısız olmasına yol açar. Anahtar adına
+// ortam soneki (_live/_sandbox) eklemek bunu otomatik çözüyor: IYZICO_BASE_URL
+// değiştiğinde farklı bir anahtar setine bakılır, eski sandbox kodları
+// zararsızca yerinde kalır, yeni ortam için kurulum aracının "Ürün + Ödeme
+// Planlarını Oluştur" butonu tekrar çalıştırıldığında gerçek kodlar üretilir.
+function iyzicoEnvSuffix(): string {
+  return getBaseUrl().includes("sandbox") ? "_sandbox" : "_live";
+}
+
 export async function getIyzicoSubscriptionProductCode(): Promise<string | null> {
-  return await settingsStore().get("iyzico_subscription_product_code", { type: "text" });
+  return await settingsStore().get(`iyzico_subscription_product_code${iyzicoEnvSuffix()}`, {
+    type: "text",
+  });
 }
 
 export async function setIyzicoSubscriptionProductCode(code: string): Promise<void> {
-  await settingsStore().set("iyzico_subscription_product_code", code);
+  await settingsStore().set(`iyzico_subscription_product_code${iyzicoEnvSuffix()}`, code);
 }
 
 export async function getIyzicoPricingPlanCode(plan: Plan): Promise<string | null> {
-  return await settingsStore().get(`iyzico_pricing_plan_${plan}`, { type: "text" });
+  return await settingsStore().get(`iyzico_pricing_plan_${plan}${iyzicoEnvSuffix()}`, {
+    type: "text",
+  });
 }
 
 export async function setIyzicoPricingPlanCode(plan: Plan, code: string): Promise<void> {
-  await settingsStore().set(`iyzico_pricing_plan_${plan}`, code);
+  await settingsStore().set(`iyzico_pricing_plan_${plan}${iyzicoEnvSuffix()}`, code);
 }
 
 // Etiket birim fiyatı henüz kesinleşmedi (baskı tedarikçisi araştırması sürüyor) —
