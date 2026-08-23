@@ -140,6 +140,53 @@ müşteride bile riskli.
 6. ⏳ Yukarıdaki test tamamlanana kadar `PAID_PLANS_ENABLED` `false` kalmalı —
    şu an hiçbir gerçek bayi bu akışa erişemiyor, güvenli.
 
+### 22 Ağustos 2026 GÜNCELLEMESİ — Gerçek/kurumsal iyzico hesabı aktif oldu
+
+Zeki, gerçek (canlı/kurumsal) iyzico üye işyeri hesabının ve Abonelik
+eklentisinin artık aktif olduğunu bildirdi. **Ancak Netlify ortam
+değişkenleri kontrol edildi (salt okunur, değer görülmedi) ve site hâlâ
+SANDBOX kimlik bilgileriyle çalışıyor:**
+
+- `IYZICO_API_KEY` = `sandbox-...` (sandbox)
+- `IYZICO_SECRET_KEY` = `sandbox-...` (sandbox)
+- `IYZICO_BASE_URL` = `https://sandbox-api.iyzipay.com` (sandbox)
+- `IYZICO_MERCHANT_ID` — **Netlify'da HİÇ tanımlı değil.** Bu olmadan
+  `app/api/webhooks/iyzico-abonelik/route.ts` imza doğrulamasını
+  hesaplayamıyor ve isteği 500 ile reddediyor (bkz. dosyadaki catch bloğu) —
+  yani şu an webhook bildirimleri sandbox'ta bile güvenilir işlenmiyor
+  olabilir, bu üretime geçmeden önce mutlaka çözülmeli.
+
+**Gerçek tahsilata geçmeden önce sırasıyla yapılması gerekenler (hepsi
+Zeki'nin kendisinin yapması gereken adımlar — API anahtarı/gizli bilgi
+girme işini ben yapamam, güvenlik kuralı gereği):**
+
+1. iyzico'nun canlı Üye İşyeri Paneli'nden gerçek **API Key**, **Secret Key**
+   ve **Üye İşyeri (Merchant) ID**'yi al.
+2. Netlify ortam değişkenlerini bizzat güncelle:
+   - `IYZICO_API_KEY` → gerçek API key
+   - `IYZICO_SECRET_KEY` → gerçek secret key
+   - `IYZICO_BASE_URL` → `https://api.iyzipay.com` (sandbox'sız, gerçek üretim adresi)
+   - `IYZICO_MERCHANT_ID` → gerçek üye işyeri ID'si (yeni eklenmeli, hiç yok)
+   Değiştirdikten sonra yeniden deploy tetiklenmeli (Netlify env var
+   değişikliği otomatik yeni deploy başlatmayabilir — "Trigger deploy"
+   gerekebilir).
+3. Bana haber ver — `/admin/iyzico-abonelik` sayfasındaki "Ürün + Ödeme
+   Planlarını Oluştur" işlemini az önce eklenen gerçek anahtarlarla tekrar
+   çalıştırmamız gerekiyor (sandbox'taki referans kodları üretimde geçersiz,
+   ayrı bir hesap/ortam olduğu için yeniden oluşturulmaları şart).
+4. iyzico'nun canlı Üye İşyeri Paneli'nde "Ayarlar > Firma Ayarları >
+   İşyeri Bildirimleri" altına gerçek abonelik webhook URL'sini
+   (`https://otohafiza.com/api/webhooks/iyzico-abonelik`) sen eklemelisin.
+5. Tüm bunlar tamamlandıktan sonra, gerçek bir kartla küçük/test niteliğinde
+   uçtan uca bir satın alma denemesini SEN yapmalısın (gerçek kart bilgisini
+   ben hiçbir ödeme formuna giremem/girmemeliyim) — plan gerçekten aktif
+   oluyor mu, webhook doğru işliyor mu doğrulanmalı.
+6. Her şey sorunsuzsa `PAID_PLANS_ENABLED` zaten `true` — ek bir kod
+   değişikliği gerekmez, sadece yukarıdaki adımlar tamamlanana kadar bu
+   bayrağın `true` kalması, üretim anahtarları eklenene dek gerçek
+   müşterilerin (sandbox anahtarlarıyla) başarısız/tuhaf bir ödeme
+   deneyimi yaşayabileceği anlamına geldiğini unutma.
+
 Sandbox'ta geliştirme, gerçek şirket kuruluşunu beklemeden 1. adım
 tamamlanınca başlayabilir — üretim/gerçek tahsilat için ise gerçek iyzico
 hesabında Abonelik eklentisinin satın alınması (ki bu muhtemelen kurumsal
