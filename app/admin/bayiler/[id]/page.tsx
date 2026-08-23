@@ -117,14 +117,23 @@ export default async function AdminShopDetailPage({ params }: { params: { id: st
       <section className="mt-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
         <h2 className="font-bold text-slate-900">Etiket Siparişleri</h2>
         {orders.length === 0 && <p className="mt-2 text-sm text-slate-400">Hiç sipariş yok.</p>}
+        {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): satırlar artık
+            Siparişler sayfasındaki tam kayda link veriyor — önceden burada
+            yalnızca özet (miktar/tarih/durum) vardı, tam kaydı görmek için
+            admin aynı siparişi Siparişler listesinde yeniden aramak zorunda
+            kalıyordu. */}
         <div className="mt-3 space-y-2">
           {orders.map((o) => (
-            <div key={o.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
+            <Link
+              key={o.id}
+              href={`/admin/siparisler#siparis-${o.id}`}
+              className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm hover:bg-slate-100"
+            >
               <span className="text-slate-600">
                 {o.quantity} adet · {o.createdAt.slice(0, 10)}
               </span>
               <span className="font-medium text-slate-800">{STICKER_ORDER_STATUS_LABELS[o.status]}</span>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

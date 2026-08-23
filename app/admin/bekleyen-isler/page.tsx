@@ -173,7 +173,7 @@ export default async function AdminPendingPage() {
             {refundPendingOrders.map((o) => (
               <Link
                 key={o.id}
-                href="/admin/siparisler"
+                href={`/admin/siparisler#siparis-${o.id}`}
                 className="flex items-center justify-between rounded-lg bg-red-50 px-3 py-2 text-sm hover:bg-red-100"
               >
                 <span className="font-medium text-slate-800">

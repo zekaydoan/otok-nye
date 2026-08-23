@@ -29,6 +29,11 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
   const [deleted, setDeleted] = useState(false);
 
   const canDelete = !PAID_STATUSES.includes(order.status) && !order.cancelledWithPayment;
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): Bekleyen İşler'deki "İade
+  // Bekleyen İptaller" listesi buraya artık bu siparişe doğrudan (#siparis-id)
+  // link veriyor — admin isim/tutar eşleştirerek elle aramak zorunda kalmasın
+  // diye satırın kendisinde de aynı durumu gösteren bir rozet var.
+  const needsRefund = order.status === "iptal" && order.cancelledWithPayment && !order.refundedAt;
 
   async function handleDelete() {
     setDeleting(true);
@@ -83,7 +88,7 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
   if (deleted) return null;
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+    <div id={`siparis-${order.id}`} className="scroll-mt-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-900">
@@ -124,6 +129,11 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
           {order.refundedAt && (
             <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
               ↩ {order.refundAmountTry?.toFixed(2)}₺ iade edildi
+            </span>
+          )}
+          {needsRefund && (
+            <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+              ⏳ İade Bekleniyor
             </span>
           )}
         </div>
