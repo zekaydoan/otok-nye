@@ -597,6 +597,7 @@ export interface StickerSelfPrint {
 // app/api/admin/siparisler/[id]/route.ts); kapsam ileride genişletilebilir.
 export type AdminAuditAction =
   | "plan_degistirildi"
+  | "bayi_silindi"
   | "siparis_guncellendi"
   | "siparis_kargo_guncellendi"
   | "iade_isaretlendi"

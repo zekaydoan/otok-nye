@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentAdminShopId } from "@/lib/adminAuth";
-import { getShopById, listStickerOrdersByShop, listVehiclesByShop } from "@/lib/blobStore";
+import { getShopById, listStaffForShop, listStickerOrdersByShop, listVehiclesByShop } from "@/lib/blobStore";
 import { E_INVOICE_TYPE_LABELS, PLAN_LIMITS, STICKER_ORDER_STATUS_LABELS } from "@/lib/types";
 import AdminPlanOverrideForm from "@/components/AdminPlanOverrideForm";
 import AdminDeleteShopButton from "@/components/AdminDeleteShopButton";
@@ -13,10 +13,17 @@ export default async function AdminShopDetailPage({ params }: { params: { id: st
   const shop = await getShopById(params.id);
   if (!shop) notFound();
 
-  const [vehicles, orders] = await Promise.all([
+  const [vehicles, orders, staff] = await Promise.all([
     listVehiclesByShop(shop.id),
     listStickerOrdersByShop(shop.id),
+    listStaffForShop(shop.id),
   ]);
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 5): admin destek/satış
+  // konuşmasında bir bayinin kaç çalışanı olduğunu ve limitine ne kadar
+  // yaklaştığını görebilsin diye — sade bir sayı, ayrı bir yönetim ekranı değil
+  // (çalışan ekleme/çıkarma zaten bayinin kendi Ayarlar sayfasında).
+  const maxStaff = PLAN_LIMITS[shop.plan].maxStaff;
+  const maxStaffLabel = maxStaff === Infinity ? "Sınırsız" : maxStaff;
 
   return (
     <div>
@@ -31,7 +38,8 @@ export default async function AdminShopDetailPage({ params }: { params: { id: st
             {shop.email} · {shop.phone} · {shop.city || "Şehir belirtilmemiş"}
           </p>
           <p className="mt-1 text-xs text-slate-400">
-            Kayıt: {shop.createdAt.slice(0, 10)} · {vehicles.length} araç · Son giriş:{" "}
+            Kayıt: {shop.createdAt.slice(0, 10)} · {vehicles.length} araç · {staff.length} / {maxStaffLabel}{" "}
+            çalışan · Son giriş:{" "}
             {shop.lastLoginAt ? new Date(shop.lastLoginAt).toLocaleString("tr-TR") : "Kayıtlı değil"}
           </p>
         </div>

@@ -25,6 +25,17 @@ export default function AdminPlanOverrideForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 2): tek tıkla anında
+    // uygulanan bir plan değişikliği, hesap silmedeki "ismi yazarak onayla"
+    // güvenlik seviyesiyle tutarsızdı — yanlış bayide yanlış plana tıklamak
+    // kolaydı. Hangi bayinin hangi plandan hangi plana geçeceği açıkça
+    // gösterilip onay istenir.
+    const confirmed = window.confirm(
+      `Bu bayinin planını "${PLAN_LIMITS[currentPlan].label}" durumundan ` +
+        `"${PLAN_LIMITS[plan].label}" durumuna değiştirmek istediğinize emin misiniz?`
+    );
+    if (!confirmed) return;
+
     setSaving(true);
     setError(null);
     try {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentAdminShopId } from "@/lib/adminAuth";
-import { deleteShop, getShopById } from "@/lib/blobStore";
+import { getCurrentAdminEmail, getCurrentAdminShopId } from "@/lib/adminAuth";
+import { deleteShop, getShopById, recordAdminAuditLog } from "@/lib/blobStore";
+import { PLAN_LIMITS } from "@/lib/types";
 
 // Admin bir bayi hesabını kalıcı olarak siler — bkz. lib/blobStore.ts
 // deleteShop'taki kapsam notu (araçlar, bakım kayıtları ve etiket siparişleri
@@ -23,6 +24,22 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   if (!shop) return NextResponse.json({ error: "Bayi bulunamadı." }, { status: 404 });
 
   await deleteShop(params.id);
+
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 1): sistemdeki en geri
+  // alınamaz aksiyonun (bir bayinin tüm hesabını kalıcı silme) hiçbir izi
+  // kalmıyordu — sipariş silme, partner durum değişikliği gibi çok daha az
+  // kritik işlemler bile audit log'a yazılırken bu yazılmıyordu. Silme
+  // işleminden SONRA loglanıyor çünkü deleteShop başarısız olursa (ör. eşzamanlı
+  // bir hata) yanlış bir "silindi" kaydı düşmesin isteniyor.
+  const actorEmail = (await getCurrentAdminEmail()) || "bilinmeyen";
+  await recordAdminAuditLog({
+    actorEmail,
+    action: "bayi_silindi",
+    targetType: "shop",
+    targetId: params.id,
+    targetLabel: `${shop.name} (${shop.email})`,
+    detail: `${PLAN_LIMITS[shop.plan].label} plandaki bayi hesabı kalıcı olarak silindi`,
+  });
 
   return NextResponse.json({ ok: true });
 }

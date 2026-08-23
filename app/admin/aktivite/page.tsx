@@ -6,6 +6,7 @@ import type { AdminAuditAction, AdminAuditLogEntry } from "@/lib/types";
 
 const ACTION_LABELS: Record<AdminAuditAction, string> = {
   plan_degistirildi: "Plan değiştirildi",
+  bayi_silindi: "Bayi hesabı kalıcı olarak silindi",
   siparis_guncellendi: "Sipariş durumu güncellendi",
   siparis_kargo_guncellendi: "Sipariş kargo bilgisi güncellendi",
   iade_isaretlendi: "İade işaretlendi",
