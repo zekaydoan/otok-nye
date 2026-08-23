@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
@@ -18,6 +18,10 @@ export default function HakedislerTable({ items }: { items: PartnerPayoutQueueIt
   const router = useRouter();
   const { showToast } = useToast();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): partner sayısı arttıkça
+  // düz liste sürdürülemez hale geliyordu — basit isim/bölge araması eklendi
+  // (bkz. components/AdminPartnerForm.tsx ile aynı istemci taraflı desen).
+  const [query, setQuery] = useState("");
 
   async function payAll(item: PartnerPayoutQueueItem) {
     const confirmed = window.confirm(
@@ -45,6 +49,17 @@ export default function HakedislerTable({ items }: { items: PartnerPayoutQueueIt
 
   const withBalance = items.filter((i) => i.pendingCommissionTry > 0);
 
+  const filteredWithBalance = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return withBalance;
+    return withBalance.filter(
+      (item) =>
+        item.partner.name.toLowerCase().includes(q) ||
+        (item.partner.region || "").toLowerCase().includes(q)
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, query]);
+
   if (withBalance.length === 0) {
     return (
       <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -54,20 +69,36 @@ export default function HakedislerTable({ items }: { items: PartnerPayoutQueueIt
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      <table className="w-full min-w-[820px] text-left text-sm">
-        <thead className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-          <tr>
-            <th className="px-4 py-3">Partner</th>
-            <th className="px-4 py-3">Seviye</th>
-            <th className="px-4 py-3">Bekleyen Tutar</th>
-            <th className="px-4 py-3">Bekliyor</th>
-            <th className="px-4 py-3">IBAN</th>
-            <th className="px-4 py-3" />
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {withBalance.map((item) => (
+    <div>
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="İsim veya bölge ara..."
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+      />
+      <p className="mt-2 text-xs text-slate-400">
+        {filteredWithBalance.length} / {withBalance.length} partner gösteriliyor
+      </p>
+      {filteredWithBalance.length === 0 && (
+        <p className="mt-3 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-400">
+          Sonuç bulunamadı.
+        </p>
+      )}
+      {filteredWithBalance.length > 0 && (
+        <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <table className="w-full min-w-[820px] text-left text-sm">
+            <thead className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-4 py-3">Partner</th>
+                <th className="px-4 py-3">Seviye</th>
+                <th className="px-4 py-3">Bekleyen Tutar</th>
+                <th className="px-4 py-3">Bekliyor</th>
+                <th className="px-4 py-3">IBAN</th>
+                <th className="px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredWithBalance.map((item) => (
             <tr key={item.partner.id} className={item.isDue ? "bg-red-50/40 hover:bg-red-50" : "hover:bg-slate-50"}>
               <td className="px-4 py-3">
                 <Link
@@ -121,9 +152,11 @@ export default function HakedislerTable({ items }: { items: PartnerPayoutQueueIt
                 )}
               </td>
             </tr>
-          ))}
-        </tbody>
-      </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

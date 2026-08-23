@@ -21,7 +21,20 @@ export default function PartnerCommissionsTable({
   const { showToast } = useToast();
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
-  async function markPaid(commissionId: string) {
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): Hakedişler ekranındaki
+  // toplu "Tümünü Öde" butonu window.confirm ile onay istiyordu, buradaki
+  // tekil "Ödendi İşaretle" istemiyordu — aynı sonucu (bir komisyon kaydını
+  // geri alınamaz şekilde "ödendi" işaretlemek) tek tıkla ve onaysız
+  // üretebiliyordu. Artık aynı onay deseni burada da var.
+  async function markPaid(commission: PartnerCommissionEntry) {
+    const confirmed = window.confirm(
+      `${commission.shopName} için ${PARTNER_COMMISSION_TYPE_LABELS[commission.type]} — ` +
+        `${commission.amountTry.toLocaleString("tr-TR")} TL'yi elden/EFT ile GERÇEKTEN ödediniz mi? ` +
+        `Onaylarsanız bu kayıt ödendi olarak işaretlenir.`
+    );
+    if (!confirmed) return;
+
+    const commissionId = commission.id;
     setLoadingId(commissionId);
     try {
       const res = await fetch(`/api/admin/partnerler/${partnerId}/komisyon`, {
@@ -49,13 +62,14 @@ export default function PartnerCommissionsTable({
 
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-      <table className="w-full min-w-[640px] text-left text-sm">
+      <table className="w-full min-w-[820px] text-left text-sm">
         <thead className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
           <tr>
             <th className="px-4 py-3">Tür</th>
             <th className="px-4 py-3">İşletme</th>
             <th className="px-4 py-3">Dönem</th>
             <th className="px-4 py-3">Tutar</th>
+            <th className="px-4 py-3">Tahakkuk</th>
             <th className="px-4 py-3">Durum</th>
             <th className="px-4 py-3" />
           </tr>
@@ -67,6 +81,9 @@ export default function PartnerCommissionsTable({
               <td className="px-4 py-3">{c.shopName}</td>
               <td className="px-4 py-3 text-slate-500">{c.periodMonth || "—"}</td>
               <td className="px-4 py-3 font-medium">{c.amountTry.toLocaleString("tr-TR")} TL</td>
+              <td className="px-4 py-3 text-slate-500">
+                {new Date(c.createdAt).toLocaleDateString("tr-TR")}
+              </td>
               <td className="px-4 py-3">
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
@@ -77,11 +94,19 @@ export default function PartnerCommissionsTable({
                 >
                   {c.status === "odendi" ? "Ödendi" : "Tahakkuk Etti"}
                 </span>
+                {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): paidAt veri
+                    modelinde vardı ama hiçbir yerde gösterilmiyordu — "bu
+                    komisyon ne zaman ödendi" sorusuna cevap yoktu. */}
+                {c.status === "odendi" && c.paidAt && (
+                  <p className="mt-0.5 text-[11px] text-slate-400">
+                    {new Date(c.paidAt).toLocaleDateString("tr-TR")} ödendi
+                  </p>
+                )}
               </td>
               <td className="px-4 py-3 text-right">
                 {c.status === "tahakkuk_etti" && (
                   <button
-                    onClick={() => markPaid(c.id)}
+                    onClick={() => markPaid(c)}
                     disabled={loadingId === c.id}
                     className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
                   >

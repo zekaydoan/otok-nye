@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/components/Toast";
@@ -24,6 +24,10 @@ export default function AdminPartnerForm({
 }) {
   const router = useRouter();
   const { showToast } = useToast();
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): partner sayısı arttıkça
+  // düz liste sürdürülemez hale geliyordu — basit isim/bölge araması eklendi
+  // (bkz. components/AdminShopSearch.tsx ile aynı istemci taraflı desen).
+  const [query, setQuery] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -82,6 +86,16 @@ export default function AdminPartnerForm({
       setLoading(false);
     }
   }
+
+  const filteredPartners = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return initialPartners;
+    return initialPartners.filter(
+      (s) =>
+        s.partner.name.toLowerCase().includes(q) ||
+        (s.partner.region || "").toLowerCase().includes(q)
+    );
+  }, [initialPartners, query]);
 
   return (
     <div className="mt-6 space-y-6">
@@ -207,7 +221,25 @@ export default function AdminPartnerForm({
         {initialPartners.length === 0 ? (
           <p className="text-sm text-slate-500">Henüz bir partner eklenmedi.</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+          <>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="İsim veya bölge ara..."
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+            />
+            <p className="mt-2 text-xs text-slate-400">
+              {filteredPartners.length} / {initialPartners.length} partner gösteriliyor
+            </p>
+          </>
+        )}
+        {initialPartners.length > 0 && filteredPartners.length === 0 && (
+          <p className="mt-3 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-400">
+            Sonuç bulunamadı.
+          </p>
+        )}
+        {filteredPartners.length > 0 && (
+          <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead className="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <tr>
@@ -220,7 +252,7 @@ export default function AdminPartnerForm({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {initialPartners.map((s) => (
+                {filteredPartners.map((s) => (
                   <tr key={s.partner.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3">
                       <Link
