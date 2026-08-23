@@ -7,26 +7,36 @@ import PaymentBadges from "@/components/PaymentBadges";
 import IyzicoOdeBadge from "@/components/IyzicoOdeBadge";
 import { trackInitiateCheckout } from "@/components/AdPixels";
 
+// Hızlı seçim adetleri — en sık sipariş edilen miktarlar tek tıkla seçilsin
+// diye (V2 sadeleştirme, 23 Ağustos 2026). Varsayılan adet (50) bilerek
+// değiştirilmedi, bu ayrıca değerlendirilecek.
+const QUANTITY_PRESETS = [10, 25, 50];
+
 export default function StickerOrderForm({
   unitPriceTry,
   defaultPhone,
   defaultName,
+  defaultIdentityNumber,
 }: {
   unitPriceTry: number;
   defaultPhone?: string;
   defaultName?: string;
+  // Bireysel fatura bilgisi kayıtlıysa T.C. Kimlik No'yu tekrar yazdırmamak için.
+  defaultIdentityNumber?: string;
 }) {
   const router = useRouter();
   const [quantity, setQuantity] = useState(50);
   const [labelName, setLabelName] = useState(defaultName || "");
   const [labelPhone, setLabelPhone] = useState(defaultPhone || "");
-  const [fullName, setFullName] = useState("");
+  // Teslimat adı, firma/usta adıyla aynı olduğu için ön dolduruluyor —
+  // kullanıcı isterse değiştirebilir (V2 sadeleştirme, 23 Ağustos 2026).
+  const [fullName, setFullName] = useState(defaultName || "");
   const [phone, setPhone] = useState(defaultPhone || "");
   const [addressLine, setAddressLine] = useState("");
   const [district, setDistrict] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [identityNumber, setIdentityNumber] = useState("");
+  const [identityNumber, setIdentityNumber] = useState(defaultIdentityNumber || "");
   const [contractAccepted, setContractAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,8 +123,28 @@ export default function StickerOrderForm({
           >
             +
           </button>
+          {/* Hızlı seçim — +/- ile elli kez tıklamak yerine tek tıkla yaygın
+              adetlere atla (V2 sadeleştirme, 23 Ağustos 2026). */}
+          <div className="ml-2 flex items-center gap-1.5">
+            {QUANTITY_PRESETS.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setQuantity(preset)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium ${
+                  quantity === preset
+                    ? "border-brand-500 bg-brand-50 text-brand-700"
+                    : "border-slate-300 text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
         </div>
-        <p className="mt-1 text-xs text-slate-400">Birim fiyat: {unitPriceTry.toFixed(2)}₺</p>
+        <p className="mt-1 text-xs text-slate-400">
+          Birim fiyat: {unitPriceTry.toFixed(2)}₺ · Toplam: {total.toFixed(2)}₺
+        </p>
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">

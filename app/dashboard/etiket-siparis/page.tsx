@@ -19,6 +19,12 @@ export default async function StickerOrderPage() {
   const shop = shopId ? await getShopById(shopId) : null;
   const unitPriceTry = await getStickerUnitPriceTry();
   const orders = shopId ? await listStickerOrdersByShop(shopId) : [];
+  // V2 sadeleştirme (23 Ağustos 2026): bireysel fatura bilgisi kayıtlıysa T.C.
+  // Kimlik No zaten orada var — sipariş formunda tekrar sorulmasın. Kurumsal
+  // hesaplarda taxNumber farklı bir numara (VKN) olduğu için bilerek
+  // gönderilmiyor, kullanıcı bu alanı yine kendisi dolduracak.
+  const defaultIdentityNumber =
+    shop?.billingInfo?.type === "bireysel" ? shop.billingInfo?.taxNumber : undefined;
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -37,8 +43,10 @@ export default async function StickerOrderPage() {
       </a>
 
       {/* Ürün tanıtımı — ödeme istemeden önce "neden bu parayı ödüyorum" sorusuna
-          görsel olarak cevap verir. */}
-      <div className="mt-6 grid items-center gap-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 sm:p-6 lg:grid-cols-[1fr,220px]">
+          görsel olarak cevap verir. V2 sadeleştirme (23 Ağustos 2026): mobilde
+          form/fatura-uyarısı ilk ekranda görünsün diye bu blok mobilde
+          gizlendi; masaüstünde (daha bol ekran alanı olduğu için) aynen kaldı. */}
+      <div className="mt-6 hidden items-center gap-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100 sm:grid sm:p-6 lg:grid-cols-[1fr,220px]">
         <ul className="space-y-2.5">
           {BENEFITS.map((b) => (
             <li key={b} className="flex items-start gap-2.5 text-sm text-slate-600">
@@ -96,7 +104,12 @@ export default async function StickerOrderPage() {
           </Link>
         </div>
       ) : (
-        <StickerOrderForm unitPriceTry={unitPriceTry} defaultPhone={shop?.phone} defaultName={shop?.name} />
+        <StickerOrderForm
+          unitPriceTry={unitPriceTry}
+          defaultPhone={shop?.phone}
+          defaultName={shop?.name}
+          defaultIdentityNumber={defaultIdentityNumber}
+        />
       )}
 
       {orders.length > 0 && (
