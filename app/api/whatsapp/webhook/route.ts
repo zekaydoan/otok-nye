@@ -1,6 +1,6 @@
 import { createHmac, randomUUID, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { createAppointment, getVehicleById, listOilRecordsForVehicle } from "@/lib/blobStore";
+import { createAppointment, getVehicleById, listAppointmentsForShop, listOilRecordsForVehicle } from "@/lib/blobStore";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { decodeConfirmationPayload, reminderCycleKey } from "@/lib/whatsappReminder";
 import type { Appointment } from "@/lib/types";
@@ -149,6 +149,16 @@ async function handleConfirmation(
 
   if (decoded.answer !== "evet") return; // "Hayır" için otomatik bir kayıt açılmıyor.
 
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 2): sağlayıcı aynı
+  // müşteri cevabını (ağ hatası/timeout nedeniyle) ikinci kez teslim ederse
+  // aynı hatırlatma döngüsü için mükerrer randevu açılmasın diye — bu araç ve
+  // bu cycleKey için zaten bir WhatsApp randevusu var mı kontrol ediyoruz.
+  const existingAppointments = await listAppointmentsForShop(latest.shopId);
+  const alreadyExists = existingAppointments.some(
+    (a) => a.source === "whatsapp_onay" && a.vehicleId === decoded.vehicleId && a.whatsappCycleKey === decoded.cycleKey
+  );
+  if (alreadyExists) return;
+
   const appointment: Appointment = {
     id: randomUUID(),
     shopId: latest.shopId,
@@ -162,6 +172,12 @@ async function handleConfirmation(
     createdAt: new Date().toISOString(),
     source: "whatsapp_onay",
     seenByShop: false,
+    // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 1): "Geldi" sonrası
+    // Bakım Kaydı Ekle kısayolunun çalışabilmesi için (bkz. AppointmentsSection.tsx)
+    // WhatsApp'tan gelen randevu da kayıtlı araca bağlanmalı — önceden bu alan
+    // hiç set edilmiyordu.
+    vehicleId: vehicle.id,
+    whatsappCycleKey: decoded.cycleKey,
   };
   await createAppointment(appointment);
 }

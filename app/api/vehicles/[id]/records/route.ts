@@ -42,7 +42,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     note,
     nextServiceDate,
     nextServiceKm,
-    notifyOwner,
     beforePhoto,
     afterPhoto,
   } = body as {
@@ -56,7 +55,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     note?: string;
     nextServiceDate?: string;
     nextServiceKm?: number;
-    notifyOwner?: boolean;
     beforePhoto?: string; // "data:image/jpeg;base64,...."
     afterPhoto?: string;
   };

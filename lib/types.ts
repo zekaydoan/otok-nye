@@ -304,6 +304,13 @@ export interface Appointment {
   // kayıtlarda ve serbest metinle (kayıtlı olmayan müşteri) oluşturulan
   // randevularda bu alan yoktur, geriye dönük uyumluluğu bozmaz.
   vehicleId?: string;
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 2): WhatsApp webhook'u
+  // aynı müşteri cevabını (sağlayıcı ağ hatası/timeout nedeniyle) birden fazla
+  // kez teslim ederse mükerrer randevu oluşmasını önlemek için, otomatik
+  // oluşturulan randevunun hangi hatırlatma döngüsüne (bkz. reminderCycleKey)
+  // ait olduğunu saklar (bkz. app/api/whatsapp/webhook/route.ts). Yalnızca
+  // source === "whatsapp_onay" olan kayıtlarda dolu olur.
+  whatsappCycleKey?: string;
 }
 
 // ---------- Etiket Mağazası (fiziksel QR etiket siparişi) ----------

@@ -295,6 +295,15 @@ export async function deleteShop(shopId: string): Promise<Shop | null> {
   const shop = await getShopById(shopId);
   if (!shop) return null;
 
+  // Partner ilişki indeksi (shops_by_partner) — yalnızca "hangi bayiler bu
+  // partnere bağlı" indeksindeki kaydı temizler (bkz. setShopPartner/
+  // attributeShopToPartnerIfUnset). Geçmiş komisyon kayıtlarına (Partner
+  // Commissions) DOKUNULMAZ — onlar oluşturuldukları andaki partnerId/shopName'i
+  // kalıcı olarak taşır, bayi silinse bile Hakedişler ekranında bozulmaz.
+  if (shop.partnerId) {
+    await shopsByPartnerStore().delete(`${shop.partnerId}/${shopId}`);
+  }
+
   // Çalışan hesapları (giriş bilgileri dahil)
   const staff = await listStaffForShop(shopId);
   await Promise.all(staff.map((s) => deleteStaffAccount(shopId, s.id)));

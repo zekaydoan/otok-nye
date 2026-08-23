@@ -52,7 +52,6 @@ export default function AddOilRecordForm({
     note: "",
     nextServiceDate: "",
     nextServiceKm: "",
-    notifyOwner: true,
   });
   const [beforePhoto, setBeforePhoto] = useState<string | null>(null);
   const [afterPhoto, setAfterPhoto] = useState<string | null>(null);

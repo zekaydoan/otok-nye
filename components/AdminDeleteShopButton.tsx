@@ -12,9 +12,16 @@ import { useToast } from "@/components/Toast";
 export default function AdminDeleteShopButton({
   shopId,
   shopName,
+  partnerName,
 }: {
   shopId: string;
   shopName: string;
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 4): bayi bir partnere
+  // bağlıysa admin, silmeden önce bunun partnerin aktif bayi sayısını/kademesini
+  // etkileyebileceğini görsün diye. Geçmiş komisyon kayıtları bu işlemden
+  // etkilenmez (bkz. lib/blobStore.ts deleteShop yorumu) — burada yalnızca bir
+  // bilgilendirme, ayrı bir onay adımı değil.
+  partnerName?: string;
 }) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -54,6 +61,12 @@ export default function AdminDeleteShopButton({
         Araç ve bakım kayıtları ile geçmiş etiket siparişleri (mali kayıt olduğu için)
         silinmez. Bu işlem geri alınamaz.
       </p>
+      {partnerName && (
+        <p className="mt-2 text-sm font-medium text-red-800">
+          Bu bayi "{partnerName}" partnerine bağlı — silme işlemi partnerin aktif bayi
+          sayısını ve kademesini etkileyebilir. Geçmiş komisyon kayıtları değişmez.
+        </p>
+      )}
 
       <label className="mt-4 block text-xs font-medium text-red-700">
         Onaylamak için bayi adını yazın: <span className="font-semibold">{shopName}</span>

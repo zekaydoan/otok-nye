@@ -175,7 +175,7 @@ export default async function AdminShopDetailPage({ params }: { params: { id: st
       </section>
 
       <section className="mt-6">
-        <AdminDeleteShopButton shopId={shop.id} shopName={shop.name} />
+        <AdminDeleteShopButton shopId={shop.id} shopName={shop.name} partnerName={currentPartner?.name} />
       </section>
     </div>
   );

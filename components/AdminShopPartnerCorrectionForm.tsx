@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 
@@ -76,7 +77,14 @@ export default function AdminShopPartnerCorrectionForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <p className="text-xs text-slate-500">
-        Mevcut partner: <span className="font-semibold text-slate-700">{currentLabel}</span>
+        Mevcut partner:{" "}
+        {currentPartnerId ? (
+          <Link href={`/admin/partnerler/${currentPartnerId}`} className="font-semibold text-brand-600 hover:underline">
+            {currentLabel}
+          </Link>
+        ) : (
+          <span className="font-semibold text-slate-700">{currentLabel}</span>
+        )}
       </p>
       <div>
         <label className="block text-xs font-medium text-slate-600">Yeni Partner</label>
