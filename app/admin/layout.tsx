@@ -28,7 +28,7 @@ import {
 // gruplar arasına (masaüstünde) ince bir dikey çizgi eklendi. Önceden hepsi
 // tek sırada, aynı görsel ağırlıktaydı. "Bekleyen İşler" artık grubun
 // başında: admin panelinin asıl giriş noktası oldu (bkz. aşağıdaki logo linki).
-const NAV_GROUPS: { href: string; label: string; icon: React.ReactNode; color: string }[][] = [
+const NAV_GROUPS: { href: string; label: string; icon: React.ReactElement; color: string }[][] = [
   [
     { href: "/admin/bekleyen-isler", label: "Bekleyen İşler", icon: <BellIcon />, color: "red" as const },
     { href: "/admin/siparisler", label: "Siparişler", icon: <PackageIcon />, color: "pink" as const },
