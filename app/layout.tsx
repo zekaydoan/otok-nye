@@ -119,7 +119,13 @@ const websiteJsonLd = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="tr" className={inter.variable}>
-      <body className="font-sans">
+      {/* pb-24: mobilde sol altta sabit duran WhatsAppFloatButton (h-14, bottom-5)
+          bazı sayfalarda son içerikle (ör. ana sayfa SSS'in son sorusu, /hakkimizda
+          footer linkleri) üst üste biniyordu — buton her zaman fixed/normal akış
+          dışında olduğundan, body'nin altına mobilde ekstra boşluk bırakarak son
+          içeriğin butonun arkasında kalmasını engelliyoruz. sm ve üstünde buton zaten
+          daha az yoğun sayfa altlarıyla çakışmadığı için padding kaldırılıyor. */}
+      <body className="font-sans pb-24 sm:pb-0">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
