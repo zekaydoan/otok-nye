@@ -4,16 +4,28 @@ import { listAllDataRequests } from "@/lib/blobStore";
 import AdminDataRequestRow from "@/components/AdminDataRequestRow";
 import EmptyState from "@/components/EmptyState";
 import { LockIcon } from "@/components/icons";
+import type { DataRequestStatus } from "@/lib/types";
 
 // Yalnızca ADMIN_EMAILS'te tanımlı hesaplara açık — bkz. app/admin/oneriler/page.tsx
 // ile aynı desen. Araç sahiplerinin genel araç sayfasından gönderdiği KVKK m.11
 // (bilgi edinme/silme) talepleri burada listelenir — bkz.
 // app/api/vehicles/[id]/veri-talebi.
+//
+// V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): liste artık durum önceliğine
+// göre sıralanıyor (yeni → işlemde → tamamlandı) — önceden tüm talepler tarih
+// sırasında karışık duruyordu, bekleyen (henüz işleme alınmamış) bir talep
+// listenin ortasında/altında kalabiliyordu. Array.prototype.sort kararlı
+// (stable) olduğundan aynı durum içindeki sıralama (en yeni/en eski) korunur.
+const STATUS_PRIORITY: Record<DataRequestStatus, number> = { yeni: 0, islemde: 1, tamamlandi: 2 };
+
 export default async function AdminDataRequestsPage() {
   const adminShopId = await getCurrentAdminShopId();
   if (!adminShopId) notFound();
 
   const requests = await listAllDataRequests();
+  const sortedRequests = [...requests].sort(
+    (a, b) => STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status]
+  );
   const newCount = requests.filter((r) => r.status === "yeni").length;
 
   return (
@@ -32,7 +44,7 @@ export default async function AdminDataRequestsPage() {
             description="Araç sahipleri genel araç sayfasından talep gönderdiğinde burada listelenecek."
           />
         )}
-        {requests.map((r) => (
+        {sortedRequests.map((r) => (
           <AdminDataRequestRow key={r.id} request={r} />
         ))}
       </div>

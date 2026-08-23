@@ -2089,6 +2089,14 @@ export async function updateDataRequestStatus(
 ): Promise<DataRequest> {
   const existing = await getDataRequestById(id);
   if (!existing) throw new Error("Talep bulunamadı.");
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): "Tamamlandı" terminal bir
+  // durum — UI'da bu durumdaki kayıtlarda artık aksiyon butonu gösterilmiyor
+  // (bkz. components/AdminDataRequestRow.tsx), burada da aynı kural sunucu
+  // tarafında zorlanıyor ki doğrudan API çağrısıyla bile tamamlanmış bir KVKK
+  // talebi yanlışlıkla yeniden açılamasın.
+  if (existing.status === "tamamlandi" && status !== "tamamlandi") {
+    throw new Error("Tamamlandı olarak işaretlenmiş bir talebin durumu değiştirilemez.");
+  }
   const updated: DataRequest = { ...existing, status };
   await dataRequestsStore().setJSON(id, updated);
   return updated;

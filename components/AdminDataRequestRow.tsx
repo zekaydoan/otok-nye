@@ -11,10 +11,17 @@ import {
 } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 
-const NEXT_STATUS: Record<DataRequestStatus, DataRequestStatus> = {
+// V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): "Tamamlandı" artık terminal
+// (bitmiş) bir durum — önceden buradan "Yeni"ye tek tıkla ve onaysız geri
+// dönülebiliyordu, bu da tamamlanmış bir KVKK talebinin yanlışlıkla yeniden
+// açılmasına yol açabilirdi. tamamlandi artık bu eşlemede yok; aşağıdaki
+// render kısmı NEXT_STATUS[request.status] tanımsızsa butonu hiç göstermez.
+// Geri alma ihtiyacı olursa bu ayrıca (bilinçli bir onay adımıyla)
+// değerlendirilecek — bkz. lib/blobStore.ts updateDataRequestStatus'taki
+// sunucu tarafı guard.
+const NEXT_STATUS: Partial<Record<DataRequestStatus, DataRequestStatus>> = {
   yeni: "islemde",
   islemde: "tamamlandi",
-  tamamlandi: "yeni",
 };
 
 const STATUS_TONE: Record<DataRequestStatus, string> = {
@@ -29,12 +36,14 @@ export default function AdminDataRequestRow({ request }: { request: DataRequest 
   const [saving, setSaving] = useState(false);
 
   async function advanceStatus() {
+    const next = NEXT_STATUS[request.status];
+    if (!next) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/admin/veri-talepleri/${request.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: NEXT_STATUS[request.status] }),
+        body: JSON.stringify({ status: next }),
       });
       if (!res.ok) {
         showToast("Güncellenemedi, tekrar deneyin.", "error");
@@ -66,15 +75,16 @@ export default function AdminDataRequestRow({ request }: { request: DataRequest 
       </div>
       <p className="mt-2 text-sm text-slate-700">İletişim: {request.contactInfo}</p>
       {request.message && <p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{request.message}</p>}
-      <button
-        onClick={advanceStatus}
-        disabled={saving}
-        className="mt-3 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
-      >
-        {request.status === "yeni" && "İşleme al"}
-        {request.status === "islemde" && "Tamamlandı olarak işaretle"}
-        {request.status === "tamamlandi" && "Yeni olarak işaretle"}
-      </button>
+      {NEXT_STATUS[request.status] && (
+        <button
+          onClick={advanceStatus}
+          disabled={saving}
+          className="mt-3 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+        >
+          {request.status === "yeni" && "İşleme al"}
+          {request.status === "islemde" && "Tamamlandı olarak işaretle"}
+        </button>
+      )}
     </div>
   );
 }

@@ -41,49 +41,26 @@ export default async function AdminStatsPage() {
   // (Netlify Functions) UTC'de çalıştığı için önceki `new Date()` bazlı hesap
   // "bugün"ü TR gece yarısında değil 03:00'te değiştiriyordu.
   const today = turkeyDateISO();
-  // Bu ay / bu yıl toplamları için getCityVisitsRange'e kaç gün geriye
-  // gidileceğini hesaplıyoruz: ayın kaçıncı günündeyiz (1 Ağustos'ta 1, 15
-  // Ağustos'ta 15...) ve yılın kaçıncı günündeyiz — böylece takvim ayı/yılı
-  // başlangıcından bugüne kadarki (ay/yıl-başı - bugün) aralık toplanır.
+  // Bu ay / bu yıl en çok ziyaret edilen şehir kartları için (bkz. aşağıdaki
+  // "Bugün Hangi Şehirlerden Ziyaret Edildi" bölümü) getCityVisitsRange'e kaç
+  // gün geriye gidileceğini hesaplıyoruz: ayın kaçıncı günündeyiz (1
+  // Ağustos'ta 1, 15 Ağustos'ta 15...) ve yılın kaçıncı günündeyiz.
   const dayOfMonth = Number(today.slice(8, 10));
   const [todayYear] = today.split("-");
   const todayAnchor = new Date(`${today}T12:00:00Z`);
   const startOfYearAnchor = new Date(`${todayYear}-01-01T12:00:00Z`);
   const dayOfYear = Math.floor((todayAnchor.getTime() - startOfYearAnchor.getTime()) / 86400000) + 1;
 
-  // Haftalık/aylık/yıllık ziyaret bölümü (bkz. PageviewsRangeExplorer) için bu
-  // haftanın Pazartesi'si, bu ayın 1'i ve bu yılın 1 Ocak'ı — Türkiye takvim
-  // gününe göre (aynı turkeyDateAnchor tabanlı desen, yukarıdaki dayOfYear
-  // hesabıyla tutarlı). Toplamlar hâlâ "başlangıç → bugün" aralığında
-  // hesaplanır (henüz yaşanmamış günler için boş sorgu yapmaya gerek yok),
-  // ancak admin panelinde gösterilen ETİKET (ör. "01.08 - 31.08") kullanıcının
-  // "hangi tarih aralığından bahsediyoruz" sorusuna netlik getirmesi için
-  // takvim döneminin TAMAMINI (haftanın Pazar'ı, ayın son günü, yılın 31
-  // Aralık'ı) gösterir — bkz. fmtRangeDM aşağıda.
+  // Haftalık/Aylık/Yıllık Ziyaret gezgini (bkz. PageviewsRangeExplorer) bu
+  // haftanın Pazartesi'sinden başlayarak açılır — kullanıcı dilediği tarih
+  // aralığını (veya hazır "Bu Ay/Bu Yıl/Geçen Hafta..." kısayollarından
+  // birini) seçip sonucu orada görür. V2 sadeleştirme (23 Ağustos 2026, Zeki
+  // onayı): üstteki özet kartlarındaki Dünkü/Bu Hafta/Bu Ay/Bu Yıl Ziyaret
+  // tekrarları kaldırıldı — hepsi zaten bu gezginde tek tıkla görülebiliyordu.
   const weekdayMon0 = (turkeyDateAnchor(today).getUTCDay() + 6) % 7; // Pazartesi=0
   const weekStartAnchor = new Date(todayAnchor);
   weekStartAnchor.setUTCDate(weekStartAnchor.getUTCDate() - weekdayMon0);
   const weekStartISO = weekStartAnchor.toISOString().slice(0, 10);
-  const weekEndAnchor = new Date(weekStartAnchor);
-  weekEndAnchor.setUTCDate(weekEndAnchor.getUTCDate() + 6);
-  const weekEndISO = weekEndAnchor.toISOString().slice(0, 10);
-
-  const monthStartISO = `${today.slice(0, 7)}-01`;
-  const monthEndAnchor = new Date(`${today.slice(0, 7)}-01T12:00:00Z`);
-  monthEndAnchor.setUTCMonth(monthEndAnchor.getUTCMonth() + 1);
-  monthEndAnchor.setUTCDate(0); // önceki ayın son günü = geçerli ayın son günü
-  const monthEndISO = monthEndAnchor.toISOString().slice(0, 10);
-
-  const yearStartISO = `${todayYear}-01-01`;
-  const yearEndISO = `${todayYear}-12-31`;
-
-  // "01.08 - 31.08" gibi gün.ay etiketi (yıl aynı olduğu için tekrar
-  // yazılmaz) — admin panelindeki hafta/ay/yıl kartlarının altında gösterilir.
-  const fmtRangeDM = (startISO: string, endISO: string) => {
-    const [, sm, sd] = startISO.split("-");
-    const [, em, ed] = endISO.split("-");
-    return `${sd}.${sm} - ${ed}.${em}`;
-  };
 
   const [
     pageviews,
@@ -98,8 +75,6 @@ export default async function AdminStatsPage() {
     activeVisitors,
     churnStats,
     pageviewsThisWeek,
-    pageviewsThisMonth,
-    pageviewsThisYear,
   ] = await Promise.all([
     getDailyPageviews(14),
     getShopCountsByPlan(),
@@ -113,8 +88,6 @@ export default async function AdminStatsPage() {
     getActiveVisitorStats(),
     getChurnStats(),
     getPageviewsInRange(weekStartISO, today),
-    getPageviewsInRange(monthStartISO, today),
-    getPageviewsInRange(yearStartISO, today),
   ]);
 
   // Bir şehir sayacı içinden en yüksek değere sahip olanı ("Belirtilmemiş"
@@ -133,7 +106,6 @@ export default async function AdminStatsPage() {
   const topCityYear = topCity(cityVisitsYear);
 
   const todayViews = pageviews[pageviews.length - 1]?.count ?? 0;
-  const yesterdayViews = pageviews[pageviews.length - 2]?.count ?? 0;
   const last14DaysViews = pageviews.reduce((sum, d) => sum + d.count, 0);
   const maxViews = Math.max(1, ...pageviews.map((d) => d.count));
 
@@ -162,28 +134,6 @@ export default async function AdminStatsPage() {
           <ActiveVisitorsCard initialCount={activeVisitors.count} initialByProvince={activeVisitors.byProvince} />
         </div>
         <StatCard icon={<ChartBarIcon />} color="blue" label="Bugünkü Ziyaret" value={todayViews.toString()} />
-        <StatCard icon={<ChartBarIcon />} color="slate" label="Dünkü Ziyaret" value={yesterdayViews.toString()} />
-        <StatCard
-          icon={<CalendarIcon />}
-          color="blue"
-          label="Bu Hafta Ziyaret"
-          value={pageviewsThisWeek.total.toString()}
-          sub={fmtRangeDM(weekStartISO, weekEndISO)}
-        />
-        <StatCard
-          icon={<CalendarIcon />}
-          color="indigo"
-          label="Bu Ay Ziyaret"
-          value={pageviewsThisMonth.total.toString()}
-          sub={fmtRangeDM(monthStartISO, monthEndISO)}
-        />
-        <StatCard
-          icon={<CalendarIcon />}
-          color="purple"
-          label="Bu Yıl Ziyaret"
-          value={pageviewsThisYear.total.toString()}
-          sub={fmtRangeDM(yearStartISO, yearEndISO)}
-        />
         <StatCard
           icon={<UsersIcon />}
           color="indigo"
