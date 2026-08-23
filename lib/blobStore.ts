@@ -2325,9 +2325,21 @@ export async function recordPartnerCommission(
     createdAt: new Date().toISOString(),
     ...entry,
   };
-  await partnerCommissionsStore().setJSON(full.id, full);
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): üç blob yazması (ana kayıt +
+  // 2 index) atomik değil — bu üçü arasında bir hata olursa TUTARLI TARAFTA
+  // hata olsun diye kasıtlı olarak indexler ÖNCE, ana kayıt EN SON yazılıyor.
+  // listCommissionsForShop/listCommissionsForPartner (aşağıda) index'i tarayıp
+  // getPartnerCommissionById ile ana kaydı çeker ve null dönenleri eler — yani
+  // "index var ama ana kayıt henüz/hiç yazılmadı" durumu HER İKİ listede de
+  // görünmez kalır (güvenli: sessizce yok sayılır, idempotency kontrolünü
+  // yanlış yönlendirmez). Eski sırada (ana kayıt önce) tam tersi olabiliyordu:
+  // ana kayıt + tek index yazılıp diğeri başarısız olursa, partner tarafında
+  // görünen ama shop tarafındaki idempotency kontrolünün göremediği bir kayıt
+  // oluşabiliyor, bu da bir sonraki denemede gerçek bir mükerrer komisyona yol
+  // açabiliyordu.
   await partnerCommissionsByPartnerStore().set(`${full.partnerId}/${full.id}`, full.createdAt);
   await partnerCommissionsByShopStore().set(`${full.shopId}/${full.id}`, full.createdAt);
+  await partnerCommissionsStore().setJSON(full.id, full);
   return full;
 }
 
@@ -2389,6 +2401,45 @@ export async function markAllPendingCommissionsPaidForPartner(
   };
 }
 
+const PARTNER_COMMISSION_LOCK_STALE_MS = 5 * 60 * 1000; // 5 dakika
+
+// V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 6 - yeniden gözden
+// geçirme): üç komisyon tahakkuk fonksiyonunun (aşağıda) ortak atomik kilit
+// yardımcısı. Anahtar yoksa onlyIfNew ile alınır. Anahtar VARSA ama üzerinden
+// PARTNER_COMMISSION_LOCK_STALE_MS'den (bu tür bir yazma işleminin normal
+// süresini kat kat aşan bir eşik) uzun süre geçmişse, kilidi alan önceki
+// çağrının recordPartnerCommission bitmeden çökmüş/zaman aşımına uğramış
+// (ve dolayısıyla hiç catch'e uğrayıp kilidi silememiş) olduğu kabul edilir
+// ve ETag tabanlı CAS (onlyIfMatch) ile kilit devralınır — böylece geçici bir
+// çökme, o shop/tür/dönem için komisyonu SÜRESİZ olarak engellemez. Devralma
+// da atomik olduğundan iki eşzamanlı "devralma" denemesinden yalnızca biri
+// başarılı olur.
+async function claimPartnerCommissionLock(lockKey: string): Promise<boolean> {
+  const now = new Date().toISOString();
+  const claim = await partnerCommissionLocksStore().set(lockKey, now, { onlyIfNew: true });
+  if (claim.modified) return true;
+
+  const existing = await partnerCommissionLocksStore().getWithMetadata(lockKey, {
+    type: "text",
+    consistency: "strong",
+  });
+  if (!existing) {
+    // Nadir yarış: kilit tam bu sırada silindi (başka bir çağrının catch'i).
+    // Tekrar onlyIfNew dene; bu da başarısız olursa üçüncü bir çağrı bizden
+    // önce davranmış demektir, meşgul kabul edip çık.
+    const retryClaim = await partnerCommissionLocksStore().set(lockKey, now, { onlyIfNew: true });
+    return retryClaim.modified;
+  }
+
+  const lockedAt = new Date(existing.data as string).getTime();
+  if (Number.isNaN(lockedAt) || Date.now() - lockedAt < PARTNER_COMMISSION_LOCK_STALE_MS) {
+    return false; // hâlâ taze, gerçekten meşgul
+  }
+
+  const reclaim = await partnerCommissionLocksStore().set(lockKey, now, { onlyIfMatch: existing.etag });
+  return reclaim.modified;
+}
+
 // Bir bayi için, henüz aktivasyon primi tahakkuk etmemişse ve koşul (partnerin
 // koduyla geldi + PARTNER_ACTIVATION_WINDOW_DAYS içinde en az 1 bakım kaydı)
 // karşılandıysa tek seferlik aktivasyon primini tahakkuk ettirir.
@@ -2410,15 +2461,13 @@ export async function checkAndAccruePartnerActivationBonus(shopId: string): Prom
   // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 6): iki eşzamanlı
   // tetik (ör. iki bakım kaydı isteği neredeyse aynı anda) yukarıdaki
   // "oku -> yoksa yaz" kontrolünü ikisi de geçebilir. Bunu kapatmak için,
-  // asıl kaydı yazmadan önce atomik bir kilit anahtarını (onlyIfNew) almayı
-  // deniyoruz — yalnızca kilidi GERÇEKTEN alan çağrı komisyonu kaydeder,
-  // diğeri sessizce çıkar. Kilit alındıktan sonra yazma başarısız olursa
-  // kilit geri silinir, komisyon kalıcı olarak "kaçmaz".
+  // asıl kaydı yazmadan önce atomik bir kilit anahtarı alınıyor (bkz.
+  // claimPartnerCommissionLock, bayat kilitleri de devralır) — yalnızca
+  // kilidi GERÇEKTEN alan çağrı komisyonu kaydeder, diğeri sessizce çıkar.
+  // Kilit alındıktan sonra yazma başarısız olursa kilit geri silinir,
+  // komisyon kalıcı olarak "kaçmaz".
   const lockKey = `${shopId}/aktivasyon`;
-  const claim = await partnerCommissionLocksStore().set(lockKey, new Date().toISOString(), {
-    onlyIfNew: true,
-  });
-  if (!claim.modified) return; // başka bir eşzamanlı çağrı zaten kazandı
+  if (!(await claimPartnerCommissionLock(lockKey))) return; // başka bir çağrı zaten kazandı
 
   try {
     await recordPartnerCommission({
@@ -2456,10 +2505,7 @@ export async function checkAndAccruePartnerConversionBonus(
   // admin elle plan aktive ederken ve iyzico webhook'u neredeyse aynı anda
   // gelirse ikisinin de dönüşüm bonusu yazmasını engeller.
   const lockKey = `${shopId}/donusum`;
-  const claim = await partnerCommissionLocksStore().set(lockKey, new Date().toISOString(), {
-    onlyIfNew: true,
-  });
-  if (!claim.modified) return;
+  if (!(await claimPartnerCommissionLock(lockKey))) return;
 
   try {
     await recordPartnerCommission({
@@ -2513,10 +2559,7 @@ export async function accruePartnerRecurringCommission(
   // kayıt yazılmasını garanti eder. Dönem bazlı olduğu için anahtar
   // periodMonth'u da içerir.
   const lockKey = `${shopId}/recurring/${periodMonth}`;
-  const claim = await partnerCommissionLocksStore().set(lockKey, new Date().toISOString(), {
-    onlyIfNew: true,
-  });
-  if (!claim.modified) return;
+  if (!(await claimPartnerCommissionLock(lockKey))) return;
 
   try {
     await recordPartnerCommission({

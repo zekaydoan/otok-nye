@@ -249,7 +249,7 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
               Siparişi kalıcı olarak sil
             </button>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-end gap-3">
               <span className="text-xs text-slate-500">
                 Emin misiniz? Bu işlem geri alınamaz.
               </span>
