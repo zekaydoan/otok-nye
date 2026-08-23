@@ -15,16 +15,20 @@ import { MenuIcon, CloseIcon } from "@/components/icons";
 //
 // V2 ana sayfa yeniden kurgusu (23 Ağustos 2026, Zeki onayı): link seti yeni
 // bölüm sırasına göre güncellendi (Özellikler/Fiyatlandırma/İletişim/Blog ->
-// Nasıl Çalışır/Kimler İçin/Fiyatlar/SSS + Giriş Yap + Partner Girişi). Alttaki
-// "Ücretsiz Başla" butonu kaldırıldı — CTA artık header'da mobilde de her
-// zaman görünen birincil buton olduğundan burada tekrarına gerek kalmadı.
+// Nasıl Çalışır/Kimler İçin/Fiyatlar/SSS). Alttaki "Ücretsiz Başla" butonu
+// kaldırıldı — CTA artık header'da mobilde de her zaman görünen birincil
+// buton olduğundan burada tekrarına gerek kalmadı.
+//
+// Giriş Yap ve Partner Girişi burada YOK (23 Ağustos 2026, Zeki geri
+// bildirimi ile kaldırıldı): Giriş Yap artık header'da Ücretsiz Başla'nın
+// yanında her zaman görünür duruyor (bkz. app/page.tsx), Partner Girişi ise
+// zaten üstteki siyah barda ayrı bir link olarak var — ikisinin de burada
+// tekrarı gereksizdi.
 const links = [
   { href: "#nasil-calisir", label: "Nasıl Çalışır" },
   { href: "#kimler-icin", label: "Kimler İçin" },
   { href: "#fiyatlandirma", label: "Fiyatlar" },
   { href: "#sss", label: "SSS" },
-  { href: "/giris", label: "Giriş Yap" },
-  { href: "/partner-girisi", label: "Partner Girişi" },
 ];
 
 export default function MobileNavMenu() {

@@ -249,9 +249,10 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       {/* Kurumsal "üst bar" deseni — ikincil kitle (saha partnerleri) için tek
-          bir link, ana header'dan görsel olarak tamamen ayrı. Bu committe
-          dokunulmuyor; mobil hamburger menüsüne de ayrıca bir Partner Girişi
-          linki eklendi (bkz. MobileNavMenu.tsx), ikisi çakışmıyor. */}
+          bir link, ana header'dan görsel olarak tamamen ayrı. Partner Girişi
+          SADECE burada yer alıyor; hamburger menüsündeki tekrarı kaldırıldı
+          (23 Ağustos 2026, Zeki geri bildirimi) — aynı linkin iki yerde
+          görünmesi gereksiz tekrar yaratıyordu. */}
       <div className="border-b border-slate-800 bg-slate-900">
         <div className="mx-auto flex max-w-6xl items-center justify-end px-4 py-2.5 text-sm sm:px-6">
           <Link
@@ -270,10 +271,15 @@ export default async function HomePage() {
           </Link>
           {/* V2 ana sayfa yeniden kurgusu: nav linkleri yeni bölüm sırasına
               göre değişti (Özellikler/Fiyatlandırma/İletişim/Blog -> Nasıl
-              Çalışır/Kimler İçin/Fiyatlar/SSS). Mobilde CTA önceliği tersine
-              çevrildi: "Ücretsiz Başla" artık her zaman görünür ve birincil
-              stilde, "Giriş Yap" mobilde gizli (hamburger içinde) — önceden
-              tam tersiydi (bkz. MobileNavMenu.tsx yorumu). */}
+              Çalışır/Kimler İçin/Fiyatlar/SSS). CTA çifti (Giriş Yap +
+              Ücretsiz Başla) artık mobilde de her zaman görünür — önceden
+              Giriş Yap mobilde hamburger içine gizleniyordu (23 Ağustos 2026,
+              Zeki geri bildirimi). Renk hiyerarşisi bilinçli: Ücretsiz Başla
+              turuncu/accent kalıyor çünkü sayfanın her yerinde (hero, Final
+              CTA, fiyatlandırma kartları) TEK birincil eylem rengi bu — Giriş
+              Yap turuncu olursa header'da iki "birincil" buton varmış gibi
+              görünüp asıl dönüşüm hedefinin görsel ağırlığı bölünür. Bu yüzden
+              Giriş Yap mavi/çerçeveli, ikincil ağırlıkta tutuluyor. */}
           <nav className="flex items-center gap-2 text-sm font-medium text-slate-600 sm:gap-4">
             <Link href="#nasil-calisir" className="hidden hover:text-brand-700 sm:inline">
               Nasıl Çalışır
@@ -287,7 +293,10 @@ export default async function HomePage() {
             <Link href="#sss" className="hidden hover:text-brand-700 sm:inline">
               SSS
             </Link>
-            <Link href="/giris" className="hidden font-medium text-slate-600 hover:text-brand-700 sm:inline">
+            <Link
+              href="/giris"
+              className="rounded-lg border border-brand-600 px-3 py-2 font-semibold text-brand-600 hover:bg-brand-50 sm:px-4"
+            >
               Giriş Yap
             </Link>
             <Link
