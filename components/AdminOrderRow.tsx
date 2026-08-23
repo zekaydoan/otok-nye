@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { STICKER_ORDER_STATUS_LABELS, type StickerOrder, type StickerOrderStatus } from "@/lib/types";
-import { stickerOrderStatusBadgeClass } from "@/lib/stickerOrderUi";
+import { isStickerOrderTerminalStatus, stickerOrderStatusBadgeClass } from "@/lib/stickerOrderUi";
 import { useToast } from "@/components/Toast";
 
 // Kalıcı silme yalnızca hiç ödemesi alınmamış siparişler için sunulur (bkz.
@@ -56,7 +56,30 @@ export default function AdminOrderRow({ order }: { order: StickerOrder }) {
     }
   }
 
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 1): "teslim_edildi" ve
+  // "iptal" gibi sonuç durumlarına girerken ya da bunlardan çıkarken (ör.
+  // yanlışlıkla "teslim_edildi"den "kargoda"ya geri dönmek) onay istenir.
+  // Yalnızca durum GERÇEKTEN değiştiğinde devreye girer — kargo bilgisi
+  // düzenlemesi tek başına (durum aynı kalıyorsa) hiç etkilenmez.
+  function confirmStatusChangeIfNeeded(): boolean {
+    if (status === order.status) return true;
+    if (isStickerOrderTerminalStatus(order.status)) {
+      return window.confirm(
+        `Bu sipariş zaten "${STICKER_ORDER_STATUS_LABELS[order.status]}" olarak işaretli. ` +
+          `Durumu "${STICKER_ORDER_STATUS_LABELS[status]}" olarak değiştirmek istediğinize emin misiniz? ` +
+          `Bu genellikle yanlışlıkla yapılan bir işlemdir.`
+      );
+    }
+    if (isStickerOrderTerminalStatus(status)) {
+      return window.confirm(
+        `Bu siparişi "${STICKER_ORDER_STATUS_LABELS[status]}" olarak işaretlemek istediğinize emin misiniz?`
+      );
+    }
+    return true;
+  }
+
   async function handleSave() {
+    if (!confirmStatusChangeIfNeeded()) return;
     setSaving(true);
     setError(null);
     try {

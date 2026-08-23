@@ -598,6 +598,7 @@ export interface StickerSelfPrint {
 export type AdminAuditAction =
   | "plan_degistirildi"
   | "siparis_guncellendi"
+  | "siparis_kargo_guncellendi"
   | "iade_isaretlendi"
   | "siparis_silindi"
   | "siparis_hediye_edildi"

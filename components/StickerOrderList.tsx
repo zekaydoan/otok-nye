@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { STICKER_ORDER_STATUS_LABELS, type StickerOrder } from "@/lib/types";
 import {
   STICKER_ORDER_TRACKING_STEPS,
+  getStickerOrderTrackingUrl,
   isStickerOrderCancelableByShop,
   isStickerOrderInTrackingFlow,
   stickerOrderStatusBadgeClass,
@@ -51,6 +52,11 @@ export default function StickerOrderList({ orders: initialOrders }: { orders: St
         const cancelable = isStickerOrderCancelableByShop(order.status);
         const isConfirming = confirmingId === order.id;
         const isCancelling = cancellingId === order.id;
+        // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 2): bilinen bir
+        // kargo firmasıysa takip no'su tıklanabilir bir linke dönüşür,
+        // bilinmeyen firmalarda (veya kargo bilgisi hiç girilmemişse) eskisi
+        // gibi düz metin olarak kalır.
+        const trackingUrl = getStickerOrderTrackingUrl(order.trackingCarrier, order.trackingNumber);
 
         return (
           <div key={order.id} className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
@@ -61,7 +67,23 @@ export default function StickerOrderList({ orders: initialOrders }: { orders: St
                 </p>
                 <p className="text-xs text-slate-400">
                   {new Date(order.createdAt).toLocaleDateString("tr-TR")}
-                  {order.trackingNumber ? ` · Takip No: ${order.trackingNumber}` : ""}
+                  {order.trackingNumber && (
+                    <>
+                      {" · Takip No: "}
+                      {trackingUrl ? (
+                        <a
+                          href={trackingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-brand-600 underline hover:text-brand-700"
+                        >
+                          {order.trackingNumber}
+                        </a>
+                      ) : (
+                        order.trackingNumber
+                      )}
+                    </>
+                  )}
                 </p>
               </div>
               {!inFlow && (

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentAdminEmail, getCurrentAdminShopId } from "@/lib/adminAuth";
-import { deleteStickerOrder, recordAdminAuditLog, updateStickerOrder } from "@/lib/blobStore";
+import { deleteStickerOrder, getShopById, recordAdminAuditLog, updateStickerOrder } from "@/lib/blobStore";
 import { STICKER_ORDER_STATUS_LABELS, type StickerOrderStatus } from "@/lib/types";
+import { sendStickerOrderStatusEmail } from "@/lib/email";
 
 const MAX_LEN = 120;
 
@@ -45,13 +46,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   // güncelleme öncesi durumu closure dışında okunabilecek bir objede tutuyoruz —
   // aynı desen app/api/etiket-siparis/[id]/iptal/route.ts'te de kullanıldı (TS'in
   // closure-içi reassignment'ları await sonrası narrowlamaması sorununu önler).
-  const before: { status: StickerOrderStatus | null; refundedAt?: string } = { status: null };
+  const before: {
+    status: StickerOrderStatus | null;
+    refundedAt?: string;
+    trackingCarrier?: string;
+    trackingNumber?: string;
+  } = { status: null };
 
   let updated;
   try {
     updated = await updateStickerOrder(params.id, (order) => {
       before.status = order.status;
       before.refundedAt = order.refundedAt;
+      before.trackingCarrier = order.trackingCarrier;
+      before.trackingNumber = order.trackingNumber;
       return {
         ...order,
         status,
@@ -87,6 +95,43 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       targetLabel: `${updated.shopName} — ${updated.quantity} adet`,
       detail: `${(refundAmountTry ?? updated.refundAmountTry ?? 0).toLocaleString("tr-TR")}₺ iade edildi olarak işaretlendi`,
     });
+  }
+
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 5): durum aynı kalsa
+  // bile kargo firması/takip no'su değiştiyse (ör. yanlış girilen takip
+  // numarasının düzeltilmesi) bunun da bir izi kalsın — önceden yalnızca
+  // status değişince audit log yazılıyordu, kargo bilgisi düzenlemeleri hiç
+  // görünmüyordu.
+  if (before.trackingCarrier !== updated.trackingCarrier || before.trackingNumber !== updated.trackingNumber) {
+    await recordAdminAuditLog({
+      actorEmail,
+      action: "siparis_kargo_guncellendi",
+      targetType: "sticker_order",
+      targetId: params.id,
+      targetLabel: `${updated.shopName} — ${updated.quantity} adet`,
+      detail: `Kargo bilgisi güncellendi: ${updated.trackingCarrier || "—"} / ${updated.trackingNumber || "—"}`,
+    });
+  }
+
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 3): sipariş "kargoda"
+  // veya "teslim_edildi" durumuna GEÇTİĞİNDE (yalnızca gerçek bir geçişte,
+  // her kargo bilgisi düzenlemesinde değil) bayiye bilgilendirme e-postası
+  // gönderilir. E-posta gönderimi başarısız olsa bile asıl kayıt zaten
+  // yapıldığından admin'e hata dönülmez — yalnızca loglanır.
+  if (before.status !== status && (status === "kargoda" || status === "teslim_edildi")) {
+    try {
+      const shop = await getShopById(updated.shopId);
+      if (shop?.email) {
+        await sendStickerOrderStatusEmail(shop.email, {
+          status,
+          quantity: updated.quantity,
+          trackingCarrier: updated.trackingCarrier,
+          trackingNumber: updated.trackingNumber,
+        });
+      }
+    } catch (err) {
+      console.error("[admin/siparisler] Bayi bildirim e-postası gönderilemedi:", err);
+    }
   }
 
   return NextResponse.json({ order: updated });

@@ -143,6 +143,44 @@ export async function sendAnnouncementEmail(
   return { attempted: recipientEmails.length, sent, failed };
 }
 
+// V2 sadeleştirme (23 Ağustos 2026, Zeki onayı, madde 3): Admin bir etiket
+// siparişini "kargoda" veya "teslim_edildi" yaptığında bayiye önceden hiçbir
+// bildirim gitmiyordu — bayi ancak panele girip bakınca fark ediyordu (bkz.
+// app/api/admin/siparisler/[id]/route.ts). Yalnızca bu iki durum için
+// gönderilir; diğer durum geçişlerinde (ör. "hazirlaniyor") sessiz kalınır,
+// aksi halde her admin düzenlemesinde bayiye e-posta yağardı.
+export async function sendStickerOrderStatusEmail(
+  to: string,
+  params: {
+    status: "kargoda" | "teslim_edildi";
+    quantity: number;
+    trackingCarrier?: string;
+    trackingNumber?: string;
+  }
+): Promise<EmailResult> {
+  const { status, quantity, trackingCarrier, trackingNumber } = params;
+  const subject =
+    status === "kargoda" ? "OtoHafıza — Etiket siparişiniz kargoya verildi" : "OtoHafıza — Etiket siparişiniz teslim edildi";
+  const trackingLine =
+    status === "kargoda" && trackingCarrier && trackingNumber
+      ? `<p>Kargo Firması: <strong>${escapeHtml(trackingCarrier)}</strong><br/>Takip No: <strong>${escapeHtml(trackingNumber)}</strong></p>`
+      : "";
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
+      <p>Merhaba,</p>
+      <p>${quantity} adetlik QR etiket siparişiniz
+      ${status === "kargoda" ? "kargoya verildi." : "teslim edildi olarak işaretlendi."}</p>
+      ${trackingLine}
+      <p style="margin-top:20px;">
+        <a href="https://otohafiza.com/dashboard/etiket-siparis" style="display:inline-block;background:#1d4ed8;color:#fff;
+        padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">
+        Siparişimi Görüntüle</a>
+      </p>
+    </div>
+  `;
+  return sendEmail(to, subject, html);
+}
+
 export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<EmailResult> {
   const html = `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
