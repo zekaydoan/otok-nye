@@ -18,7 +18,7 @@ export default async function PlanPage() {
       <h1 className="text-2xl font-bold text-slate-900">Abonelik Planı</h1>
       <p className="mt-1 text-sm text-slate-500">
         {PAID_PLANS_ENABLED
-          ? "İhtiyacınıza göre plan seçin. Kredi kartı ile otomatik tahsilat, ödeme sağlayıcı hesabınız (ör. iyzico/Stripe) tanımlandığında devreye alınabilir — şimdilik plan seçiminiz hesabınıza kaydedilir."
+          ? "İhtiyacınıza göre plan seçin. Ücretli bir planı seçtiğinizde iyzico'nun güvenli ödeme ekranında kart bilgilerinizi girersiniz; ödeme onaylanır onaylanmaz planınız aktif olur ve her ay/yıl otomatik olarak yenilenir."
           : "Şirket kuruluş işlemlerimiz tamamlanana kadar yalnızca Ücretsiz plan kullanılabiliyor. Ücretli planlar (Pro, İşletme) kısa süre içinde açılacak."}
       </p>
 

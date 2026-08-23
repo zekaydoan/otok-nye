@@ -774,9 +774,9 @@ export default async function HomePage() {
             })}
           </div>
           <p className="mx-auto mt-6 max-w-2xl text-center text-xs text-slate-400">
-            Not: Ödeme altyapısı (kart ile otomatik tahsilat) canlıya alınırken kendi
-            ödeme sağlayıcı hesabınızın anahtarları tanımlanmalıdır; planlar şu an
-            hesabınıza etiketlenir ve panelden değiştirilebilir.
+            Ücretli planlarda ödeme iyzico'nun güvenli ödeme altyapısı üzerinden kartla
+            alınır ve her ay/yıl otomatik olarak yenilenir; planınızı istediğiniz zaman
+            panelden değiştirebilir veya iptal edebilirsiniz.
           </p>
         </div>
       </section>
