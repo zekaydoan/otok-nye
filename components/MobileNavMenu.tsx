@@ -4,19 +4,27 @@ import { useState } from "react";
 import Link from "next/link";
 import { MenuIcon, CloseIcon } from "@/components/icons";
 
-// Header'daki Özellikler/Fiyatlandırma/İletişim/Blog linkleri sadece
-// "sm:inline" ile görünürdü — mobilde (640px altında) tamamen kayboluyor ve
+// Header'daki Nasıl Çalışır/Kimler İçin/Fiyatlar/SSS linkleri sadece
+// "sm:inline" ile görünür — mobilde (640px altında) tamamen kayboluyor ve
 // yerlerine hiçbir alternatif (hamburger menü vb.) konmamıştı, yani mobil
 // kullanıcı bu sayfalara header'dan hiç ulaşamıyordu (bkz. kullanıcının
 // "mobil uyumluluğu kontrol ettin mi" sorusu üzerine yapılan inceleme). Bu
 // bileşen sadece mobilde (sm:hidden) görünen bir hamburger buton + aşağı
 // açılan basit bir panel sağlıyor; masaüstünde hiç render edilmiyor çünkü
 // asıl linkler zaten sm:inline ile orada duruyor.
+//
+// V2 ana sayfa yeniden kurgusu (23 Ağustos 2026, Zeki onayı): link seti yeni
+// bölüm sırasına göre güncellendi (Özellikler/Fiyatlandırma/İletişim/Blog ->
+// Nasıl Çalışır/Kimler İçin/Fiyatlar/SSS + Giriş Yap + Partner Girişi). Alttaki
+// "Ücretsiz Başla" butonu kaldırıldı — CTA artık header'da mobilde de her
+// zaman görünen birincil buton olduğundan burada tekrarına gerek kalmadı.
 const links = [
-  { href: "#ozellikler", label: "Özellikler" },
-  { href: "#fiyatlandirma", label: "Fiyatlandırma" },
-  { href: "#iletisim", label: "İletişim" },
-  { href: "/blog", label: "Blog" },
+  { href: "#nasil-calisir", label: "Nasıl Çalışır" },
+  { href: "#kimler-icin", label: "Kimler İçin" },
+  { href: "#fiyatlandirma", label: "Fiyatlar" },
+  { href: "#sss", label: "SSS" },
+  { href: "/giris", label: "Giriş Yap" },
+  { href: "/partner-girisi", label: "Partner Girişi" },
 ];
 
 export default function MobileNavMenu() {
@@ -47,16 +55,6 @@ export default function MobileNavMenu() {
                 {link.label}
               </Link>
             ))}
-            {/* Header'da mobilde artık "Giriş Yap" öncelikli (düzenli
-                kullanan bayiler için) — "Ücretsiz Başla" CTA'sı buraya,
-                menünün en altına, öne çıkan bir buton olarak taşındı. */}
-            <Link
-              href="/kayit"
-              onClick={() => setOpen(false)}
-              className="mt-1 rounded-lg bg-brand-600 px-3 py-2.5 text-center font-semibold text-white hover:bg-brand-700"
-            >
-              Ücretsiz Başla
-            </Link>
           </nav>
         </div>
       )}
