@@ -168,6 +168,8 @@ function SignupForm() {
                 </svg>
                 <input
                   required
+                  type="tel"
+                  inputMode="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 focus:border-brand-500 focus:outline-none"
@@ -176,16 +178,19 @@ function SignupForm() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">Şehir</label>
+              {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): Şehir artık
+                  zorunlu değil — Hesap Aç → İlk Araç → İlk Bakım akışında
+                  hiç kullanılmıyor, isteyen daha sonra Ayarlar/fatura
+                  akışında tamamlayabilir. */}
+              <label className="block text-sm font-medium text-slate-700">
+                Şehir <span className="font-normal text-slate-400">(isteğe bağlı)</span>
+              </label>
               <select
-                required
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
                 className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
               >
-                <option value="" disabled>
-                  Seçin...
-                </option>
+                <option value="">Seçin...</option>
                 {TR_PROVINCES.map((il) => (
                   <option key={il} value={il}>
                     {il}
@@ -226,7 +231,15 @@ function SignupForm() {
               </div>
             </div>
 
-            <div className="space-y-2 rounded-lg bg-slate-50 p-3">
+            {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı) — yalnızca görsel
+                ayrım: işletme bilgileri ile yasal onaylar artık bir üst
+                başlık/kenarlıkla ayrışıyor. Onay metinlerinin içeriği, sayısı
+                ve zorunluluk durumu HİÇ değişmedi. */}
+            <div className="border-t border-slate-100 pt-4">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Yasal Onaylar
+              </h2>
+              <div className="mt-2 space-y-2 rounded-lg bg-slate-50 p-3">
               <label className="flex items-start gap-2 text-xs text-slate-600">
                 <input
                   required
@@ -299,6 +312,7 @@ function SignupForm() {
                   istiyorum. <span className="text-slate-400">(isteğe bağlı)</span>
                 </span>
               </label>
+              </div>
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}

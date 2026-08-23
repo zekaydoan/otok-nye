@@ -43,7 +43,11 @@ export async function POST(req: NextRequest) {
     consents?: Partial<Record<string, boolean>>;
   };
 
-  if (!name || !email || !phone || !password || !city) {
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): Şehir artık zorunlu değil —
+  // Hesap Aç → İlk Araç → İlk Bakım akışının hiçbir adımında kullanılmıyor,
+  // yalnızca daha sonraki abonelik/fatura akışlarında devreye giriyor ve
+  // orada zaten bir "İstanbul" varsayılanı var (bkz. app/api/shop/plan).
+  if (!name || !email || !phone || !password) {
     return NextResponse.json({ error: "Tüm alanları doldurun." }, { status: 400 });
   }
   // Zorunlu 3 onay (SaaS Sözleşmesi+Kullanım Şartları, KVKK Aydınlatma Metni,
@@ -58,9 +62,10 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  // Serbest metin yerine sabit il listesiyle eşleşmeli — bkz. lib/types.ts
-  // TR_PROVINCES yorumu (şehir bazlı raporlarda yazım farkı sorunu olmasın diye).
-  if (!(TR_PROVINCES as readonly string[]).includes(city)) {
+  // Şehir opsiyonel ama girildiyse serbest metin yerine sabit il listesiyle
+  // eşleşmeli — bkz. lib/types.ts TR_PROVINCES yorumu (şehir bazlı raporlarda
+  // yazım farkı sorunu olmasın diye).
+  if (city && !(TR_PROVINCES as readonly string[]).includes(city)) {
     return NextResponse.json({ error: "Geçerli bir şehir seçin." }, { status: 400 });
   }
   if (name.length > MAX_NAME_LEN || phone.length > MAX_PHONE_LEN) {
@@ -100,7 +105,7 @@ export async function POST(req: NextRequest) {
     phone: phone.trim(),
     passwordHash: await hashPassword(password),
     plan: "free",
-    city,
+    ...(city ? { city } : {}),
     createdAt: new Date().toISOString(),
     ...(foundingServiceRank ? { foundingServiceRank } : {}),
   };
