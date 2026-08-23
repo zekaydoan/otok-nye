@@ -70,6 +70,13 @@ export async function POST(req: NextRequest) {
         </div>`
       );
     } else {
+      // iyzico'nun döndürdüğü asıl ret sebebini (kart reddi, 3D Secure hatası,
+      // hesap/entegrasyon sorunu vb.) Netlify fonksiyon loglarına yazıyoruz —
+      // sipariş kaydında/kullanıcıya gösterilen ekranda bu detay yok, aksi
+      // hâlde "neden başarısız oldu" sorusu asla cevaplanamaz.
+      console.error(
+        `[etiket-siparis] Ödeme başarısız — sipariş ${orderId}: status=${retrieveResult.status}, paymentStatus=${retrieveResult.paymentStatus}, errorMessage=${retrieveResult.errorMessage}`
+      );
       await updateStickerOrder(orderId, (order) => ({
         ...order,
         status: "odeme_basarisiz",

@@ -82,7 +82,18 @@ export function setSessionCookie(token: string) {
   cookies().set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict", // CSRF'ye karşı ek koruma — çerez hiçbir siteler arası istekte gönderilmez
+    // "strict" ödeme akışlarını bozuyordu: iyzico'nun ödeme sayfasından sitemize
+    // geri dönüş (checkout callback → /dashboard/etiket-siparis/sonuc veya
+    // /dashboard/plan/sonuc) tarayıcı tarafından "siteler arası" bir gezinme
+    // olarak görülüyor, "strict" çerez bu istekte hiç gönderilmiyor —
+    // kullanıcı hâlâ giriş yapmış olsa bile dashboard onu oturumsuz sanıp
+    // /giris'e atıyordu (23 Ağustos 2026, gerçek etiket siparişi ödemesinde
+    // canlıda gözlemlendi). "lax" bu tür harici yönlendirmelerle geri dönen
+    // üst düzey (top-level) GET gezinmelerinde çerezi gönderirken, siteler
+    // arası POST/PUT/DELETE gibi durum değiştiren isteklerde hâlâ GÖNDERMEZ —
+    // yani CSRF koruması pratikte aynı kalıyor, yalnızca bu meşru geri dönüş
+    // senaryosu düzeliyor.
+    sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });
