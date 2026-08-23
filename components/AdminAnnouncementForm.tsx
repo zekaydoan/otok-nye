@@ -54,7 +54,10 @@ export default function AdminAnnouncementForm({
   const [recipientType, setRecipientType] = useState<AnnouncementRecipientType>("usta");
   const [audience, setAudience] = useState<AnnouncementAudience>("all");
   const [newOnly, setNewOnly] = useState(false);
-  const [sendEmailToShops, setSendEmailToShops] = useState(true);
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): varsayılan artık işaretsiz
+  // — admin fark etmeden her yayınlamada tüm hedef kitleye e-posta gitmesin,
+  // e-posta gönderimi bilinçli bir seçim olsun.
+  const [sendEmailToShops, setSendEmailToShops] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -232,12 +235,16 @@ export default function AdminAnnouncementForm({
           </span>
         </label>
 
+        {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): tek seferlik bir
+            ihtiyaç için eklenen bu şablon, genel amaçlı forma gereğinden
+            görünür bir buton olarak eklenmişti — küçük, ikincil bir metin
+            linkine indirildi. Özellik kaldırılmadı. */}
         <button
           type="button"
           onClick={applyWelcomeTemplate}
-          className="rounded-lg border border-brand-300 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-100"
+          className="text-xs font-medium text-slate-500 hover:text-brand-700 hover:underline"
         >
-          Hoşgeldiniz Şablonunu Kullan ({ANNOUNCEMENT_RECIPIENT_TYPE_LABELS[recipientType]})
+          Hoşgeldiniz şablonunu kullan ({ANNOUNCEMENT_RECIPIENT_TYPE_LABELS[recipientType]})
         </button>
 
         <label className="flex items-start gap-2 text-sm text-slate-700">

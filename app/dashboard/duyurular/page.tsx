@@ -7,7 +7,7 @@ import {
 } from "@/lib/blobStore";
 import EmptyState from "@/components/EmptyState";
 import { BellIcon } from "@/components/icons";
-import { ANNOUNCEMENT_AUDIENCE_LABELS } from "@/lib/types";
+import AnnouncementCard from "@/components/AnnouncementCard";
 
 // Randevular sayfasındaki markWhatsappAppointmentsSeen deseniyle aynı: sayfa
 // ziyareti, header'daki Duyurular rozetini otomatik olarak sıfırlar (bkz.
@@ -20,6 +20,10 @@ export default async function AnnouncementsPage() {
   const shopId = await getCurrentShopId();
   const shop = shopId ? await getShopById(shopId) : null;
   const announcements = shop ? await listAnnouncementsForShop(shop) : [];
+  // "Yeni" rozeti için: markAnnouncementsSeen ÇAĞRILMADAN ÖNCEKİ imleç değeri
+  // (V2 sadeleştirme, 23 Ağustos 2026, Zeki onayı) — `shop` zaten bu satırdan
+  // önce okunduğu için burada hâlâ eski değeri taşıyor, ayrı bir sorgu gerekmez.
+  const lastSeenBefore = shop?.lastSeenAnnouncementAt;
 
   if (shopId) await markAnnouncementsSeen(shopId);
   if (shop) {
@@ -44,23 +48,13 @@ export default async function AnnouncementsPage() {
           />
         )}
         {announcements.map((a) => (
-          <div
+          <AnnouncementCard
             key={a.id}
-            className="rounded-xl border-l-4 border-brand-400 bg-white p-4 shadow-sm ring-1 ring-slate-100"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <p className="text-sm font-semibold text-slate-900">{a.title}</p>
-              {a.audience !== "all" && (
-                <span className="shrink-0 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
-                  {ANNOUNCEMENT_AUDIENCE_LABELS[a.audience]}
-                </span>
-              )}
-            </div>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{a.message}</p>
-            <p className="mt-2 text-xs text-slate-400">
-              {new Date(a.createdAt).toLocaleString("tr-TR")}
-            </p>
-          </div>
+            title={a.title}
+            message={a.message}
+            createdAt={a.createdAt}
+            isNew={!lastSeenBefore || a.createdAt > lastSeenBefore}
+          />
         ))}
       </div>
     </div>
