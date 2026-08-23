@@ -36,6 +36,11 @@ export default async function PlanCheckoutPage({
   }
 
   const info = PLAN_LIMITS[plan];
+  // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): bireysel fatura bilgisi
+  // kayıtlıysa T.C. Kimlik No zaten orada var — ödeme ekranında tekrar
+  // sorulmasın (etiket sipariş formundaki aynı düzeltmeyle tutarlı). Kurumsal
+  // hesaplarda taxNumber farklı bir numara (VKN) olduğu için gönderilmiyor.
+  const defaultIdentityNumber = shop.billingInfo?.type === "bireysel" ? shop.billingInfo?.taxNumber : undefined;
 
   return (
     <div className="mx-auto max-w-lg">
@@ -51,7 +56,7 @@ export default async function PlanCheckoutPage({
         ulaşmaz.
       </p>
       <div className="mt-6">
-        <SubscriptionCheckoutStarter plan={plan} />
+        <SubscriptionCheckoutStarter plan={plan} defaultIdentityNumber={defaultIdentityNumber} />
       </div>
     </div>
   );

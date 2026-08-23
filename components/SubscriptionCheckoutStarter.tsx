@@ -15,10 +15,17 @@ const IDENTITY_NUMBER_REGEX = /^\d{11}$/;
 // tutarlı — fatura bilgisindeki taxNumber kurumsal hesaplarda VKN olabileceği
 // için doğrudan kullanılamıyor, her zaman ayrı bir TCKN istenir), sonra
 // app/api/shop/plan'i çağırıp dönen checkoutFormContent'i embed eder.
-export default function SubscriptionCheckoutStarter({ plan }: { plan: Plan }) {
+export default function SubscriptionCheckoutStarter({
+  plan,
+  defaultIdentityNumber,
+}: {
+  plan: Plan;
+  // Bireysel fatura bilgisi kayıtlıysa T.C. Kimlik No'yu tekrar yazdırmamak için.
+  defaultIdentityNumber?: string;
+}) {
   const router = useRouter();
   const { showToast } = useToast();
-  const [identityNumber, setIdentityNumber] = useState("");
+  const [identityNumber, setIdentityNumber] = useState(defaultIdentityNumber || "");
   const [loading, setLoading] = useState(false);
   const [checkoutFormContent, setCheckoutFormContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

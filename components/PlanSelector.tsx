@@ -69,13 +69,12 @@ export default function PlanSelector({
           {PAID_PLANS_DISABLED_MESSAGE}
         </p>
       )}
-      {pendingPlan && (
-        <p className="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <strong>{PLAN_LIMITS[pendingPlan].label}</strong> planına geçiş talebiniz alındı,
-          ödemeniz onaylandıktan sonra ekibimiz planınızı aktif edecek.
-        </p>
-      )}
       {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+      {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı) — netlik notu: fiyat ve
+          limit farkının, farklı özellik seti farkı gibi algılanmaması için. */}
+      <p className="mb-3 text-sm text-slate-500">
+        Tüm planlarda temel özellikler aynıdır; planlar araç ve çalışan limitlerine göre değişir.
+      </p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {(Object.keys(PLAN_LIMITS) as Plan[]).map((key) => {
         const plan = PLAN_LIMITS[key];
@@ -110,6 +109,13 @@ export default function PlanSelector({
             </p>
             <p className="mt-2 text-sm text-slate-500">
               {plan.maxVehicles === Infinity ? "Sınırsız araç" : `${plan.maxVehicles} araca kadar`}
+            </p>
+            {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): çalışan limiti
+                eskiden yalnızca ana sayfadaki pazarlama kartlarında vardı,
+                panelde yoktu — kullanıcı planları karşılaştırmak için ana
+                sayfaya gitmek zorunda kalıyordu. */}
+            <p className="mt-0.5 text-sm text-slate-500">
+              {plan.maxStaff === Infinity ? "Sınırsız çalışan" : `${plan.maxStaff} çalışana kadar`}
             </p>
             <button
               disabled={active || isPending || isLocked || loading !== null}
