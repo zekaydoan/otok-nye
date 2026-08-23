@@ -16,8 +16,12 @@ function getSiteUrl(req: NextRequest): string {
   return process.env.URL || req.nextUrl.origin;
 }
 
+// BİLEREK /dashboard/ altında DEĞİL (bkz. app/plan/sonuc/page.tsx'teki yorum) —
+// iyzico'dan geri dönüş yönlendirmesi tarayıcı tarafından "siteler arası"
+// sayıldığından dashboard'un oturum kontrolüne asla güvenilir şekilde
+// ulaşamıyordu (aynı kök neden, etiket siparişi akışında canlıda doğrulandı).
 function resultRedirect(req: NextRequest, params: Record<string, string>): NextResponse {
-  const url = new URL("/dashboard/plan/sonuc", getSiteUrl(req));
+  const url = new URL("/plan/sonuc", getSiteUrl(req));
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
   return NextResponse.redirect(url, { status: 303 });
 }

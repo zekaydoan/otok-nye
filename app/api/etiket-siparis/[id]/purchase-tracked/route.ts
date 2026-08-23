@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentShopId } from "@/lib/auth";
 import { updateStickerOrder } from "@/lib/blobStore";
 
 // Sonuç sayfası (bkz. components/PurchaseConversionPing.tsx) her mount
@@ -25,12 +24,16 @@ import { updateStickerOrder } from "@/lib/blobStore";
 // riski, ileride Conversions API eklendiğinde aynı event_id (`purchase_<id>`)
 // ile app/api/etiket-siparis/callback/route.ts'ten sunucu tarafından ayrıca
 // gönderilerek telafi edilebilir (Meta iki kaynağı otomatik tekilleştirir).
-type PurchaseTrackOutcome = "tracked" | "already" | "not_paid" | "forbidden";
+type PurchaseTrackOutcome = "tracked" | "already" | "not_paid";
 
+// Bu uç noktaya artık oturum ŞARTI YOK (bkz. app/etiket-siparis/sonuc/page.tsx'teki
+// yorum — sonuç sayfası iyzico'dan geri dönüşte oturum çerezinin ulaşmadığı,
+// tarayıcı tarafından "siteler arası" sayılan bir yönlendirme zincirinin sonunda
+// açılıyor). Yetkilendirme, sipariş kimliğinin kendisiyle sağlanıyor: `params.id`
+// tahmin edilemez bir randomUUID() — aynı desen zaten /arac/[id] (araç sahibi
+// görünümü) ve etiket makbuz PDF'inde kullanılıyor. Buradan sızabilecek tek bilgi
+// "bu sipariş ödendi mi" ve "tutar ne kadar" — ikisi de kişisel veri değil.
 export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
-  const shopId = await getCurrentShopId();
-  if (!shopId) return NextResponse.json({ error: "Giriş yapmalısınız." }, { status: 401 });
-
   // NOT: outcome, updateStickerOrder'a verilen callback (closure) içinde
   // güncelleniyor. Bunu düz bir `let` değişkeniyle yapmak TypeScript'in
   // `await` sonrası kontrol akışı analizinde değişkeni closure'dan önceki
@@ -43,10 +46,6 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
 
   try {
     const updated = await updateStickerOrder(params.id, (order) => {
-      if (order.shopId !== shopId) {
-        state.outcome = "forbidden";
-        return order;
-      }
       if (order.status !== "odendi") {
         state.outcome = "not_paid";
         return order;
@@ -63,9 +62,6 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "Sipariş bulunamadı." }, { status: 404 });
   }
 
-  if (state.outcome === "forbidden") {
-    return NextResponse.json({ error: "Yetkisiz." }, { status: 403 });
-  }
   if (state.outcome === "tracked") {
     return NextResponse.json({ shouldTrack: true, value });
   }

@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { trackPurchase } from "@/components/AdPixels";
 
 // Sunucu tarafında render edilen sipariş sonucu sayfası (ödeme başarılı
-// olduğunda) tarafından render edilir — bkz. app/dashboard/etiket-siparis/sonuc/page.tsx.
+// olduğunda) tarafından render edilir — bkz. app/etiket-siparis/sonuc/page.tsx.
 //
 // ESKİ davranıştan (doğrudan fbq çağrısı) FARKLI olarak burada hiçbir zaman
 // doğrudan Meta'ya event gönderilmez. Önce sunucudaki idempotent

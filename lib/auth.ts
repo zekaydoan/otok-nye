@@ -83,16 +83,18 @@ export function setSessionCookie(token: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     // "strict" ödeme akışlarını bozuyordu: iyzico'nun ödeme sayfasından sitemize
-    // geri dönüş (checkout callback → /dashboard/etiket-siparis/sonuc veya
-    // /dashboard/plan/sonuc) tarayıcı tarafından "siteler arası" bir gezinme
-    // olarak görülüyor, "strict" çerez bu istekte hiç gönderilmiyor —
+    // geri dönüş (checkout callback) tarayıcı tarafından "siteler arası" bir
+    // gezinme olarak görülüyor, "strict" çerez bu istekte hiç gönderilmiyor —
     // kullanıcı hâlâ giriş yapmış olsa bile dashboard onu oturumsuz sanıp
     // /giris'e atıyordu (23 Ağustos 2026, gerçek etiket siparişi ödemesinde
-    // canlıda gözlemlendi). "lax" bu tür harici yönlendirmelerle geri dönen
-    // üst düzey (top-level) GET gezinmelerinde çerezi gönderirken, siteler
-    // arası POST/PUT/DELETE gibi durum değiştiren isteklerde hâlâ GÖNDERMEZ —
-    // yani CSRF koruması pratikte aynı kalıyor, yalnızca bu meşru geri dönüş
-    // senaryosu düzeliyor.
+    // canlıda gözlemlendi). "lax"e geçmek TEK BAŞINA yetmedi — iyzico.com'dan
+    // başlayan bir yönlendirme zinciri tarayıcı tarafından zincirin TAMAMI
+    // boyunca "siteler arası" sayılıyor, aynı origin'e dönen ara adımlarda
+    // bile — bu yüzden asıl çözüm ödeme sonucu sayfalarını /dashboard'un
+    // oturum kontrolünün dışına taşımak oldu (bkz. app/etiket-siparis/sonuc/
+    // page.tsx ve app/plan/sonuc/page.tsx). "lax" yine de burada bırakıldı:
+    // siteler arası POST/PUT/DELETE gibi durum değiştiren isteklerde hâlâ
+    // GÖNDERMEZ, yani CSRF koruması pratikte aynı kalıyor.
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 30,

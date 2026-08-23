@@ -4,8 +4,13 @@ import Logo from "@/components/Logo";
 import { CheckCircleIcon, WarningIcon } from "@/components/icons";
 
 // iyzico Abonelik Checkout Form tamamlandıktan sonra app/api/shop/plan/callback'in
-// yönlendirdiği sonuç sayfası — bkz. app/dashboard/etiket-siparis/sonuc ile
-// aynı görsel desen (bu sitede zaten kanıtlanmış bir "ödeme sonucu" kalıbı).
+// yönlendirdiği sonuç sayfası. BİLEREK app/dashboard/ altında DEĞİL (bkz.
+// app/etiket-siparis/sonuc/page.tsx'teki aynı, önceden kanıtlanmış gerekçe) —
+// iyzico.com'dan başlayan bir yönlendirme zinciri tarayıcı tarafından "siteler
+// arası" sayılıyor, oturum çerezi (sameSite=lax olsa bile) bu zincirdeki hiçbir
+// istekte gönderilmiyor; dashboard'un oturum kontrolüne asla güvenilir şekilde
+// ulaşamıyordu. Bu sayfa hiçbir oturuma/veritabanı sorgusuna ihtiyaç duymuyor —
+// tüm bilgiyi (durum, plan) callback route zaten hesaplayıp URL'ye koyuyor.
 export default function PlanCheckoutResultPage({
   searchParams,
 }: {

@@ -7,8 +7,12 @@ function getSiteUrl(req: NextRequest): string {
   return process.env.URL || req.nextUrl.origin;
 }
 
+// BİLEREK /dashboard/ altında DEĞİL (bkz. app/etiket-siparis/sonuc/page.tsx'teki
+// yorum) — iyzico'dan geri dönüş yönlendirmesi tarayıcı tarafından "siteler
+// arası" sayıldığından dashboard'un oturum kontrolüne asla güvenilir şekilde
+// ulaşamıyordu, kullanıcı hâlâ giriş yapmışken /giris'e düşüyordu.
 function resultRedirect(req: NextRequest, params: Record<string, string>): NextResponse {
-  const url = new URL("/dashboard/etiket-siparis/sonuc", getSiteUrl(req));
+  const url = new URL("/etiket-siparis/sonuc", getSiteUrl(req));
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
   return NextResponse.redirect(url, { status: 303 });
 }
@@ -33,8 +37,8 @@ export async function POST(req: NextRequest) {
 
   const retrieveResult = await retrieveCheckoutForm(token, orderId);
 
-  try {
-    if (retrieveResult.status === "success" && retrieveResult.paymentStatus === "SUCCESS") {
+  if (retrieveResult.status === "success" && retrieveResult.paymentStatus === "SUCCESS") {
+    try {
       const paidOrder = await updateStickerOrder(orderId, (order) => ({
         ...order,
         status: "odendi",
@@ -69,25 +73,38 @@ export async function POST(req: NextRequest) {
           <p><a href="https://otohafiza.com/admin/siparisler">Admin panelinden görüntüle</a></p>
         </div>`
       );
-    } else {
-      // iyzico'nun döndürdüğü asıl ret sebebini (kart reddi, 3D Secure hatası,
-      // hesap/entegrasyon sorunu vb.) Netlify fonksiyon loglarına yazıyoruz —
-      // sipariş kaydında/kullanıcıya gösterilen ekranda bu detay yok, aksi
-      // hâlde "neden başarısız oldu" sorusu asla cevaplanamaz.
-      console.error(
-        `[etiket-siparis] Ödeme başarısız — sipariş ${orderId}: status=${retrieveResult.status}, paymentStatus=${retrieveResult.paymentStatus}, errorMessage=${retrieveResult.errorMessage}`
-      );
-      await updateStickerOrder(orderId, (order) => ({
-        ...order,
-        status: "odeme_basarisiz",
-        paymentToken: token as string,
-        updatedAt: new Date().toISOString(),
-      }));
+      return resultRedirect(req, {
+        siparis: orderId,
+        durum: "basarili",
+        miktar: String(paidOrder.quantity),
+      });
+    } catch {
+      // Eşzamanlı güncelleme çakışması — ödeme iyzico tarafında zaten başarılı,
+      // yalnızca bizim kayıt güncellememiz çakıştı. Kullanıcıya yine de
+      // "başarılı" gösteriyoruz (siparis id'siyle "Siparişlerim"den gerçek
+      // durumu görebilir), aksi hâlde başarılı bir ödemeyi "başarısız" diye
+      // yanlış göstermiş oluruz.
+      return resultRedirect(req, { siparis: orderId, durum: "basarili" });
     }
-  } catch {
-    // Eşzamanlı güncelleme çakışması — sipariş sonuç sayfasında yine de mevcut
-    // durum gösterilecek, kullanıcı deneyimini bozmamak için hata yutuluyor.
   }
 
-  return resultRedirect(req, { siparis: orderId });
+  // iyzico'nun döndürdüğü asıl ret sebebini (kart reddi, 3D Secure hatası,
+  // hesap/entegrasyon sorunu vb.) Netlify fonksiyon loglarına yazıyoruz —
+  // sipariş kaydında/kullanıcıya gösterilen ekranda bu detay yok, aksi
+  // hâlde "neden başarısız oldu" sorusu asla cevaplanamaz.
+  console.error(
+    `[etiket-siparis] Ödeme başarısız — sipariş ${orderId}: status=${retrieveResult.status}, paymentStatus=${retrieveResult.paymentStatus}, errorMessage=${retrieveResult.errorMessage}`
+  );
+  try {
+    await updateStickerOrder(orderId, (order) => ({
+      ...order,
+      status: "odeme_basarisiz",
+      paymentToken: token as string,
+      updatedAt: new Date().toISOString(),
+    }));
+  } catch {
+    // Eşzamanlı güncelleme çakışması — sonuç sayfası yine de "başarısız"
+    // gösterecek, kullanıcı deneyimini bozmamak için hata yutuluyor.
+  }
+  return resultRedirect(req, { siparis: orderId, durum: "hata" });
 }

@@ -1,27 +1,29 @@
 import Link from "next/link";
-import { getCurrentShopId } from "@/lib/auth";
-import { getStickerOrderById } from "@/lib/blobStore";
 import Logo from "@/components/Logo";
 import { CheckCircleIcon, WarningIcon } from "@/components/icons";
 import PurchaseConversionPing from "@/components/PurchaseConversionPing";
 
-export default async function StickerOrderResultPage({
+// iyzico'nun ödeme sayfasından geri dönüş yönlendirmesi (bkz.
+// app/api/etiket-siparis/callback/route.ts) BİLEREK app/dashboard/ altında
+// DEĞİL — dashboard'daki oturum kontrolü bu sayfaya asla güvenilir şekilde
+// ulaşamıyordu: iyzico.com'dan başlayan bir yönlendirme zinciri tarayıcı
+// tarafından "siteler arası" sayılıyor, oturum çerezi (sameSite=lax olsa
+// bile) bu zincirdeki hiçbir istekte gönderilmiyor — kullanıcı hâlâ giriş
+// yapmışken "Giriş Yap" ekranına düşüyordu (23 Ağustos 2026, canlıda
+// gözlemlendi). Çözüm: bu sonuç sayfası hiçbir oturuma/veritabanı
+// sorgusuna ihtiyaç duymuyor — tüm bilgiyi (durum, sipariş no, miktar)
+// callback route zaten hesaplayıp URL'ye koyuyor (bkz. plan/sonuc'taki
+// aynı, önceden kanıtlanmış desen). Sipariş ID'si (rastgele UUID) zaten
+// tahmin edilemez olduğundan ekstra bir yetki kontrolüne gerek yok — hiçbir
+// kişisel veri (isim/telefon/adres) bu sayfada gösterilmiyor.
+export default function StickerOrderResultPage({
   searchParams,
 }: {
-  searchParams: { siparis?: string; durum?: string };
+  searchParams: { siparis?: string; durum?: string; miktar?: string };
 }) {
-  const shopId = await getCurrentShopId();
-  const order =
-    searchParams.siparis && shopId
-      ? await getStickerOrderById(searchParams.siparis, { consistency: "strong" })
-      : null;
-
-  // Başka bir bayinin siparişini görüntülemeye çalışırsa (ör. eski/paylaşılmış bir
-  // bağlantı) genel bir hata göster, sipariş detayını sızdırma.
-  const visibleOrder = order && order.shopId === shopId ? order : null;
-
-  const success = visibleOrder?.status === "odendi";
-  const failed = visibleOrder?.status === "odeme_basarisiz" || searchParams.durum === "hata";
+  const success = searchParams.durum === "basarili";
+  const failed = searchParams.durum === "hata";
+  const quantity = searchParams.miktar ? Number(searchParams.miktar) : null;
 
   return (
     <div className="mx-auto max-w-lg text-center">
@@ -30,11 +32,11 @@ export default async function StickerOrderResultPage({
       </div>
       {success && (
         <div className="mt-6 rounded-xl bg-green-50 p-8 ring-1 ring-green-100">
-          <PurchaseConversionPing orderId={visibleOrder.id} />
+          {searchParams.siparis && <PurchaseConversionPing orderId={searchParams.siparis} />}
           <CheckCircleIcon className="mx-auto h-10 w-10 text-green-600" />
           <h1 className="mt-3 text-xl font-bold text-slate-900">Ödemeniz alındı</h1>
           <p className="mt-2 text-sm text-slate-600">
-            {visibleOrder.quantity} adetlik etiket siparişiniz onaylandı. Sipariş
+            {quantity ? `${quantity} adetlik ` : ""}Etiket siparişiniz onaylandı. Sipariş
             durumunu "Siparişlerim" listesinden takip edebilirsiniz.
           </p>
         </div>
