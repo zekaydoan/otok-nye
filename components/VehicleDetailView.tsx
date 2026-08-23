@@ -212,13 +212,16 @@ export default function VehicleDetailView({
           </div>
         </div>
 
-        {/* Eylem butonları — V2 sadeleştirme (23 Ağustos 2026, Zeki onayı):
+        {/* Eylem butonları — V2 sadeleştirme (23 Ağustos 2026, Zeki düzeltmesi):
             Düzenle ve QR Etiketi Yazdır günlük en çok kullanılan iki aksiyon
-            olduğu için birincil (kutulu, IconBadge'li) kaldı. Satış Raporu ve
-            Genel Görünüm daha nadir kullanıldığından ikincil, küçük metin
-            linkleri olarak alta indi — hiçbiri kaldırılmadı, yalnızca görsel
-            ağırlıkları değişti. */}
-        <div className="mt-5 grid grid-cols-2 gap-2 border-t border-slate-100 pt-4 sm:flex sm:flex-wrap">
+            olduğu için birincil (kutulu, IconBadge'li) kaldı ve stilleri hiç
+            değişmedi. Satış Raporu ve Genel Görünüm ikincil, küçük metin
+            linkleri olarak AYNI aksiyon alanında (tek satır/tek blok) yanlarına
+            eklendi — önceki denemede ayrı bir alt satırda tek başlarına
+            kalıyorlardı (Satış Raporu kayıt yoksa gizli olduğunda Genel
+            Görünüm yalnız görünüyordu), bu görsel olarak "kayboldu" izlenimi
+            veriyordu. Hiçbir aksiyon kaldırılmadı. */}
+        <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-2 border-t border-slate-100 pt-4">
           <Link
             href={`/dashboard/araclar/${vehicle.id}/duzenle`}
             className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
@@ -233,24 +236,27 @@ export default function VehicleDetailView({
             <IconBadge icon={<QrIcon />} color="brand" size="sm" />
             QR Etiketi Yazdır
           </Link>
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-          {/* V2 madde 14: "Satış Raporu Oluştur" bakım kaydı olmayan bir araçta
-              anlamsız (rapor gösterecek verisi yok) — özellik silinmedi, sadece
-              ilk kayıt eklenene kadar gizlendi. */}
-          {records.length > 0 && <ShareReportButton vehicleId={vehicle.id} compact />}
-          <Link
-            href={`/arac/${vehicle.id}`}
-            target="_blank"
-            className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-brand-700"
-          >
-            <IconBadge icon={<CarIcon />} color="indigo" size="sm" />
-            Genel Görünüm
-          </Link>
+          <div className="ml-0 flex flex-wrap items-center gap-x-4 gap-y-2 sm:ml-2">
+            {/* V2 madde 14: "Satış Raporu Oluştur" bakım kaydı olmayan bir araçta
+                anlamsız (rapor gösterecek verisi yok) — özellik silinmedi, sadece
+                ilk kayıt eklenene kadar gizlendi. */}
+            {records.length > 0 && <ShareReportButton vehicleId={vehicle.id} compact />}
+            <Link
+              href={`/arac/${vehicle.id}`}
+              target="_blank"
+              className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-brand-700"
+            >
+              <IconBadge icon={<CarIcon />} color="indigo" size="sm" />
+              Genel Görünüm
+            </Link>
+          </div>
         </div>
       </div>
 
-      {vehicle.ownerPhone && (
+      {/* 23 Ağustos 2026 düzeltmesi: araçta henüz bakım kaydı yoksa "Bakım
+          Hatırlatması" kutusu artık hiç gösterilmiyor (records.length > 0
+          şartı eklendi) — ilk bakım kaydı girilince otomatik görünür. */}
+      {vehicle.ownerPhone && records.length > 0 && (
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
           <span className="text-sm font-medium text-slate-700">Bakım Hatırlatması:</span>
           {whatsAppLink && <WhatsAppReminderButton vehicleId={vehicle.id} whatsAppLink={whatsAppLink} />}
