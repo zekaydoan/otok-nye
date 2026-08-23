@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
-import StatCard from "@/components/StatCard";
 import EmptyState from "@/components/EmptyState";
 import RecentlyViewedVehicles from "@/components/RecentlyViewedVehicles";
 import { CarIcon } from "@/components/icons";
@@ -19,14 +18,12 @@ const PENDING_BULK_VEHICLES_KEY = "otoHafizaTopluArac";
 export default function VehicleListSection({
   shopId,
   initialVehicles,
-  upcomingCount,
   planLabel,
   maxVehicles,
   children,
 }: {
   shopId: string | null;
   initialVehicles: Vehicle[];
-  upcomingCount: number;
   planLabel: string | null;
   maxVehicles: number | null;
   children?: ReactNode;
@@ -84,54 +81,12 @@ export default function VehicleListSection({
 
   return (
     <>
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <StatCard
-          label="Toplam Araç"
-          value={vehicles.length}
-          icon={
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13M5 13h14a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H7v1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z"
-              />
-              <circle cx="7.5" cy="17.5" r="1.2" fill="currentColor" stroke="none" />
-              <circle cx="16.5" cy="17.5" r="1.2" fill="currentColor" stroke="none" />
-            </svg>
-          }
-        />
-        <StatCard
-          label="Yaklaşan Bakım"
-          value={upcomingCount}
-          tone={upcomingCount > 0 ? "warning" : "default"}
-          icon={
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l2.5 2.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
-          }
-        />
-        {/* V2 madde 13: 0 araçlı yeni kullanıcıya "0/15 plan kullanımı" gibi ürünün
-            sınırını öne çıkaran bilgi ana değer olarak gösterilmiyor — limit
-            altyapısı (plan kontrolü, üst StatCard listesi) silinmedi, sadece
-            henüz aracı olmayan kullanıcı için bu kart gizlendi. Araç eklenir
-            eklenmez normal şekilde tekrar görünür. */}
-        {planLabel && maxVehicles !== null && vehicles.length > 0 && (
-          <StatCard
-            label={`${planLabel} Plan Kullanımı`}
-            value={maxVehicles === Infinity ? "Sınırsız" : `${vehicles.length}/${maxVehicles}`}
-            tone={
-              maxVehicles !== Infinity && maxVehicles > 0 && vehicles.length / maxVehicles >= 0.8
-                ? "warning"
-                : "default"
-            }
-            icon={
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 20V10M12 20V4M20 20v-7" />
-              </svg>
-            }
-          />
-        )}
-      </div>
+      {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): Toplam Araç / Yaklaşan
+          Bakım / Plan Kullanımı stat kartları kaldırıldı — hiçbiri tıklanabilir
+          bir aksiyona götürmüyordu ve üçü de sayfanın başka yerlerinde zaten
+          gösteriliyor (plan bilgisi üst navdaki plan rozetinde, yaklaşan bakım
+          sayısı gecikmiş/yaklaşan bakım listelerinde). Plan limiti aşağıdaki
+          uyarı banner'ında (>= %80 kullanımda) hâlâ gösteriliyor, o kaldırılmadı. */}
 
       {/* Plan limiti yaklaşınca (>= %80) ya da dolunca proaktif bir yükseltme
           çağrısı — eskiden yalnızca limit dolduğunda araç ekleme formunda düz bir

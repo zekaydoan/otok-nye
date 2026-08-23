@@ -168,6 +168,104 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* Yaklaşan bakımlar (henüz gecikmemiş) — V2 sadeleştirme (23 Ağustos 2026,
+          Zeki onayı): eskiden sayfanın en altında, VehicleListSection içindeydi;
+          gecikmiş bakımlarla aynı veri setinin devamı olduğu için artık hemen
+          altına taşındı — usta "ilgilenmem gereken araçlar"ı tek yerde görür. */}
+      {dueSoon.length > 0 && (
+        <div className="mt-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900">Yaklaşan Bakımlar</h2>
+            <Link href="/dashboard/hatirlatmalar" className="text-xs font-medium text-brand-600 hover:underline">
+              Tümünü gör →
+            </Link>
+          </div>
+          <div className="mt-3 space-y-2">
+            {dueSoon.map(({ vehicle, record, daysUntil, kmRemaining, reminderStatus }) => {
+              const whatsAppLink = vehicle.ownerPhone
+                ? buildWhatsAppLink(vehicle.ownerPhone, buildReminderMessage(vehicle, record))
+                : null;
+              return (
+                <div
+                  key={vehicle.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-l-4 border-amber-400 bg-white p-4 shadow-sm ring-1 ring-slate-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-1">
+                      {daysUntil !== null && (
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${dateBadge(daysUntil).className}`}
+                        >
+                          {dateBadge(daysUntil).text}
+                        </span>
+                      )}
+                      {kmRemaining !== null && (
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${kmBadge(kmRemaining).className}`}
+                        >
+                          {kmBadge(kmRemaining).text}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <Link
+                        href={`/dashboard/araclar/${vehicle.id}`}
+                        className="font-semibold text-slate-900 hover:text-brand-700"
+                      >
+                        {vehicle.plateDisplay}
+                      </Link>
+                      <p className="text-xs text-slate-500">
+                        {vehicle.brand} {vehicle.model}
+                        {record.nextServiceDate ? ` · önerilen: ${record.nextServiceDate}` : ""}
+                        {record.nextServiceKm ? ` · ${record.nextServiceKm.toLocaleString("tr-TR")} km` : ""}
+                      </p>
+                      {reminderStatus && (
+                        <span
+                          className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${reminderStatus.className}`}
+                        >
+                          {reminderStatus.text}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {whatsAppLink && (
+                    <WhatsAppReminderButton vehicleId={vehicle.id} whatsAppLink={whatsAppLink} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Bugünkü randevular — V2 sadeleştirme (23 Ağustos 2026, Zeki onayı):
+          eskiden hızlı işlemlerin ve etiket sipariş bandının arkasında
+          kalıyordu; "bugün ne yapmalıyım" sorusunun cevabı (gecikmiş/yaklaşan
+          bakım + bugünkü randevu) artık hep birlikte, sayfanın en üstünde. */}
+      {todaysAppointments.length > 0 && (
+        <Link
+          href="/dashboard/randevular"
+          className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-slate-100 hover:ring-brand-300"
+        >
+          <div className="flex items-center gap-3">
+            <IconBadge icon={<CalendarIcon />} color="brand" size="md" />
+            <div>
+              <p className="text-sm font-semibold text-slate-900">
+                Bugün {todaysAppointments.length} randevunuz var
+              </p>
+              <p className="text-xs text-slate-500">
+                {todaysAppointments
+                  .slice(0, 3)
+                  .map((a) => `${a.time}${a.plateDisplay ? ` · ${a.plateDisplay}` : ""}`)
+                  .join(" · ")}
+                {todaysAppointments.length > 3 ? " · ..." : ""}
+              </p>
+            </div>
+          </div>
+          <span className="text-brand-600">→</span>
+        </Link>
+      )}
+
       {/* Hızlı işlemler — her biri isimli + renkli IconBadge ile: admin panelindeki
           "beyaz ikon, renkli kutucuk" görsel diliyle tutarlı (bkz. components/IconBadge).
           V2 madde 13: Henüz hiç aracı olmayan yeni kullanıcı için "Toplu Ekle (CSV)"
@@ -203,9 +301,27 @@ export default async function DashboardPage() {
         )}
       </div>
 
+      <VehicleListSection
+        shopId={shopId}
+        initialVehicles={vehicles}
+        planLabel={limit?.label ?? null}
+        maxVehicles={limit?.maxVehicles ?? null}
+      >
+        {shopId && (
+          <div className="mt-6">
+            <PlateSearch currentShopId={shopId} />
+          </div>
+        )}
+      </VehicleListSection>
+
+      {/* Dayanıklı QR Etiket Sipariş bandı — V2 sadeleştirme (23 Ağustos 2026,
+          Zeki onayı): eskiden hızlı işlemlerin hemen yanındaydı ve günlük
+          operasyon akışıyla (araç ekle/bakım/randevu) yarışıyordu. Bu bir
+          tanıtım/satın alma bandı, günlük iş değil — artık araç listesine
+          yakın, sayfanın alt kısmında. Kaldırılmadı, yalnızca taşındı. */}
       <Link
         href="/dashboard/etiket-siparis"
-        className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-4 hover:bg-amber-50"
+        className="mt-8 flex items-center justify-between gap-3 rounded-xl border border-dashed border-amber-300 bg-amber-50/60 p-4 hover:bg-amber-50"
       >
         <div className="flex items-center gap-3">
           <IconBadge icon={<StickerIcon />} color="amber" size="md" />
@@ -218,110 +334,6 @@ export default async function DashboardPage() {
         </div>
         <span className="text-amber-600">→</span>
       </Link>
-
-      {todaysAppointments.length > 0 && (
-        <Link
-          href="/dashboard/randevular"
-          className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-slate-100 hover:ring-brand-300"
-        >
-          <div className="flex items-center gap-3">
-            <IconBadge icon={<CalendarIcon />} color="brand" size="md" />
-            <div>
-              <p className="text-sm font-semibold text-slate-900">
-                Bugün {todaysAppointments.length} randevunuz var
-              </p>
-              <p className="text-xs text-slate-500">
-                {todaysAppointments
-                  .slice(0, 3)
-                  .map((a) => `${a.time}${a.plateDisplay ? ` · ${a.plateDisplay}` : ""}`)
-                  .join(" · ")}
-                {todaysAppointments.length > 3 ? " · ..." : ""}
-              </p>
-            </div>
-          </div>
-          <span className="text-brand-600">→</span>
-        </Link>
-      )}
-
-      <VehicleListSection
-        shopId={shopId}
-        initialVehicles={vehicles}
-        upcomingCount={upcoming.length}
-        planLabel={limit?.label ?? null}
-        maxVehicles={limit?.maxVehicles ?? null}
-      >
-        {shopId && (
-          <div className="mt-6">
-            <PlateSearch currentShopId={shopId} />
-          </div>
-        )}
-
-        {dueSoon.length > 0 && (
-          <div className="mt-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">Yaklaşan Bakımlar</h2>
-              <Link href="/dashboard/hatirlatmalar" className="text-xs font-medium text-brand-600 hover:underline">
-                Tümünü gör →
-              </Link>
-            </div>
-            <div className="mt-3 space-y-2">
-              {dueSoon.map(({ vehicle, record, daysUntil, kmRemaining, reminderStatus }) => {
-                const whatsAppLink = vehicle.ownerPhone
-                  ? buildWhatsAppLink(vehicle.ownerPhone, buildReminderMessage(vehicle, record))
-                  : null;
-                return (
-                  <div
-                    key={vehicle.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-l-4 border-amber-400 bg-white p-4 shadow-sm ring-1 ring-slate-100"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex flex-col gap-1">
-                        {daysUntil !== null && (
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${dateBadge(daysUntil).className}`}
-                          >
-                            {dateBadge(daysUntil).text}
-                          </span>
-                        )}
-                        {kmRemaining !== null && (
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${kmBadge(kmRemaining).className}`}
-                          >
-                            {kmBadge(kmRemaining).text}
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <Link
-                          href={`/dashboard/araclar/${vehicle.id}`}
-                          className="font-semibold text-slate-900 hover:text-brand-700"
-                        >
-                          {vehicle.plateDisplay}
-                        </Link>
-                        <p className="text-xs text-slate-500">
-                          {vehicle.brand} {vehicle.model}
-                          {record.nextServiceDate ? ` · önerilen: ${record.nextServiceDate}` : ""}
-                          {record.nextServiceKm ? ` · ${record.nextServiceKm.toLocaleString("tr-TR")} km` : ""}
-                        </p>
-                        {reminderStatus && (
-                          <span
-                            className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${reminderStatus.className}`}
-                          >
-                            {reminderStatus.text}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    {whatsAppLink && (
-                      <WhatsAppReminderButton vehicleId={vehicle.id} whatsAppLink={whatsAppLink} />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </VehicleListSection>
     </div>
   );
 }
