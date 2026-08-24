@@ -180,13 +180,17 @@ otomatik olarak simüle edilir (sadece `next dev` ile Blobs çalışmayabilir).
 
 ## Ödeme / Abonelik Notu
 
-Plan seçimi şu anda hesabınıza kaydediliyor ancak gerçek kredi kartı tahsilatı
-bağlı değil — `/api/shop/plan` bir talep akışıdır (admin manuel onaylar).
-Otomatik tekrarlayan tahsilat için `lib/iyzicoSubscription.ts` (iyzico'nun
-ayrı "Abonelik" ürünü) ve `app/api/webhooks/iyzico-abonelik` altyapısı
-hazırlandı ama **henüz `/api/shop/plan`'e bağlanmadı** ve uçtan uca test
-edilmedi (gerçek bir sandbox hesabında Abonelik özelliği aktive edilmeden
-test edilemiyor). Detaylı yol haritası ve ön koşullar için bkz.
+**24 Ağustos 2026 itibarıyla canlıda ve uçtan uca çalışıyor.** Ücretli bir plan
+seçildiğinde `/api/shop/plan` iyzico'nun ayrı "Abonelik" ürünüyle (bkz.
+`lib/iyzicoSubscription.ts`) gerçek bir Checkout Form başlatır; kart bilgisi
+onaylanınca `app/api/shop/plan/callback` ve `app/api/webhooks/iyzico-abonelik`
+üzerinden plan otomatik aktive olur ve her ay/yıl otomatik yenilenir. free'ye
+dönüş, plan değişimi ve hesap silme gibi tüm risk noktalarında aktif abonelik
+önce iyzico tarafında iptal edilir (bkz. `cancelSubscription`,
+`lib/iyzicoSubscription.ts`) — aksi halde bayi kartından tahsilat devam eder.
+Admin'in `app/api/admin/shops/[id]/plan` üzerinden elle plan değiştirmesi hâlâ
+mümkün ama artık birincil yol değil, yalnızca comp/özel durum istisnaları için.
+Detaylı yol haritası ve kurulum geçmişi için bkz.
 `SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md` madde 1.
 
 ## Etiket Mağazası (Fiziksel QR Etiket Sipariş + Ödeme)

@@ -1,13 +1,22 @@
 # OtoHafıza — Düzeltme Planı (CRITICAL + HIGH Bulgular)
 
 Bu belge yalnızca `SECURITY_AUDIT.md`'deki **CRITICAL** ve **HIGH** seviyeli bulgular
-için hazırlanmıştır. CRITICAL bulgu bulunmadı. HIGH seviyesinde 2 bulgu var (H1, H2).
+için hazırlanmıştır. CRITICAL bulgu bulunmadı. HIGH seviyesinde 2 bulgu vardı (H1, H2)
+— ikisi de çözüldü (H1: 24 Ağustos 2026, H2: daha önce).
 
 Bu belge yalnızca bir PLANDIR — henüz hiçbir kod yazılmadı/değiştirilmedi.
 
 ---
 
-## H1 — Bayi kendi planını ödeme doğrulaması olmadan ücretli plana yükseltebiliyor
+## H1 — Bayi kendi planını ödeme doğrulaması olmadan ücretli plana yükseltebiliyor — ✅ ÇÖZÜLDÜ (24 Ağustos 2026)
+
+> **Güncelleme notu:** Aşağıdaki plan tarihsel kayıt olarak korunuyor. Adım 1
+> (`pendingPlan`/admin onay akışı) daha önce uygulanmıştı; Adım 2'de "orta
+> vadeli, kapsam dışı" denen gerçek iyzico Abonelik (tekrarlayan ödeme)
+> entegrasyonu de 24 Ağustos 2026'da canlıya alındı ve uçtan uca test edildi
+> — artık bayi kartını doğrulamadan hiçbir ücretli plana geçemiyor. Aşağıda
+> "BEKLEMEDE task #125" olarak anılan roadmap notu da bu iş tamamlandığı için
+> güncelliğini yitirmiştir (o numaralandırma artık kullanılmıyor).
 
 **Dosya:** `app/api/shop/plan/route.ts`
 

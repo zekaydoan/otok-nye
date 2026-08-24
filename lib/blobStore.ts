@@ -1845,8 +1845,10 @@ export interface PlanRevenueStats {
 
 // Etiket mağazası cirosundan (gerçek, tahsil edilmiş ödeme) farklı olarak bu
 // rakam bir TAHMİNdİR — planların ilan fiyatı × o plandaki bayi sayısı üzerinden
-// hesaplanır, çünkü abonelikler için henüz gerçek bir tekrarlayan ödeme tahsilatı
-// yok (bkz. README "Ödeme / Abonelik Notu" ve BEKLEMEDE task #125). Şehir
+// hesaplanır. 24 Ağustos 2026: iyzico Abonelik ile gerçek tekrarlayan ödeme
+// tahsilatı artık canlıda çalışıyor, ancak bu fonksiyon iyzico'dan gerçek
+// tahsilat rakamı çekmiyor — hâlâ ilan fiyatı üzerinden hesaplanan bir tahmin
+// (gerçek tahsilat mutabakatı ileride ayrı bir iyileştirme olabilir). Şehir
 // kırılımı, bayinin Shop.city alanına (kayıt formunda seçilir, bkz.
 // TR_PROVINCES) dayanır — bu alanı doldurmamış eski bayiler "Belirtilmemiş"
 // altında toplanır.
