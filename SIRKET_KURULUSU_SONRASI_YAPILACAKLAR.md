@@ -5,7 +5,7 @@ eline geçtiğinde geri dönüp düzeltilmesi gereken, şu an bilinçli olarak
 placeholder/kapalı bırakılmış yerlerin listesidir. Zeki'nin "şirket ile ilgili
 işlemleri yapmaya başladık" demesi üzerine bu liste sırayla ele alınmalı.
 
-## 1. Ücretli planları aç — otomatik tekrarlayan tahsilat (iyzico Abonelik)
+## 1. Ücretli planları aç — otomatik tekrarlayan tahsilat (iyzico Abonelik) ✅ Tamamlandı (24 Ağustos 2026)
 
 **Karar güncellendi (16 Ağustos 2026, ikinci görüşme):** Önce manuel akışla
 açma kararı alınmıştı, sonra Zeki bunu değiştirdi — **baştan iyzico'nun
@@ -262,6 +262,25 @@ başka bir eksik yok; iyzico aktivasyonu onaylayınca sırasıyla: (1)
 Ağustos'taki sandbox/canlı ayrım düzeltmesi sayesinde artık doğru şekilde
 gerçek kodlar üretecek), (2) iyzico canlı panelinde abonelik webhook URL'si
 kontrol edilecek, (3) gerçek bir kartla uçtan uca test yapılacak.
+
+### 24 Ağustos 2026 — ✅ TAMAMLANDI: iyzico Abonelik aktive edildi, uçtan uca test edildi
+
+iyzico Abonelik özelliğini gerçek/kurumsal hesapta aktive ettiğini bildirdi.
+Netlify ortam değişkenleri kontrol edildi — `IYZICO_API_KEY`, `IYZICO_SECRET_KEY`,
+`IYZICO_MERCHANT_ID` (daha önce hiç tanımlı değildi, artık eklendi) ve
+`IYZICO_BASE_URL` (`https://api.iyzipay.com`, sandbox değil) hepsi doğru
+tanımlı; bu değerlerle yapılan production deploy zaten yayında.
+`/admin/iyzico-abonelik`'ten "Ürün + Ödeme Planlarını Oluştur" tekrar
+çalıştırıldı — bu sefer başarılı, ürün ve 3 ödeme planının (Pro/İşletme/
+İşletme Yıllık) gerçek referans kodları oluştu. Aynı gün ayrıca
+`lib/iyzicoSubscription.ts`'e gerçek bir `cancelSubscription()` fonksiyonu
+eklendi ve free'ye dönüş/plan değişimi/hesap silme akışlarına bağlandı
+(iptal başarısız olursa işlem durur, çift/sessiz tahsilat riski kapatıldı),
+`app/api/shop/plan/callback`'teki eksik try/catch de düzeltildi (bkz. commit
+`909f9f0`). Zeki, gerçek kartla hem etiket siparişi hem abonelik akışının
+uçtan uca sorunsuz çalıştığını doğruladı. **Bu maddedeki tüm işler
+tamamlandı** — `PAID_PLANS_ENABLED` `true` olarak kalıyor, ücretli planlar
+canlı ve gerçek tahsilat alıyor.
 
 ## 2. KVKK Aydınlatma Metni — adres/telefon ✅ Tamamlandı (20 Ağustos 2026)
 
