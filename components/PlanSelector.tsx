@@ -3,24 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
-import {
-  FOUNDING_SERVICE_DISCOUNT_PERCENT,
-  PAID_PLANS_DISABLED_MESSAGE,
-  PAID_PLANS_ENABLED,
-} from "@/lib/planAvailability";
+import { PAID_PLANS_DISABLED_MESSAGE, PAID_PLANS_ENABLED } from "@/lib/planAvailability";
 import { useToast } from "@/components/Toast";
 
 export default function PlanSelector({
   currentPlan,
   pendingPlan,
-  foundingServiceRank,
 }: {
   currentPlan: Plan;
   pendingPlan?: Plan;
-  // Kurucu Servis kontenjanı (bkz. lib/planAvailability.ts) — bayi kayıt
-  // olurken kontenjan doluysa undefined olur, bu durumda normal "Yakında"
-  // metni gösterilir.
-  foundingServiceRank?: number;
 }) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -82,10 +73,6 @@ export default function PlanSelector({
         const isPending = key === pendingPlan;
         const isCampaign = Boolean(plan.badge);
         const isLocked = key !== "free" && !PAID_PLANS_ENABLED && !active && !isPending;
-        // Kurucu Servis kontenjanını yakalamış bir bayi için Pro kartındaki
-        // "Yakında" yerine kazandığı ayrıcalığı hatırlatan olumlu bir rozet
-        // gösterilir (bkz. app/dashboard/plan/page.tsx'teki üstteki banner).
-        const isFounderPro = isLocked && key === "pro" && Boolean(foundingServiceRank);
         return (
           <div
             key={key}
@@ -125,26 +112,22 @@ export default function PlanSelector({
                   ? "bg-slate-100 text-slate-400"
                   : isPending
                     ? "bg-amber-100 text-amber-700"
-                    : isFounderPro
-                      ? "bg-accent-50 text-accent-700"
-                      : isLocked
-                        ? "bg-slate-100 text-slate-400"
-                        : isCampaign
-                          ? "bg-accent-500 text-white hover:bg-accent-600"
-                          : "bg-brand-600 text-white hover:bg-brand-700"
+                    : isLocked
+                      ? "bg-slate-100 text-slate-400"
+                      : isCampaign
+                        ? "bg-accent-500 text-white hover:bg-accent-600"
+                        : "bg-brand-600 text-white hover:bg-brand-700"
               } disabled:opacity-60`}
             >
               {active
                 ? "Mevcut Plan"
                 : isPending
                   ? "Onay Bekleniyor"
-                  : isFounderPro
-                    ? `✓ Kurucu İndirimi (%${FOUNDING_SERVICE_DISCOUNT_PERCENT})`
-                    : isLocked
-                      ? "Yakında"
-                      : loading === key
-                        ? "Talep gönderiliyor..."
-                        : "Bu Planı Seç"}
+                  : isLocked
+                    ? "Yakında"
+                    : loading === key
+                      ? "Talep gönderiliyor..."
+                      : "Bu Planı Seç"}
             </button>
           </div>
         );

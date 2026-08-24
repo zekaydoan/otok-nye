@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { PLAN_LIMITS } from "@/lib/types";
-import { FOUNDING_SERVICE_SLOTS, PAID_PLANS_ENABLED } from "@/lib/planAvailability";
-import { getFoundingServiceCount } from "@/lib/blobStore";
+import { PAID_PLANS_ENABLED } from "@/lib/planAvailability";
 import Logo from "@/components/Logo";
 import PaymentBadges from "@/components/PaymentBadges";
 import FaqAccordion from "@/components/FaqAccordion";
@@ -233,12 +232,6 @@ const faqJsonLd = {
 };
 
 export default async function HomePage() {
-  // Kurucu Servis kontenjanı (bkz. lib/planAvailability.ts) — tek anahtarlı ucuz
-  // sayaç okuması, listAllShops() TARAMAZ (ana sayfa herkese açık ve sık ziyaret
-  // ediliyor).
-  const foundingServiceCount = await getFoundingServiceCount();
-  const foundingServiceRemaining = Math.max(0, FOUNDING_SERVICE_SLOTS - foundingServiceCount);
-
   return (
     <main className="min-h-screen">
       <script
@@ -678,31 +671,12 @@ export default async function HomePage() {
             Fiziksel QR etiketleri üyelik planından ayrı ücretlendirilir ve ihtiyaç oldukça
             sipariş edilir.
           </p>
-          {/* V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): bu banner'ın
-              koşullu yapısı (!PAID_PLANS_ENABLED) DEĞİŞMEDİ — yalnızca
-              içindeki metin, ödeme tarafında fiilen uygulanmayan bir "ömür
-              boyu %İNDİRİM" vaadi içermeyecek şekilde yeniden yazıldı. Kurucu
-              Servis kontenjanı (yer kaldı/doldu bilgisi) somut ve doğru
-              kaldığı için korundu, yalnızca indirim vaadi kaldırıldı. */}
           {!PAID_PLANS_ENABLED && (
             <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-accent-400/30 bg-white/5 px-5 py-4 text-center">
-              {foundingServiceRemaining > 0 ? (
-                <>
-                  <p className="text-xs font-bold uppercase tracking-wide text-accent-400">
-                    🚀 Kurucu Servis Kontenjanı — {foundingServiceRemaining} yer kaldı
-                  </p>
-                  <p className="mt-1.5 text-sm text-slate-200">
-                    Ücretli planlar henüz herkese açık değil — şimdi ücretsiz başlayan ilk{" "}
-                    {FOUNDING_SERVICE_SLOTS} servisten biri olun, planlar açıldığında haberdar
-                    olan ilk siz olun.
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-slate-100">
-                  Kurucu Servis kontenjanımız doldu — ücretli planlar (Pro, İşletme) çok
-                  yakında herkese açılacak.
-                </p>
-              )}
+              <p className="text-sm text-slate-100">
+                Ücretli planlar (Pro, İşletme) kısa süre içinde açılacak — şimdi ücretsiz
+                başlayın, planlar açıldığında haberdar olan ilk siz olun.
+              </p>
             </div>
           )}
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -756,24 +730,9 @@ export default async function HomePage() {
                     </li>
                   </ul>
                   {isLocked ? (
-                    foundingServiceRemaining > 0 ? (
-                      <div className="mt-6">
-                        <Link
-                          href="/kayit"
-                          className="block rounded-lg bg-accent-500 py-2 text-center font-semibold text-white hover:bg-accent-600"
-                        >
-                          Kurucu Servis Ol
-                        </Link>
-                        <p className="mt-2 text-center text-xs text-white/60">
-                          Ücretsiz başlayın, ücretli planlar açıldığında ilk haberdar
-                          olanlardan olun
-                        </p>
-                      </div>
-                    ) : (
-                      <span className="mt-6 block cursor-not-allowed rounded-lg bg-white/10 py-2 text-center font-semibold text-white/60">
-                        Yakında
-                      </span>
-                    )
+                    <span className="mt-6 block cursor-not-allowed rounded-lg bg-white/10 py-2 text-center font-semibold text-white/60">
+                      Yakında
+                    </span>
                   ) : (
                     <Link
                       href="/kayit"

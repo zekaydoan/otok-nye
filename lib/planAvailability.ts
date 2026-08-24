@@ -30,16 +30,11 @@
 // alınmalı (bkz. SIRKET_KURULUSU_SONRASI_YAPILACAKLAR.md madde 1).
 export const PAID_PLANS_ENABLED = true;
 
-// ---- Kurucu Servis kontenjanı ----
-// "Ücretli planlar yakında açılacak" tek başına güven kırıcı ve belirsiz —
-// bunun yerine somut, süreli bir teklife çeviriyoruz: ilk FOUNDING_SERVICE_SLOTS
-// kayıt olan servis, Pro paketi açıldığında ömür boyu %FOUNDING_SERVICE_DISCOUNT_PERCENT
-// indirimli kullanır. Sıra numarası kayıt anında atanır ve kalıcıdır (bkz.
-// lib/types.ts Shop.foundingServiceRank, lib/blobStore.ts claimFoundingServiceRank).
-// Bu dosya client component'lere de import edildiği için (components/PlanSelector)
-// yalnızca sabit/saf değerler içermeli — herhangi bir sunucu tarafı veri
-// okuması (blobStore vb.) buraya EKLENMEMELİ.
-export const FOUNDING_SERVICE_SLOTS = 100;
-export const FOUNDING_SERVICE_DISCOUNT_PERCENT = 50;
-
-export const PAID_PLANS_DISABLED_MESSAGE = `Şu anda yalnızca Ücretsiz plan kullanılabiliyor. Kurucu Servis kontenjanı: ilk ${FOUNDING_SERVICE_SLOTS} kayıt olan servis, Pro paketi açıldığında ömür boyu %${FOUNDING_SERVICE_DISCOUNT_PERCENT} indirimli kullanır.`;
+// 24 Ağustos 2026: "Kurucu Servis" kampanyası (ilk 100 kayıt için ömür boyu
+// %50 indirim taahhüdü) komple iptal edildi — Zeki ayrı bir kampanya
+// planlıyor. FOUNDING_SERVICE_SLOTS/FOUNDING_SERVICE_DISCOUNT_PERCENT
+// sabitleri, Shop.foundingServiceRank alanı, blobStore.claimFoundingServiceRank/
+// getFoundingServiceCount fonksiyonları ve ilgili UI (ana sayfa, PlanSelector,
+// /dashboard/plan) kaldırıldı; hukuki metinlerdeki (Abonelik Politikası Md.11,
+// Saha Partner Sözleşmesi eski Md.6) karşılık gelen maddeler de kaldırıldı.
+export const PAID_PLANS_DISABLED_MESSAGE = `Şu anda yalnızca Ücretsiz plan kullanılabiliyor. Ücretli planlar (Pro, İşletme) kısa süre içinde açılacak.`;

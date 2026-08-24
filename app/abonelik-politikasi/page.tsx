@@ -15,7 +15,7 @@ export default function AbonelikPolitikasiPage() {
           Abonelik, Ödeme, Yenileme, İptal ve İade Politikası
         </h1>
         <p className="mt-2 text-sm text-slate-500">
-          Yürürlük tarihi: 20 Ağustos 2026 · Versiyon: v1.0
+          Yürürlük tarihi: 24 Ağustos 2026 · Versiyon: v1.1
         </p>
         <p className="mt-2 text-sm text-slate-500">
           <Link href="/saas-sozlesmesi" className="text-brand-600 underline">
@@ -136,17 +136,7 @@ export default function AbonelikPolitikasiPage() {
           uygulanır; cari dönem için önceden ödenmiş bedel bu değişiklikten etkilenmez.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">
-          Madde 11 — Kurucu Servis Kampanyası
-        </h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Şirket'in ilan ettiği "Kurucu Servis" kampanyası kapsamında, kampanya süresince kayıt
-          olan ilk yüz (100) Kullanıcı'ya, ücretli plana geçtiklerinde ömür boyu geçerli %50
-          indirim taahhüdü verilir; bu taahhüt, ilgili Kullanıcı'nın hesabı aktif olduğu sürece
-          bağlayıcıdır ve Şirket tarafından tek taraflı olarak geri alınamaz.
-        </p>
-
-        <h2 className="mt-8 text-lg font-bold text-slate-900">Madde 12 — Muhtelif</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">Madde 11 — Muhtelif</h2>
         <p className="mt-2 text-sm text-slate-600">
           İşbu Politika, SaaS Kullanım ve Lisans Sözleşmesi'nin ekidir; işbu Politika ile Ana
           Sözleşme arasında çelişki bulunması hâlinde, ödeme/abonelik konularında işbu Politika,

@@ -1,6 +1,8 @@
 # SAHA PARTNER SÖZLEŞMESİ
 
-**Yürürlük Tarihi:** 20 Ağustos 2026 · **Versiyon:** v1.0
+**Yürürlük Tarihi:** 24 Ağustos 2026 · **Versiyon:** v1.1
+
+> **Değişiklik notu (v1.1, 24 Ağustos 2026):** v1.0'daki Madde 6 (Kurucu Servis Programı Bilgilendirmesi) kaldırıldı — OtoHafıza "Kurucu Servis" kampanyasını sona erdirmiştir. Sonraki maddeler buna göre yeniden numaralandırıldı (eski Madde 7-11, yeni Madde 6-10).
 
 > ⚠️ **Kritik uyarı:** Bu sözleşme, Partner'ı bağımsız yüklenici (serbest meslek erbabı) olarak nitelendirir. Ancak Türk iş hukukunda bu nitelendirme, sözleşme metniyle değil **fiili uygulamayla** test edilir — Partner'a çalışma saati dayatılmaması, talimatla bağımlı çalıştırılmaması ve münhasırlık istenmemesi gerekir. Aşağıdaki maddeler bu fiili bağımsızlığı hem yansıtacak hem koruyacak şekilde kurgulandı; **sözleşmenin fiili uygulamayla tutarlı yürütülmesi sorumluluğu işletmeye aittir.** Ayrıca partnere yapılacak ödemelerin stopaj/vergi muamelesi (serbest meslek makbuzu, gelir vergisi stopajı vb.) partnerin somut vergi statüsüne göre değişir — bu konuda mali müşavir görüşü alınması gerekir, aşağıdaki metin bunu varsaymamıştır.
 
@@ -46,34 +48,30 @@
 
 5.4. Aktivasyon Primi'nin tahakkuku, yalnızca kayıt değil, Madde 2.2'deki gerçek kullanım koşuluna bağlıdır — bu, sahte/usulsüz kayıt yoluyla komisyon kazanılmasını önlemek içindir.
 
-## MADDE 6 — KURUCU SERVİS PROGRAMI BİLGİLENDİRMESİ
+## MADDE 6 — MARKA KULLANIMI VE TANITIM
 
-6.1. Partner'ın kazandırdığı Referans, OtoHafıza'nın "Kurucu Servis" kampanyası kapsamındaysa (ilk 100 kayıt), bu Referans Abonelik, Ödeme, Yenileme, İptal ve İade Politikası Madde 11'deki ömür boyu indirim hakkından faydalanır; bu durum Partner'ın komisyon tutarını etkilemez (komisyon, indirimli bedel üzerinden değil, standart hesaplama esasına göre işler; kesin uygulama Platform içi güncel esaslarla belirlenir).
+6.1. Partner, "OtoHafıza" markasını yalnızca OtoHafıza'nın sağladığı veya onayladığı tanıtım materyalleriyle, doğru ve yanıltıcı olmayan bir şekilde kullanabilir.
 
-## MADDE 7 — MARKA KULLANIMI VE TANITIM
+6.2. Partner, OtoHafıza adına bağlayıcı hiçbir taahhütte (fiyat, özellik, hizmet garantisi vb.) bulunamaz; yalnızca Platform'da yayınlanan güncel bilgileri aktarabilir. SaaS Kullanım ve Lisans Sözleşmesi Madde 13.6'daki bütünlük hükmü burada da geçerlidir: Partner'ın verdiği, Platform'da yer almayan sözlü beyanlar OtoHafıza'yı bağlamaz.
 
-7.1. Partner, "OtoHafıza" markasını yalnızca OtoHafıza'nın sağladığı veya onayladığı tanıtım materyalleriyle, doğru ve yanıltıcı olmayan bir şekilde kullanabilir.
+## MADDE 7 — GİZLİLİK
 
-7.2. Partner, OtoHafıza adına bağlayıcı hiçbir taahhütte (fiyat, özellik, hizmet garantisi vb.) bulunamaz; yalnızca Platform'da yayınlanan güncel bilgileri aktarabilir. SaaS Kullanım ve Lisans Sözleşmesi Madde 13.6'daki bütünlük hükmü burada da geçerlidir: Partner'ın verdiği, Platform'da yer almayan sözlü beyanlar OtoHafıza'yı bağlamaz.
+7.1. Partner, faaliyeti sırasında öğrendiği bayi/Referans bilgilerini ve OtoHafıza'nın ticari sırrı niteliğindeki bilgilerini yalnızca işbu Sözleşme amacıyla kullanır, üçüncü kişilerle paylaşmaz. Bu yükümlülük Sözleşme sona erdikten sonra da devam eder.
 
-## MADDE 8 — GİZLİLİK
+## MADDE 8 — FESİH
 
-8.1. Partner, faaliyeti sırasında öğrendiği bayi/Referans bilgilerini ve OtoHafıza'nın ticari sırrı niteliğindeki bilgilerini yalnızca işbu Sözleşme amacıyla kullanır, üçüncü kişilerle paylaşmaz. Bu yükümlülük Sözleşme sona erdikten sonra da devam eder.
+8.1. Taraflardan her biri, işbu Sözleşme'yi dilediği zaman, diğer tarafa bildirimde bulunarak feshedebilir.
 
-## MADDE 9 — FESİH
+8.2. OtoHafıza, Partner'ın yanıltıcı tanıtım yapması, sahte Referans kazandırmaya çalışması veya işbu Sözleşme'yi esaslı şekilde ihlal etmesi hâlinde Sözleşme'yi derhal feshedebilir.
 
-9.1. Taraflardan her biri, işbu Sözleşme'yi dilediği zaman, diğer tarafa bildirimde bulunarak feshedebilir.
+8.3. Fesih tarihine kadar tahakkuk etmiş ancak henüz ödenmemiş komisyonlar, Madde 5.2'deki ödeme takvimine göre Partner'a ödenmeye devam eder; fesih, tahakkuk etmiş hakları geriye dönük olarak ortadan kaldırmaz. **İstisna:** Madde 8.2 kapsamında sahte/usulsüz işlemden kaynaklanan tahakkuklar bu korumadan yararlanmaz.
 
-9.2. OtoHafıza, Partner'ın yanıltıcı tanıtım yapması, sahte Referans kazandırmaya çalışması veya işbu Sözleşme'yi esaslı şekilde ihlal etmesi hâlinde Sözleşme'yi derhal feshedebilir.
+## MADDE 9 — SORUMLULUĞUN SINIRLANDIRILMASI
 
-9.3. Fesih tarihine kadar tahakkuk etmiş ancak henüz ödenmemiş komisyonlar, Madde 5.2'deki ödeme takvimine göre Partner'a ödenmeye devam eder; fesih, tahakkuk etmiş hakları geriye dönük olarak ortadan kaldırmaz. **İstisna:** Madde 9.2 kapsamında sahte/usulsüz işlemden kaynaklanan tahakkuklar bu korumadan yararlanmaz.
+9.1. OtoHafıza'nın işbu Sözleşme'den doğan sorumluluğu, SaaS Kullanım ve Lisans Sözleşmesi Madde 11.3-11.4'teki esaslara kıyasen tabidir.
 
-## MADDE 10 — SORUMLULUĞUN SINIRLANDIRILMASI
+## MADDE 10 — UYGULANACAK HUKUK VE UYUŞMAZLIK
 
-10.1. OtoHafıza'nın işbu Sözleşme'den doğan sorumluluğu, SaaS Kullanım ve Lisans Sözleşmesi Madde 11.3-11.4'teki esaslara kıyasen tabidir.
+10.1. İşbu Sözleşme Türkiye Cumhuriyeti hukukuna tabidir. Uyuşmazlıklarda önce zorunlu arabuluculuğa başvurulur; Manisa Mahkemeleri ve İcra Daireleri yetkilidir.
 
-## MADDE 11 — UYGULANACAK HUKUK VE UYUŞMAZLIK
-
-11.1. İşbu Sözleşme Türkiye Cumhuriyeti hukukuna tabidir. Uyuşmazlıklarda önce zorunlu arabuluculuğa başvurulur; Manisa Mahkemeleri ve İcra Daireleri yetkilidir.
-
-11.2. Partner, işbu Sözleşme ilişkisinin bir iş sözleşmesi olarak nitelendirilmesi gerektiğini iddia ederse, bu iddianın değerlendirilmesinde işbu Sözleşme'nin lafzı değil, tarafların fiili ilişkisi esas alınır; bu madde, Partner'ın kanundan doğan haklarını (varsa) ortadan kaldırmaz.
+10.2. Partner, işbu Sözleşme ilişkisinin bir iş sözleşmesi olarak nitelendirilmesi gerektiğini iddia ederse, bu iddianın değerlendirilmesinde işbu Sözleşme'nin lafzı değil, tarafların fiili ilişkisi esas alınır; bu madde, Partner'ın kanundan doğan haklarını (varsa) ortadan kaldırmaz.

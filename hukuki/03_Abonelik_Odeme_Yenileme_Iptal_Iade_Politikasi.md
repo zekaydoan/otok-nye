@@ -1,7 +1,9 @@
 # ABONELİK, ÖDEME, YENİLEME, İPTAL VE İADE POLİTİKASI
 
-**Yürürlük Tarihi:** 20 Ağustos 2026 · **Versiyon:** v1.0
+**Yürürlük Tarihi:** 24 Ağustos 2026 · **Versiyon:** v1.1
 *SaaS Kullanım ve Lisans Sözleşmesi'nin ("Ana Sözleşme") Madde 3.2(b) uyarınca ekidir.*
+
+> **Değişiklik notu (v1.1, 24 Ağustos 2026):** v1.0'daki Madde 11 (Kurucu Servis Kampanyası) kaldırıldı — Şirket "Kurucu Servis" kampanyasını sona erdirmiştir. Sonraki madde buna göre yeniden numaralandırıldı (eski Madde 12, yeni Madde 11).
 
 > Not: "14 gün içinde iade" talebi, iki ayrı temelde ele alınmıştır — Mesafeli Sözleşmeler Yönetmeliği'nde dijital hizmetlerde tüketicinin anında ifayı onaylaması hâlinde cayma hakkının düşebileceği bir istisna bulunduğundan, bu yasal cayma hakkından bağımsız, gönüllü bir "memnuniyet garantisi" ayrıca kurgulanmıştır (bkz. Madde 8).
 
@@ -67,14 +69,6 @@
 
 10.2. Plan düşürme, cari dönem sonunda uygulanır; cari dönem için önceden ödenmiş bedel bu değişiklikten etkilenmez.
 
-## MADDE 11 — KURUCU SERVİS KAMPANYASI
+## MADDE 11 — MUHTELİF
 
-11.1. Şirket'in ilan ettiği "Kurucu Servis" kampanyası kapsamında, kampanya süresince kayıt olan ilk yüz (100) Kullanıcı'ya, ücretli plana geçtiklerinde ömür boyu geçerli %50 indirim taahhüdü verilir.
-
-11.2. Kampanya kapsamında kayıt hakkı kazanmış Kullanıcılar için bu taahhüt, ilgili Kullanıcı'nın hesabı aktif olduğu sürece bağlayıcıdır ve Şirket tarafından tek taraflı olarak geri alınamaz.
-
-11.3. Şirket, kampanyayı yeni kayıtlara kapatma veya kontenjanı doldurma hakkını saklı tutar; bu, yalnızca kampanyanın yeni Kullanıcılara açık olup olmadığını etkiler, madde 11.2 kapsamında hak kazanmış Kullanıcıları etkilemez.
-
-## MADDE 12 — MUHTELİF
-
-12.1. İşbu Politika, Ana Sözleşme'nin ekidir; işbu Politika ile Ana Sözleşme arasında çelişki bulunması hâlinde, ödeme/abonelik konularında işbu Politika, diğer tüm konularda Ana Sözleşme esas alınır.
+11.1. İşbu Politika, Ana Sözleşme'nin ekidir; işbu Politika ile Ana Sözleşme arasında çelişki bulunması hâlinde, ödeme/abonelik konularında işbu Politika, diğer tüm konularda Ana Sözleşme esas alınır.

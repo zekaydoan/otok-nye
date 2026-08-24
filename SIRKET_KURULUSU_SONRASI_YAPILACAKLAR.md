@@ -241,10 +241,9 @@ gerçekleşiyor (`lib/iyzicoSubscription.ts`). Bizim tarafımızda yalnızca
 sonucu bildiren callback/webhook işleniyor — bu doğru ve güvenli mimari,
 ek bir değişiklik gerekmiyor.
 
-**Ayrıca bekleyen, ayrı bir konu (madde 7 ile aynı):** Kurucu Servis
-kontenjanına giren bayiler için ömür boyu %50 indirimli Pro fiyatı henüz
-uygulanmıyor — bunun için iyzico'da ayrı bir indirimli ödeme planı
-oluşturup bu bayilere bağlamak gerekiyor, henüz yazılmadı.
+**Ayrıca (madde 7 ile aynı konu, artık kapandı):** Kurucu Servis kampanyası
+24 Ağustos 2026'da Zeki'nin talimatıyla komple iptal edildi — aşağıdaki
+madde 7'ye bakınız.
 
 ### 23 Ağustos 2026 — "Ürün + Ödeme Planlarını Oluştur" denendi, ⏳ iyzico'da bekliyor
 
@@ -324,30 +323,32 @@ Free plan dahil her bayiden fatura bilgisi zorunlu tutuluyor
 Bu kural şirket kuruluşundan bağımsız, kalıcı — burada bir değişiklik
 gerekmiyor, sadece bağlamı hatırlatmak için not düşüldü.
 
-## 7. Kurucu Servis kontenjanı — ömür boyu %50 Pro indirimi uygulanmalı
+## 7. Kurucu Servis kampanyası — ❌ İPTAL EDİLDİ (24 Ağustos 2026, Zeki talimatı)
 
-- **Dosyalar:** `lib/planAvailability.ts` (`FOUNDING_SERVICE_SLOTS`,
-  `FOUNDING_SERVICE_DISCOUNT_PERCENT`), `lib/types.ts` (`Shop.foundingServiceRank`),
-  `lib/blobStore.ts` (`claimFoundingServiceRank`, `getFoundingServiceCount`),
-  `app/api/auth/signup/route.ts`.
-- **Bağlam:** "Ücretli planlar yakında açılacak" mesajı tek başına güven
-  kırıcı bulundu (16 Ağustos 2026), bunun yerine somut bir teklife çevrildi:
-  ilk `FOUNDING_SERVICE_SLOTS` (şu an 100) kayıt olan servis kalıcı olarak
-  `Shop.foundingServiceRank` alanını taşıyor. Bu, ana sayfa fiyatlandırma
-  bölümünde ve `/dashboard/plan`'da zaten gösteriliyor.
-- **Yapılması gereken:** `PAID_PLANS_ENABLED` `true` yapılıp Pro fiyatlandırması
-  (iyzico Abonelik ödeme planı, madde 1) devreye girdiğinde, `foundingServiceRank`
-  alanı DOLU olan bayiler için Pro fiyatı normalin (o an ne olursa olsun)
-  %`FOUNDING_SERVICE_DISCOUNT_PERCENT`'i olmalı — ÖMÜR BOYU, sadece ilk ay değil.
-  Bu muhtemelen iyzico'da bu bayiler için ayrı bir indirimli "Ödeme Planı"
-  (pricing plan) oluşturup `iyzicoPricingPlanReferenceCode`'u ona bağlamak
-  anlamına gelir. Kaç bayinin bu haktan yararlanacağını görmek için:
-  `listAllShops()` sonucunu `foundingServiceRank` alanına göre filtrelemek
-  yeterli (admin tarafında ayrı bir liste/rapor sayfası bu maddeyle birlikte
-  eklenebilir, henüz eklenmedi).
-- **Dikkat:** Bu, kontenjanı gerçekten dolduran (~100 kayıt) bir aciliyet
-  senaryosu düşünülerek tasarlandı — kontenjan hiç dolmazsa (ör. 10-20 bayide
-  kalırsa) bu madde yine de geçerli, sadece daha az kişiyi kapsar.
+Kurucu Servis kampanyası (ilk 100 kayıt için ömür boyu %50 Pro indirimi
+taahhüdü) Zeki'nin açık talimatıyla **komple iptal edildi** — ayrı bir
+kampanya planlanıyor. Kod tabanından tamamen kaldırıldı:
+
+- `lib/planAvailability.ts`: `FOUNDING_SERVICE_SLOTS`/`FOUNDING_SERVICE_DISCOUNT_PERCENT`
+  sabitleri silindi, `PAID_PLANS_DISABLED_MESSAGE` yeniden yazıldı.
+- `lib/types.ts`: `Shop.foundingServiceRank` alanı kaldırıldı (mevcut kayıtlarda
+  eski değer blob'da kalmış olabilir ama artık hiçbir kod tarafından okunmuyor —
+  Zeki'nin açık kararıyla ayrıca temizlenmedi).
+- `lib/blobStore.ts`: `claimFoundingServiceRank`/`getFoundingServiceCount`
+  fonksiyonları ve `founding_service_counter` store'u kaldırıldı.
+- `app/api/auth/signup/route.ts`: kayıt akışından kurucu sırası atama adımı
+  kaldırıldı.
+- `components/PlanSelector.tsx`, `app/page.tsx`, `app/dashboard/plan/page.tsx`:
+  ilgili banner/rozet/CTA'lar kaldırıldı.
+- **Hukuki:** Abonelik Politikası Md.11 ve Saha Partner Sözleşmesi eski Md.6
+  komple kaldırıldı, sonraki maddeler yeniden numaralandırıldı; her iki belge
+  de versiyon bumplandı (Abonelik Politikası v1.0→v1.1, Saha Partner Sözleşmesi
+  v1.0→v1.1 — ikincisi hash-tracked olduğu için `lib/contracts.ts`
+  `CONTRACT_VERSIONS`'ta da güncellendi). `hukuki/00_INDEKS_ve_RISK_ANALIZI.md`
+  risk #8 "✅ Kaldırıldı" olarak işaretlendi.
+- Zaten kayıt olmuş, `foundingServiceRank` alanı dolu olabilecek bayiler için
+  hiçbir grandfather/geriye dönük hak koruması uygulanmadı — Zeki bunu bilerek
+  tercih etti.
 
 ## 8. E-Fatura Entegrasyonu (Trendyol e-Faturam) — otomatik fatura kesme
 

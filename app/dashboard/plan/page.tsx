@@ -2,10 +2,7 @@ import Link from "next/link";
 import { getCurrentSession } from "@/lib/auth";
 import { getShopById } from "@/lib/blobStore";
 import { isBillingInfoComplete } from "@/lib/billing";
-import {
-  FOUNDING_SERVICE_DISCOUNT_PERCENT,
-  PAID_PLANS_ENABLED,
-} from "@/lib/planAvailability";
+import { PAID_PLANS_ENABLED } from "@/lib/planAvailability";
 import PlanSelector from "@/components/PlanSelector";
 
 export default async function PlanPage() {
@@ -22,14 +19,6 @@ export default async function PlanPage() {
           : "Şirket kuruluş işlemlerimiz tamamlanana kadar yalnızca Ücretsiz plan kullanılabiliyor. Ücretli planlar (Pro, İşletme) kısa süre içinde açılacak."}
       </p>
 
-      {!PAID_PLANS_ENABLED && shop?.foundingServiceRank && (
-        <div className="mt-4 rounded-lg border border-accent-300 bg-accent-50 px-4 py-3 text-sm text-accent-800">
-          🚀 <strong>Kurucu Servissiniz!</strong> ({shop.foundingServiceRank}. sıra) Pro paketi
-          açıldığında ömür boyu %{FOUNDING_SERVICE_DISCOUNT_PERCENT} indirimli kullanacaksınız —
-          bu ayrıcalık hesabınıza kalıcı olarak kaydedildi.
-        </div>
-      )}
-
       {shop && isOwner && shop.plan === "free" && PAID_PLANS_ENABLED && !isBillingInfoComplete(shop.billingInfo) && (
         <div className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Ücretli bir plana geçmeden önce{" "}
@@ -44,11 +33,7 @@ export default async function PlanPage() {
       )}
 
       {shop && isOwner && (
-        <PlanSelector
-          currentPlan={shop.plan}
-          pendingPlan={shop.pendingPlan}
-          foundingServiceRank={shop.foundingServiceRank}
-        />
+        <PlanSelector currentPlan={shop.plan} pendingPlan={shop.pendingPlan} />
       )}
       {shop && !isOwner && (
         <div className="mt-6 rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-700">

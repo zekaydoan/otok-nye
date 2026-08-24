@@ -39,7 +39,7 @@
 | 5 | Yurt dışına veri aktarımı (Netlify/Resend—ABD) | Orta (açık rıza geçici dayanak, standart sözleşme bekleniyor) | KVKK m.9 hiyerarşisi netleştirildi (yeterlilik > standart sözleşme/taahhütname > açık rıza-son çare); Netlify/Resend ile standart sözleşme imzalanana kadar açık rıza kullanılıyor — **avukat onayı hâlâ önerilir** | KVKK Metni §1.6, DPA §5.3 |
 | 6 | Ödeme/tahsilat (iyzico) | Düşük-Orta | Kart verisi platforma dokunmuyor | Abonelik Politikası |
 | 7 | Otomatik yenileme + iade uyuşmazlıkları | Orta | 14 gün cayma hakkı + gönüllü memnuniyet garantisi ayrımı | Mesafeli Satış, Abonelik Politikası |
-| 8 | Kurucu Servis taahhüdünün geri çekilmesi | Orta | İlk 100 kayıt korunur, yalnızca yeni kayıtlar kapatılabilir | Abonelik Politikası Md.11 |
+| 8 | Kurucu Servis kampanyası | ✅ Kaldırıldı (24 Ağustos 2026) | Kampanya komple iptal edildi (kod + hukuki metinler), Şirket yeni bir kampanya planlıyor | — |
 | 9 | Hesap/cihaz paylaşımı | Orta | AUP yasağı + fesih hakkı | AUP, SaaS Sözleşmesi |
 | 10 | Scraping/bot/API kötüye kullanımı | Orta | AUP yasağı + rate limiting | AUP |
 | 11 | Personel hesabı eylemlerinden sorumluluk | Düşük | Temsil esaslı madde | SaaS Sözleşmesi Md.4.5 |

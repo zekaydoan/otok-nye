@@ -8,9 +8,13 @@ import type { ContractDocumentKey } from "./types";
 // değiştiğinde buradaki ilgili versiyon da güncellenmelidir; aksi hâlde eski
 // bir onay kaydı, kabul edilmemiş güncel bir metne aitmiş gibi yanlış
 // yorumlanabilir.
+// 24 Ağustos 2026: saha_partner_sozlesmesi v1.1'e yükseltildi — "Kurucu
+// Servis" kampanyası iptal edildiği için Madde 6 (Kurucu Servis Programı
+// Bilgilendirmesi) kaldırıldı, sonraki maddeler yeniden numaralandırıldı
+// (bkz. hukuki/09_Saha_Partner_Sozlesmesi.md ve app/saha-partner-sozlesmesi).
 export const CONTRACT_VERSIONS: Record<ContractDocumentKey, string> = {
   saas_kullanim_sartlari: "v1.0-20260820",
-  saha_partner_sozlesmesi: "v1.0-20260820",
+  saha_partner_sozlesmesi: "v1.1-20260824",
   kvkk_aydinlatma: "v2.0-20260820",
   yurtdisi_veri_aktarimi: "v2.0-20260820",
   pazarlama_izni: "v1.0-20260820",

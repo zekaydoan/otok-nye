@@ -13,7 +13,7 @@ export default function SahaPartnerSozlesmesiPage() {
         </Link>
         <h1 className="mt-4 text-2xl font-bold text-slate-900">Saha Partner Sözleşmesi</h1>
         <p className="mt-2 text-sm text-slate-500">
-          Yürürlük tarihi: 20 Ağustos 2026 · Versiyon: v1.0
+          Yürürlük tarihi: 24 Ağustos 2026 · Versiyon: v1.1
         </p>
 
         <div className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
@@ -85,17 +85,7 @@ export default function SahaPartnerSozlesmesiPage() {
         </p>
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">
-          Madde 6 — Kurucu Servis Programı Bilgilendirmesi
-        </h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Partner'ın kazandırdığı Referans, OtoHafıza'nın "Kurucu Servis" kampanyası
-          kapsamındaysa (ilk 100 kayıt), bu Referans ömür boyu indirim hakkından faydalanır;
-          bu durum Partner'ın komisyon tutarını etkilemez (komisyon, indirimli bedel üzerinden
-          değil, standart hesaplama esasına göre işler).
-        </p>
-
-        <h2 className="mt-8 text-lg font-bold text-slate-900">
-          Madde 7 — Marka Kullanımı ve Tanıtım
+          Madde 6 — Marka Kullanımı ve Tanıtım
         </h2>
         <p className="mt-2 text-sm text-slate-600">
           Partner, "OtoHafıza" markasını yalnızca OtoHafıza'nın sağladığı veya onayladığı
@@ -106,7 +96,7 @@ export default function SahaPartnerSozlesmesiPage() {
           bağlamaz.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">Madde 8 — Gizlilik</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">Madde 7 — Gizlilik</h2>
         <p className="mt-2 text-sm text-slate-600">
           Partner, faaliyeti sırasında öğrendiği bayi/Referans bilgilerini ve OtoHafıza'nın
           ticari sırrı niteliğindeki bilgilerini yalnızca işbu Sözleşme amacıyla kullanır,
@@ -114,7 +104,7 @@ export default function SahaPartnerSozlesmesiPage() {
           eder.
         </p>
 
-        <h2 className="mt-8 text-lg font-bold text-slate-900">Madde 9 — Fesih</h2>
+        <h2 className="mt-8 text-lg font-bold text-slate-900">Madde 8 — Fesih</h2>
         <p className="mt-2 text-sm text-slate-600">
           Taraflardan her biri, işbu Sözleşme'yi dilediği zaman, diğer tarafa bildirimde
           bulunarak feshedebilir. OtoHafıza, Partner'ın yanıltıcı tanıtım yapması, sahte
@@ -126,7 +116,7 @@ export default function SahaPartnerSozlesmesiPage() {
         </p>
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">
-          Madde 10 — Sorumluluğun Sınırlandırılması
+          Madde 9 — Sorumluluğun Sınırlandırılması
         </h2>
         <p className="mt-2 text-sm text-slate-600">
           OtoHafıza'nın işbu Sözleşme'den doğan sorumluluğu, SaaS Kullanım ve Lisans
@@ -134,7 +124,7 @@ export default function SahaPartnerSozlesmesiPage() {
         </p>
 
         <h2 className="mt-8 text-lg font-bold text-slate-900">
-          Madde 11 — Uygulanacak Hukuk ve Uyuşmazlık
+          Madde 10 — Uygulanacak Hukuk ve Uyuşmazlık
         </h2>
         <p className="mt-2 text-sm text-slate-600">
           İşbu Sözleşme Türkiye Cumhuriyeti hukukuna tabidir. Uyuşmazlıklarda önce zorunlu

@@ -3,7 +3,6 @@ import { randomUUID } from "crypto";
 import { hashPassword, verifyPassword } from "./auth";
 import { getBaseUrl } from "./iyzico";
 import { cancelSubscription } from "./iyzicoSubscription";
-import { FOUNDING_SERVICE_SLOTS } from "./planAvailability";
 import {
   PLAN_LIMITS,
   PARTNER_ACTIVATION_BONUS_TRY,
@@ -49,12 +48,6 @@ import type {
 
 const shopsStore = () => getStore("shops");
 const shopsByEmailStore = () => getStore("shops_by_email");
-// Kurucu Servis kontenjan sayacı — tek anahtarlı ("count") küçük bir blob.
-// listAllShops() gibi tüm bayileri tarayan bir yola çıkmamak için bilinçli
-// olarak ayrı, ucuz bir sayaç: ana sayfa gibi herkese açık, sık ziyaret
-// edilen sayfalarda "kaç kontenjan kaldı" göstermek için tek bir get() yeterli
-// olsun diye (bkz. claimFoundingServiceRank, getFoundingServiceCount).
-const foundingServiceCounterStore = () => getStore("founding_service_counter");
 const vehiclesStore = () => getStore("vehicles");
 const vehiclesByPlateStore = () => getStore("vehicles_by_plate");
 const oilRecordsStore = () => getStore("oilrecords");
@@ -171,7 +164,7 @@ const partnerCommissionsByPartnerStore = () => getStore("partner_commissions_by_
 const partnerCommissionsByShopStore = () => getStore("partner_commissions_by_shop");
 // V2 sadeleştirme (23 Ağustos 2026, Zeki onayı): komisyon tahakkuk fonksiyonlarında
 // (aşağıda) "oku -> yoksa yaz" yarış koşulunu kapatmak için atomik kilit anahtarları
-// — bkz. claimFoundingServiceRank'teki aynı onlyIfNew/onlyIfMatch deseni.
+// — bkz. updateShopFields'daki aynı ETag tabanlı onlyIfNew/onlyIfMatch deseni.
 const partnerCommissionLocksStore = () => getStore("partner_commission_locks");
 
 export function normalizePlate(plate: string): string {
@@ -182,50 +175,6 @@ export function normalizePlate(plate: string): string {
 export async function createShop(shop: Shop): Promise<void> {
   await shopsStore().setJSON(shop.id, shop);
   await shopsByEmailStore().set(shop.email.toLowerCase(), shop.id);
-}
-
-// Kurucu Servis kontenjanından bir sıra numarası talep eder — kontenjan
-// dolduysa (sayaç >= FOUNDING_SERVICE_SLOTS) null döner ve bayi kurucu
-// SAYILMAZ (normal kayıt olarak devam eder, akış hiçbir zaman bloklanmaz).
-// updateShopFields'daki ETag tabanlı iyimser kilitleme deseniyle aynı mantık:
-// aynı anda iki kayıt gelirse biri tekrar dener, iki bayi asla aynı sırayı
-// almaz. Kayıt anında app/api/auth/signup'ta çağrılır.
-export async function claimFoundingServiceRank(): Promise<number | null> {
-  const MAX_ATTEMPTS = 5;
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const result = await foundingServiceCounterStore().getWithMetadata("count", {
-      type: "json",
-      consistency: "strong",
-    });
-    const current = ((result?.data as { count: number } | null)?.count ?? 0) as number;
-    if (current >= FOUNDING_SERVICE_SLOTS) return null;
-    const next = current + 1;
-    // Sayaç blob'u hiç yoksa (ilk kayıt) onlyIfMatch verecek bir ETag yok —
-    // bu durumda onlyIfNew kullanılır ("yalnızca anahtar henüz yoksa yaz").
-    // Bu olmadan iki eşzamanlı ilk-kayıt isteği ikisi de "yok" görüp ikisi de
-    // koşulsuz yazar, ikisine de aynı (1) sıra numarası atanabilirdi.
-    const writeResult = result
-      ? await foundingServiceCounterStore().set("count", JSON.stringify({ count: next }), {
-          onlyIfMatch: result.etag,
-        })
-      : await foundingServiceCounterStore().set("count", JSON.stringify({ count: next }), {
-          onlyIfNew: true,
-        });
-    if (writeResult.modified) return next;
-    // Bu aralıkta başka bir kayıt sırayı aldı (ETag uyuşmadı) — tekrar dene.
-  }
-  // Yoğun eşzamanlı kayıt durumunda bile kayıt akışını ASLA bloklama — kurucu
-  // sırası kaçırılsa da hesap normal şekilde oluşturulmaya devam eder.
-  return null;
-}
-
-// Ana sayfa gibi herkese açık sayfalarda "kaç kontenjan kaldı" göstermek için
-// ucuz, tek anahtarlı okuma — listAllShops() KULLANMAZ.
-export async function getFoundingServiceCount(): Promise<number> {
-  const data = (await foundingServiceCounterStore().get("count", { type: "json" })) as {
-    count: number;
-  } | null;
-  return data?.count ?? 0;
 }
 
 export async function getShopById(id: string): Promise<Shop | null> {
