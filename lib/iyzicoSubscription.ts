@@ -220,6 +220,43 @@ export async function retrieveSubscriptionCheckoutFormResult(
   };
 }
 
+// ---------- Abonelik İptali ----------
+
+export interface CancelSubscriptionResult {
+  status: "success" | "failure";
+  errorMessage?: string;
+}
+
+// bkz. docs.iyzico.com "Cancel Subscription" — POST
+// /v2/subscription/subscriptions/{subscriptionReferenceCode}/cancel. Bir
+// abonelik hangi sebeple olursa olsun sonlandırılmak istendiğinde (bayi
+// ücretsiz plana dönerken, farklı bir ücretli plana geçerken eski aboneliği
+// kapatmak için, ya da hesap tamamen silinirken) BU fonksiyon çağrılmalı —
+// aksi halde iyzico tarafında abonelik aktif kalır ve karttan tahsilat
+// yapılmaya devam eder, panelde plan "free" görünse bile. Şu an gerçek bir
+// abonelik hiç başlatılmadığından (bkz. dosya başındaki dürüstlük notu) uçtan
+// uca test edilmedi.
+export async function cancelSubscription(
+  subscriptionReferenceCode: string
+): Promise<CancelSubscriptionResult> {
+  const path = `/v2/subscription/subscriptions/${subscriptionReferenceCode}/cancel`;
+  const body = { subscriptionReferenceCode };
+  const bodyJson = JSON.stringify(body);
+  const headers = buildAuthHeaders(path, bodyJson);
+
+  const res = await fetch(`${getBaseUrl()}${path}`, {
+    method: "POST",
+    headers,
+    body: bodyJson,
+  });
+  const data = await res.json();
+
+  return {
+    status: data.status === "success" ? "success" : "failure",
+    errorMessage: data.errorMessage,
+  };
+}
+
 // ---------- Webhook Doğrulama ----------
 
 export interface SubscriptionWebhookPayload {

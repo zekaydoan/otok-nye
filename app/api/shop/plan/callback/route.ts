@@ -8,7 +8,10 @@ import {
   recordPlanStart,
   updateShopFields,
 } from "@/lib/blobStore";
-import { retrieveSubscriptionCheckoutFormResult } from "@/lib/iyzicoSubscription";
+import {
+  retrieveSubscriptionCheckoutFormResult,
+  type RetrieveSubscriptionResult,
+} from "@/lib/iyzicoSubscription";
 import { notifyAdmins, escapeHtml } from "@/lib/email";
 import { PLAN_LIMITS } from "@/lib/types";
 
@@ -52,7 +55,17 @@ export async function POST(req: NextRequest) {
   const link = await getSubscriptionCheckoutTokenLink(token);
   if (!link) return resultRedirect(req, { durum: "hata" });
 
-  const result = await retrieveSubscriptionCheckoutFormResult(token);
+  let result: RetrieveSubscriptionResult;
+  try {
+    result = await retrieveSubscriptionCheckoutFormResult(token);
+  } catch (err) {
+    // Ağ hatası/JSON ayrıştırma hatası vb. — kart iyzico tarafında tahsil
+    // edilmiş olabilir ama burada doğrulanamadı. Kullanıcıya hata gösterilir;
+    // webhook (subscription.order.success) daha sonra ayrıca gelirse plan
+    // yine de doğru şekilde aktive olur (bkz. app/api/webhooks/iyzico-abonelik).
+    console.error("[shop-plan-callback] Abonelik sonucu alınamadı:", err);
+    return resultRedirect(req, { durum: "hata" });
+  }
 
   if (
     result.status !== "success" ||

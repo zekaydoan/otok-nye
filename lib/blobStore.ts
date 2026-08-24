@@ -2,6 +2,7 @@ import { getStore } from "@netlify/blobs";
 import { randomUUID } from "crypto";
 import { hashPassword, verifyPassword } from "./auth";
 import { getBaseUrl } from "./iyzico";
+import { cancelSubscription } from "./iyzicoSubscription";
 import { FOUNDING_SERVICE_SLOTS } from "./planAvailability";
 import {
   PLAN_LIMITS,
@@ -287,17 +288,27 @@ export async function updateShopBillingInfo(
 // üzerinde zaten o anki bayi adının anlık görüntüsü (shopName) saklı, silinen
 // hesaba bağımlı değil.
 //
-// Abonelik iptali: sistemde henüz gerçek bir tekrarlayan ödeme/otomatik tahsilat
-// entegrasyonu yok (bkz. BEKLEMEDE task #125, README "Ödeme / Abonelik Notu") —
-// "abonelik" tek bir alanda, Shop.plan'de tutuluyor. Bu yüzden hesabı komple
-// silmek aboneliği de otomatik olarak iptal eder: Shop kaydı ortadan kalkınca
-// artık hiçbir istatistikte (getShopCountsByPlan, getPlanRevenueStats vb.)
-// aktif/ücretli bir plan olarak sayılmaz. İleride gerçek bir POS/otomatik
-// tahsilat sağlayıcısı bağlandığında, buraya sağlayıcının "aboneliği iptal et"
-// API çağrısı da eklenmelidir.
+// Abonelik iptali: Shop.iyzicoSubscriptionReferenceCode doluysa (gerçek bir
+// iyzico Abonelik kaydı varsa) hesap silinmeden ÖNCE orada da iptal edilir —
+// aksi halde Shop kaydı ortadan kalksa bile iyzico tarafında abonelik aktif
+// kalır ve kartından tahsilat yapılmaya devam eder. Bu adım en başta
+// yapılır: iptal başarısız olursa hesap silme işlemi hiç başlamaz, yarım
+// kalmış (kart hâlâ bağlı ama hesap silinmiş) bir durum oluşmaz.
 export async function deleteShop(shopId: string): Promise<Shop | null> {
   const shop = await getShopById(shopId);
   if (!shop) return null;
+
+  if (shop.iyzicoSubscriptionReferenceCode) {
+    const cancelResult = await cancelSubscription(shop.iyzicoSubscriptionReferenceCode).catch((err) => {
+      console.error("[deleteShop] Abonelik iptali başarısız:", err);
+      return { status: "failure" as const, errorMessage: String(err) };
+    });
+    if (cancelResult.status !== "success") {
+      throw new Error(
+        cancelResult.errorMessage || "Abonelik iptal edilemediği için hesap silinemedi."
+      );
+    }
+  }
 
   // Partner ilişki indeksi (shops_by_partner) — yalnızca "hangi bayiler bu
   // partnere bağlı" indeksindeki kaydı temizler (bkz. setShopPartner/

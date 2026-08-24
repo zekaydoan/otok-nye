@@ -9,7 +9,7 @@ import {
 } from "@/lib/blobStore";
 import { isBillingInfoComplete } from "@/lib/billing";
 import { PAID_PLANS_DISABLED_MESSAGE, PAID_PLANS_ENABLED } from "@/lib/planAvailability";
-import { initializeSubscriptionCheckoutForm } from "@/lib/iyzicoSubscription";
+import { cancelSubscription, initializeSubscriptionCheckoutForm } from "@/lib/iyzicoSubscription";
 import { normalizeTrPhone } from "@/lib/whatsapp";
 import { PLAN_LIMITS, type Plan } from "@/lib/types";
 
@@ -60,14 +60,34 @@ export async function POST(req: NextRequest) {
   if (!shop) return NextResponse.json({ error: "Yetkisiz." }, { status: 401 });
 
   // free'ye dönüş risksiz — anında uygulanır, bekleyen bir yükseltme talebi de
-  // bu vazgeçmeyle birlikte iptal edilir.
+  // bu vazgeçmeyle birlikte iptal edilir. Ancak aktif bir iyzico Abonelik
+  // kaydı varsa ÖNCE ORADA iptal edilmeli — aksi halde bayi panelde "free"
+  // görünürken kartından tahsilat yapılmaya devam eder. Bu yüzden iptal
+  // başarısız olursa plan burada free'ye ÇEKİLMEZ, hata döndürülür.
   if (plan === "free") {
+    if (shop.iyzicoSubscriptionReferenceCode) {
+      const cancelResult = await cancelSubscription(shop.iyzicoSubscriptionReferenceCode).catch((err) => {
+        console.error("[shop/plan] Abonelik iptali (free'ye dönüş) başarısız:", err);
+        return { status: "failure" as const, errorMessage: String(err) };
+      });
+      if (cancelResult.status !== "success") {
+        return NextResponse.json(
+          {
+            error:
+              cancelResult.errorMessage ||
+              "Aboneliğiniz iptal edilemedi, lütfen tekrar deneyin ya da bizimle iletişime geçin.",
+          },
+          { status: 502 }
+        );
+      }
+    }
     try {
       await updateShopFields(shopId, (s) => ({
         ...s,
         plan: "free",
         pendingPlan: undefined,
         pendingPlanRequestedAt: undefined,
+        iyzicoSubscriptionReferenceCode: undefined,
       }));
     } catch {
       return NextResponse.json({ error: "Kaydedilemedi, lütfen tekrar deneyin." }, { status: 409 });
@@ -104,6 +124,27 @@ export async function POST(req: NextRequest) {
       { error: "Abonelik sistemi henüz hazır değil, lütfen daha sonra tekrar deneyin." },
       { status: 503 }
     );
+  }
+
+  // Zaten ücretli bir plandan farklı bir ücretli plana geçiliyorsa, yeni
+  // aboneliği başlatmadan ÖNCE eskisi iyzico tarafında iptal edilmeli —
+  // aksi halde iki abonelik birden aktif kalır ve bayi çift tahsilat görür.
+  // Cancel başarısız olursa yeni ödeme hiç başlatılmaz, hata döndürülür.
+  if (shop.plan !== "free" && shop.iyzicoSubscriptionReferenceCode) {
+    const cancelResult = await cancelSubscription(shop.iyzicoSubscriptionReferenceCode).catch((err) => {
+      console.error("[shop/plan] Abonelik iptali (plan değişimi) başarısız:", err);
+      return { status: "failure" as const, errorMessage: String(err) };
+    });
+    if (cancelResult.status !== "success") {
+      return NextResponse.json(
+        {
+          error:
+            cancelResult.errorMessage ||
+            "Mevcut aboneliğiniz iptal edilemedi, lütfen tekrar deneyin ya da bizimle iletişime geçin.",
+        },
+        { status: 502 }
+      );
+    }
   }
 
   const gsmDigits = normalizeTrPhone(shop.billingInfo!.phone || shop.phone);
